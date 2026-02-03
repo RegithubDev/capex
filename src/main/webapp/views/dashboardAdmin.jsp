@@ -604,7 +604,7 @@
     <header class="capex-header">
         <div class="capex-header-content">
             <div class="capex-icon">
-                <img src="assets/logo.png" alt="Company Logo">
+                <img src="/capex/resources/images/Ramky-Logo.png" alt="Company Logo">
             </div>
             <div>
                 <h1>Capital Expenditure Proposal</h1>
@@ -1073,7 +1073,9 @@
             </button>
         </div>
     </div>
-
+  <form action="<%=request.getContextPath() %>/logout" name="logoutForm" id="logoutForm" method="post">
+		
+	</form>
     <script>
         $(document).ready(function() {
             // Set current date for date inputs
@@ -1447,11 +1449,12 @@
             if (confirm('Are you sure you want to logout?')) {
                 // Clear local storage
                 localStorage.clear();
-                
+                console.log('User signed out.');
                 // Redirect to login
-                window.location.href = 'login.jsp?action=logout';
+                $("#logoutForm").submit();
             }
-        }
+        }   
+       
         
         function showLoading() {
             $('#loadingOverlay').fadeIn();
