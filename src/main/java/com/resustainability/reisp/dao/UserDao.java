@@ -250,13 +250,13 @@ public class UserDao {
 					+ "LEFT JOIN sbu s on up.base_sbu = s.sbu  "
 					+ "LEFT JOIN department d on up.base_department = d.department_code  "
 					+ "where  up.user_name <> '' and up.status = 'Active'";
-			if(!StringUtils.isEmpty(user.getUser_id()) && !StringUtils.isEmpty(user.getPassword())){
-				qry = qry + "AND up.user_id = ? "; 
+			if(!StringUtils.isEmpty(user.getUser_name()) && !StringUtils.isEmpty(user.getPassword())){
+				qry = qry + "AND up.user_name = ? "; 
 				qry = qry + "AND up.password = ? "; 
 			}
 			stmt = con.prepareStatement(qry);
-			if(!StringUtils.isEmpty(user.getUser_id()) && !StringUtils.isEmpty(user.getPassword())){
-				stmt.setString(1, user.getUser_id());
+			if(!StringUtils.isEmpty(user.getUser_name()) && !StringUtils.isEmpty(user.getPassword())){
+				stmt.setString(1, user.getUser_name());
 				stmt.setString(2, user.getPassword());
 			}
 			rs = stmt.executeQuery();  
