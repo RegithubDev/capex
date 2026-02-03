@@ -247,9 +247,9 @@ public class UserDao {
 			String qry = "select up.id,up.user_id,up.user_name,up.base_role,up.contact_number,up.email_id,up.base_department,department_name,up.base_sbu,up.base_project,"
 					+ "p.plant_name,s.sbu_name from user_profile up "
 					+ "LEFT JOIN plant p on up.base_project = p.plant_code  "
-					+ "LEFT JOIN sbu s on up.base_sbu = s.sbu_code  "
+					+ "LEFT JOIN sbu s on up.base_sbu = s.sbu  "
 					+ "LEFT JOIN department d on up.base_department = d.department_code  "
-					+ "where  up.user_name <> '' and ua.status = 'Active'";
+					+ "where  up.user_name <> '' and up.status = 'Active'";
 			if(!StringUtils.isEmpty(user.getUser_id()) && !StringUtils.isEmpty(user.getPassword())){
 				qry = qry + "AND up.user_id = ? "; 
 				qry = qry + "AND up.password = ? "; 
@@ -270,11 +270,10 @@ public class UserDao {
 				userDetails.setBase_role(rs.getString("base_role"));
 				userDetails.setBase_sbu(rs.getString("base_sbu"));
 				userDetails.setBase_project(rs.getString("base_project"));
-				userDetails.setProject_name(rs.getString("project_name"));
+				userDetails.setProject_name(rs.getString("plant_name"));
 				userDetails.setSbu_name(rs.getString("sbu_name"));
 				userDetails.setBase_department(rs.getString("base_department"));
 				userDetails.setDepartment_name(rs.getString("department_name"));
-				UserLoginActions(userDetails);
 			}
 		}catch(Exception e){ 
 			throw new SQLException(e.getMessage());

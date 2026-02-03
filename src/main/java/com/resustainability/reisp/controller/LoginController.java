@@ -96,13 +96,10 @@ public class LoginController {
 		ModelAndView model = new ModelAndView(PageConstants.login);
 		User userDetails = null;
 		try {
-			if(!StringUtils.isEmpty(user) && !StringUtils.isEmpty(user.getUser_id()) && !StringUtils.isEmpty(user.getPassword())){
-				user.setUser_session_id(user.getUser_session_id());
+			if(!StringUtils.isEmpty(user) && !StringUtils.isEmpty(user.getUser_name()) && !StringUtils.isEmpty(user.getPassword())){
 				userDetails = service.validateUser(user);
 				if(!StringUtils.isEmpty(userDetails)) {
-					//if((userDetails.getSession_count()) == 0) {
 						model.setViewName("redirect:/home");
-					
 						/// USER BASIC SESSION DATA
 						session.setAttribute("user", userDetails);
 						session.setAttribute("ID", userDetails.getId());
@@ -111,24 +108,12 @@ public class LoginController {
 						session.setAttribute("NUMBER", userDetails.getContact_number());
 						session.setAttribute("USER_EMAIL", userDetails.getEmail_id());
 						session.setAttribute("BASE_ROLE", userDetails.getBase_role());
-						session.setAttribute("USER_IMAGE", user.getProfileImg());
-						session.setAttribute("REPORTING_TO", userDetails.getReporting_to());
 						session.setAttribute("BASE_SBU", userDetails.getBase_sbu());
 						session.setAttribute("BASE_PROJECT", userDetails.getProject_name());
 						session.setAttribute("BASE_DEPARTMENT", userDetails.getBase_department());
-						session.setAttribute("REWARDS", userDetails.getReward_points());
 						session.setAttribute("BASE_PROJECT_CODE", userDetails.getBase_project());
-						session.setAttribute("CURRENT_PROJECT", user.getCurrent_project());
-						session.setAttribute("SESSION_ID", user.getUser_session_id());
-						session.setAttribute("version_no", user.getVersion_no());
-						List<User> menuList = service.getMenuList();
-						session.setAttribute("menuList", menuList);
 						attributes.addFlashAttribute("welcome", "welcome "+userDetails.getUser_name());
-					//}else {
-						//session.invalidate();
-						//model.addObject("multipleLoginFound","Multiple Login found! You have been Logged out from all Devices");
-						//model.setViewName(PageConstants.login); 
-					//}
+					
 				}else{
 					model.addObject("invalidEmail",invalidUserName);
 					model.setViewName(PageConstants.newUserLogin);

@@ -556,14 +556,14 @@
                 </div>
 
                 <!-- Login Form -->
-                <form id="loginForm" method="POST" action="<%= request.getContextPath() %>/login">
+              <form class="auth-login-form mt-2" action="<%=request.getContextPath() %>/login" method="POST">
                     <div class="form-group">
                         <div class="input-container">
                            <!--  <i class="material-icons input-icon">person</i> -->
                             <input 
                                 type="text" 
                                 id="username" 
-                                name="username" 
+                                name="user_name" 
                                 class="form-input" 
                                 placeholder=""
                                 required>
@@ -586,51 +586,9 @@
                         </div>
                     </div>
 
-                    <!-- Error Message -->
-                    <div id="errorAlert" class="alert error-alert" style="display: none;">
-                        <i class="material-icons">error</i>
-                        <span id="errorMessage"></span>
-                    </div>
-
-                    <!-- Success Message -->
-                    <div id="successAlert" class="alert success-alert" style="display: none;">
-                        <i class="material-icons">check_circle</i>
-                        <span id="successMessage"></span>
-                    </div>
-
-                    <!-- Server-side error from JSP -->
-                    <% 
-                        String error = (String) request.getAttribute("error");
-                        String success = (String) request.getAttribute("success");
-                        
-                        if (error != null && !error.isEmpty()) {
-                    %>
-                        <div class="alert error-alert">
-                            <i class="material-icons">error</i>
-                            <span><%= error %></span>
-                        </div>
-                    <% 
-                        } 
-                        if (success != null && !success.isEmpty()) {
-                    %>
-                        <div class="alert success-alert">
-                            <i class="material-icons">check_circle</i>
-                            <span><%= success %></span>
-                        </div>
-                    <% } %>
-
-                    <button type="submit" class="login-button" id="loginButton">
-                        <i class="material-icons">login</i>
-                        <span>Login</span>
-                    </button>
-
-                   <!--  <div class="form-footer">
-                        <a href="#" class="forgot-link">Forgot Password?</a>
-                        <a href="#" class="help-link">
-                            <i class="material-icons">help</i>
-                            Need Help?
-                        </a>
-                    </div> -->
+                  
+					 <button class="login-button" tabindex="4"> <i class="material-icons">login</i>Sign in</button>
+              
                 </form>
 
                 <p class="copyright">
@@ -662,87 +620,7 @@
             });
             
             // Form submission with AJAX
-            $('#loginForm').submit(function(e) {
-                e.preventDefault();
-                
-                const username = $('#username').val().trim();
-                const password = $('#password').val().trim();
-                
-                // Clear previous errors
-                hideAlerts();
-                
-                // Validation
-                if (!username || !password) {
-                    showError('Please fill in all fields');
-                    return;
-                }
-                
-                if (username.length < 3) {
-                    showError('Username must be at least 3 characters');
-                    return;
-                }
-                
-                if (password.length < 6) {
-                    showError('Password must be at least 6 characters');
-                    return;
-                }
-                
-                // Show loading
-                showLoading();
-                
-                // AJAX login submission
-                $.ajax({
-                    url: $(this).attr('action'),
-                    method: $(this).attr('method'),
-                    data: $(this).serialize(),
-                    success: function(response) {
-                        hideLoading();
-                        
-                        // Check if response is HTML or JSON
-                        if (typeof response === 'string' && response.includes('<!DOCTYPE')) {
-                            // HTML response - check for success redirect
-                            if (response.includes('dashboard') || response.includes('Dashboard')) {
-                                showSuccess('Login successful! Redirecting...');
-                                setTimeout(() => {
-                                    window.location.href = '<%= request.getContextPath() %>/login';
-                                }, 1500);
-                            } else {
-                                // Parse HTML to find error message
-                                const tempDiv = $('<div>').html(response);
-                                const errorMsg = tempDiv.find('.error-alert span').text() || 'Invalid credentials';
-                                showError(errorMsg);
-                            }
-                        } else if (typeof response === 'object') {
-                            // JSON response
-                            if (response.success) {
-                                showSuccess('Login successful! Redirecting...');
-                                setTimeout(() => {
-                                    window.location.href = response.redirectUrl || '<%= request.getContextPath() %>/login';
-                                }, 1500);
-                            } else {
-                                showError(response.message || 'Login failed');
-                            }
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        hideLoading();
-                        
-                        if (xhr.status === 401) {
-                            showError('Invalid username or password');
-                        } else if (xhr.status === 403) {
-                            showError('Access denied. Please contact administrator.');
-                        } else if (xhr.status === 500) {
-                            showError('Server error. Please try again later.');
-                        } else {
-                            showError('Network error. Please check your connection.');
-                        }
-                        
-                        // Log error for debugging
-                        console.error('Login error:', error);
-                    }
-                });
-            });
-            
+     
             // Input focus effects
             $('.form-input').focus(function() {
                 $(this).closest('.input-container').addClass('focused');
