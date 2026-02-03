@@ -1037,3 +1037,436 @@
 
                 <!-- CEO & MD -->
                 <div class="signature-card">
+                    <h4>CEO & MD</h4>
+                    <div class="signature-box" id="ceoSignatureBox">
+                        <span>Upload Signature</span>
+                    </div>
+                    <div class="signature-actions">
+                        <label class="upload-btn">
+                            <i class="material-icons">upload</i> Upload
+                            <input type="file" class="authority-upload" data-role="ceo" accept="image/*" hidden>
+                        </label>
+                    </div>
+                    <div class="signature-fields">
+                        <select class="authority-name" data-role="ceo">
+                            <option value="">Select Name</option>
+                            <option value="CEO & MD">CEO & MD</option>
+                        </select>
+                        <select class="authority-designation" data-role="ceo">
+                            <option value="">Select Designation</option>
+                            <option value="CEO & MD">CEO & MD</option>
+                        </select>
+                        <input type="date" class="authority-date" data-role="ceo">
+                        <div class="comment-field">
+                            <textarea class="authority-comment" data-role="ceo" maxlength="200" placeholder="Enter comments (max 200 characters)"></textarea>
+                            <span class="comment-counter">0 / 200</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <button class="submit-btn" onclick="submitForm()">
+                <i class="material-icons">send</i> Submit Proposal
+            </button>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Set current date for date inputs
+            const today = new Date().toISOString().split('T')[0];
+            $('input[type="date"]').val(today);
+            
+            // Set current year in CAPEX number
+            const currentYear = new Date().getFullYear();
+            $('#capexNumber').val(`CAPEX-${currentYear}-001`);
+            
+            // Cost Calculation
+            $('#basicCost, #gstRate').on('input', calculateCosts);
+            
+            // Budget Calculation
+            $('#totalBudget, #proposedPrice').on('input', calculateBudget);
+            
+            // File Upload Handlers
+            $('#roiFile').on('change', function(e) {
+                handleFileUpload(e, '#roiFileName');
+            });
+            
+            $('#timelineFile').on('change', function(e) {
+                handleFileUpload(e, '#timelineFileName');
+            });
+            
+            $('#reasonFile').on('change', function(e) {
+                handleFileUpload(e, '#reasonFileName');
+            });
+            
+            // Signature Uploads
+            $('.signature-upload').on('change', handleSignatureUpload);
+            $('.authority-upload').on('change', handleAuthoritySignatureUpload);
+            
+            // Comment Character Counters
+            $('.authority-comment').on('input', updateCommentCounter);
+            
+            // Initialize comment counters
+            $('.authority-comment').each(function() {
+                updateCommentCounter.call(this);
+            });
+            
+            // Load saved data if exists
+            loadSavedData();
+            
+            // Auto-save on input
+            setupAutoSave();
+        });
+        
+        function calculateCosts() {
+            const basicCost = parseFloat($('#basicCost').val()) || 0;
+            const gstRate = parseFloat($('#gstRate').val()) || 0;
+            
+            const gstAmount = (basicCost * gstRate) / 100;
+            const totalCost = basicCost + gstAmount;
+            
+            $('#gstAmount').val(gstAmount.toFixed(2));
+            $('#totalCost').val(totalCost.toFixed(2));
+        }
+        
+        function calculateBudget() {
+            const totalBudget = parseFloat($('#totalBudget').val()) || 0;
+            const proposedPrice = parseFloat($('#proposedPrice').val()) || 0;
+            
+            const availableBalance = totalBudget - proposedPrice;
+            $('#availableBalance').val(availableBalance.toFixed(2));
+        }
+        
+        function handleFileUpload(event, fileNameSelector) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Validate file type
+            const allowedTypes = [
+                'application/pdf',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'image/jpeg',
+                'image/jpg'
+            ];
+            
+            if (!allowedTypes.includes(file.type)) {
+                alert('Only Excel, PDF, or JPG files are allowed.');
+                event.target.value = '';
+                $(fileNameSelector).text('No file selected');
+                return;
+            }
+            
+            // Validate file size (10MB)
+            const maxSize = 10 * 1024 * 1024;
+            if (file.size > maxSize) {
+                alert('File size must be less than 10MB.');
+                event.target.value = '';
+                $(fileNameSelector).text('No file selected');
+                return;
+            }
+            
+            $(fileNameSelector).text(file.name);
+        }
+        
+        function handleSignatureUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            const role = $(event.target).data('role');
+            
+            reader.onload = function(e) {
+                $(`#${role}SignatureBox`).html(`<img src="${e.target.result}" alt="Signature">`);
+                saveToLocalStorage(`signature_${role}`, e.target.result);
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        function handleAuthoritySignatureUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            const role = $(event.target).data('role');
+            
+            reader.onload = function(e) {
+                $(`#${role}SignatureBox`).html(`<img src="${e.target.result}" alt="Signature">`);
+                saveToLocalStorage(`authority_${role}`, e.target.result);
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        function updateCommentCounter() {
+            const textarea = $(this);
+            const currentLength = textarea.val().length;
+            const maxLength = parseInt(textarea.attr('maxlength'));
+            const counter = textarea.siblings('.comment-counter');
+            
+            counter.text(`${currentLength} / ${maxLength}`);
+            
+            if (currentLength > maxLength * 0.8) {
+                counter.css('color', '#e74c3c');
+            } else {
+                counter.css('color', '#6c757d');
+            }
+        }
+        
+        function saveToLocalStorage(key, value) {
+            try {
+                localStorage.setItem(`capex_${key}`, value);
+            } catch (e) {
+                console.error('LocalStorage error:', e);
+            }
+        }
+        
+        function getFromLocalStorage(key) {
+            try {
+                return localStorage.getItem(`capex_${key}`);
+            } catch (e) {
+                console.error('LocalStorage error:', e);
+                return null;
+            }
+        }
+        
+        function loadSavedData() {
+            // Load form data
+            const savedData = getFromLocalStorage('form_data');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                Object.keys(data).forEach(key => {
+                    const element = $(`#${key}`);
+                    if (element.length) {
+                        if (element.is('input[type="text"], input[type="number"], textarea')) {
+                            element.val(data[key]);
+                        } else if (element.is('select')) {
+                            element.val(data[key]);
+                        }
+                    }
+                });
+                
+                // Trigger calculations
+                calculateCosts();
+                calculateBudget();
+            }
+            
+            // Load signatures
+            ['preparedBy', 'projectManager', 'requestedBy', 'headOfPlant'].forEach(role => {
+                const signature = getFromLocalStorage(`signature_${role}`);
+                if (signature) {
+                    $(`#${role}SignatureBox`).html(`<img src="${signature}" alt="Signature">`);
+                }
+            });
+            
+            ['headProjects', 'businessHead', 'cfo', 'ceo'].forEach(role => {
+                const signature = getFromLocalStorage(`authority_${role}`);
+                if (signature) {
+                    $(`#${role}SignatureBox`).html(`<img src="${signature}" alt="Signature">`);
+                }
+            });
+        }
+        
+        function setupAutoSave() {
+            // Save form data on input
+            const saveFields = [
+                'capexTitle', 'capexNumber', 'department', 'businessUnit', 
+                'plantCode', 'location', 'assetDescription', 'basicCost',
+                'gstRate', 'roiText', 'timelineText', 'reasonText',
+                'financeDept', 'financeCategory', 'totalBudget', 'proposedPrice',
+                'financeStatus', 'financeName', 'financeDesignation', 'financeDate',
+                'financeComments'
+            ];
+            
+            saveFields.forEach(fieldId => {
+                $(`#${fieldId}`).on('input', function() {
+                    const data = {};
+                    saveFields.forEach(id => {
+                        const element = $(`#${id}`);
+                        if (element.length) {
+                            data[id] = element.val();
+                        }
+                    });
+                    
+                    // Save signature details
+                    $('.signature-name, .signature-designation, .signature-date').each(function() {
+                        const role = $(this).data('role');
+                        const field = $(this).hasClass('signature-name') ? 'name' :
+                                     $(this).hasClass('signature-designation') ? 'designation' : 'date';
+                        data[`signature_${role}_${field}`] = $(this).val();
+                    });
+                    
+                    $('.authority-name, .authority-designation, .authority-date, .authority-comment').each(function() {
+                        const role = $(this).data('role');
+                        const field = $(this).hasClass('authority-name') ? 'name' :
+                                     $(this).hasClass('authority-designation') ? 'designation' :
+                                     $(this).hasClass('authority-date') ? 'date' : 'comment';
+                        data[`authority_${role}_${field}`] = $(this).val();
+                    });
+                    
+                    saveToLocalStorage('form_data', JSON.stringify(data));
+                });
+            });
+        }
+        
+        function validateForm() {
+            const requiredFields = [
+                { id: 'capexTitle', name: 'CAPEX Title' },
+                { id: 'capexNumber', name: 'CAPEX Number' },
+                { id: 'department', name: 'Department' },
+                { id: 'businessUnit', name: 'Business Unit' },
+                { id: 'plantCode', name: 'Plant Code' },
+                { id: 'location', name: 'Location' },
+                { id: 'assetDescription', name: 'Asset Description' },
+                { id: 'basicCost', name: 'Basic Cost' },
+                { id: 'gstRate', name: 'GST Rate' }
+            ];
+            
+            const errors = [];
+            
+            requiredFields.forEach(field => {
+                const value = $(`#${field.id}`).val();
+                if (!value || value.trim() === '') {
+                    errors.push(`${field.name} is required`);
+                }
+            });
+            
+            // Validate numeric fields
+            const basicCost = $('#basicCost').val();
+            if (basicCost && parseFloat(basicCost) < 0) {
+                errors.push('Basic Cost must be a positive number');
+            }
+            
+            if (errors.length > 0) {
+                alert('Please fix the following errors:\n\n' + errors.join('\n'));
+                return false;
+            }
+            
+            return true;
+        }
+        
+        function submitForm() {
+            if (!validateForm()) {
+                return;
+            }
+            
+            showLoading();
+            
+            // Collect all form data
+            const formData = new FormData();
+            
+            // Basic information
+            formData.append('capexTitle', $('#capexTitle').val());
+            formData.append('capexNumber', $('#capexNumber').val());
+            formData.append('department', $('#department').val());
+            formData.append('businessUnit', $('#businessUnit').val());
+            formData.append('plantCode', $('#plantCode').val());
+            formData.append('location', $('#location').val());
+            formData.append('assetDescription', $('#assetDescription').val());
+            
+            // Cost estimation
+            formData.append('basicCost', $('#basicCost').val());
+            formData.append('gstRate', $('#gstRate').val());
+            formData.append('gstAmount', $('#gstAmount').val());
+            formData.append('totalCost', $('#totalCost').val());
+            
+            // Investment details
+            formData.append('roiText', $('#roiText').val());
+            formData.append('timelineText', $('#timelineText').val());
+            formData.append('reasonText', $('#reasonText').val());
+            
+            // File uploads
+            const roiFile = $('#roiFile')[0].files[0];
+            const timelineFile = $('#timelineFile')[0].files[0];
+            const reasonFile = $('#reasonFile')[0].files[0];
+            
+            if (roiFile) formData.append('roiFile', roiFile);
+            if (timelineFile) formData.append('timelineFile', timelineFile);
+            if (reasonFile) formData.append('reasonFile', reasonFile);
+            
+            // Signature details
+            $('.signature-name, .signature-designation, .signature-date').each(function() {
+                const role = $(this).data('role');
+                const field = $(this).hasClass('signature-name') ? 'name' :
+                            $(this).hasClass('signature-designation') ? 'designation' : 'date';
+                formData.append(`signature_${role}_${field}`, $(this).val());
+            });
+            
+            // Authority details
+            $('.authority-name, .authority-designation, .authority-date, .authority-comment').each(function() {
+                const role = $(this).data('role');
+                const field = $(this).hasClass('authority-name') ? 'name' :
+                            $(this).hasClass('authority-designation') ? 'designation' :
+                            $(this).hasClass('authority-date') ? 'date' : 'comment';
+                formData.append(`authority_${role}_${field}`, $(this).val());
+            });
+            
+            // Finance details
+            formData.append('financeDept', $('#financeDept').val());
+            formData.append('financeCategory', $('#financeCategory').val());
+            formData.append('totalBudget', $('#totalBudget').val());
+            formData.append('proposedPrice', $('#proposedPrice').val());
+            formData.append('availableBalance', $('#availableBalance').val());
+            formData.append('financeStatus', $('#financeStatus').val());
+            formData.append('financeName', $('#financeName').val());
+            formData.append('financeDesignation', $('#financeDesignation').val());
+            formData.append('financeDate', $('#financeDate').val());
+            formData.append('financeComments', $('#financeComments').val());
+            
+            // AJAX submission
+            $.ajax({
+                url: 'CapexServlet',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    hideLoading();
+                    
+                    if (response.success) {
+                        alert('Proposal submitted successfully!');
+                        localStorage.removeItem('capex_form_data');
+                        window.location.href = 'dashboard.jsp';
+                    } else {
+                        alert('Error: ' + (response.message || 'Submission failed'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    hideLoading();
+                    alert('Network error: ' + error);
+                }
+            });
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear local storage
+                localStorage.clear();
+                
+                // Redirect to login
+                window.location.href = 'login.jsp?action=logout';
+            }
+        }
+        
+        function showLoading() {
+            $('#loadingOverlay').fadeIn();
+        }
+        
+        function hideLoading() {
+            $('#loadingOverlay').fadeOut();
+        }
+        
+        // Prevent form submission on Enter key
+        $(document).on('keypress', function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
