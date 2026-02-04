@@ -22,311 +22,250 @@ import com.resustainability.reisp.model.Department;
 
 @Repository
 public class DepartmentDao {
-	@Autowired
-	JdbcTemplate jdbcTemplate;
-	
-	@Autowired
-	DataSource dataSource;
+    
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+    
+    @Autowired
+    DataSource dataSource;
 
-	@Autowired
-	DataSourceTransactionManager transactionManager;
+    @Autowired
+    DataSourceTransactionManager transactionManager;
 
-	public List<Department> getSBUList(Department obj) throws SQLException {
-		List<Department> menuList = null;
-		try{  
-			String qry = "select sbu_code,sbu_name from sbu where status <> 'Inactive' ";
-			menuList = jdbcTemplate.query( qry, new BeanPropertyRowMapper<Department>(Department.class));
-			
-		}catch(Exception e){ 
-			e.printStackTrace();
-			throw new SQLException(e.getMessage());
-		}
-		return menuList;
-	}
+    // Get all departments with filtering
+    public List<Department> getDepartmentsList(Department obj) throws Exception {
+        List<Department> departmentsList = null;
+        try {
+            StringBuilder qry = new StringBuilder();
+            List<Object> params = new ArrayList<>();
+            
+            qry.append("SELECT TOP (1000) [id], [sbu], [plant_code], ");
+            qry.append("[department_code], [department_name], [status] ");
+            qry.append("FROM [capexDB].[dbo].[department] ");
+            qry.append("WHERE 1=1 ");
+            
+            if (obj != null) {
+                if (!StringUtils.isEmpty(obj.getId())) {
+                    qry.append("AND id = ? ");
+                    params.add(obj.getId());
+                }
+                if (!StringUtils.isEmpty(obj.getSbu())) {
+                    qry.append("AND sbu = ? ");
+                    params.add(obj.getSbu());
+                }
+                if (!StringUtils.isEmpty(obj.getPlant_code())) {
+                    qry.append("AND plant_code = ? ");
+                    params.add(obj.getPlant_code());
+                }
+                if (!StringUtils.isEmpty(obj.getDepartment_code())) {
+                    qry.append("AND department_code = ? ");
+                    params.add(obj.getDepartment_code());
+                }
+                if (!StringUtils.isEmpty(obj.getDepartment_name())) {
+                    qry.append("AND department_name LIKE ? ");
+                    params.add("%" + obj.getDepartment_name() + "%");
+                }
+                if (!StringUtils.isEmpty(obj.getStatus())) {
+                    qry.append("AND status = ? ");
+                    params.add(obj.getStatus());
+                }
+            }
+            
+            qry.append("ORDER BY department_code ASC");
+            
+            departmentsList = jdbcTemplate.query(
+                qry.toString(), 
+                params.toArray(), 
+                new BeanPropertyRowMapper<Department>(Department.class)
+            );
+            
+        } catch(Exception e) { 
+            e.printStackTrace();
+            throw new Exception(e);
+        }
+        return departmentsList;
+    }
 
-	public List<Department> getDepartmentsList(Department obj) throws Exception {
-		List<Department> objsList = null;
-		try {
-			int arrSize = 0;
-			String qry =" select ";
-					qry = qry +"(select count( department_code) from department where department_code is not null  ";
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getDepartment_code())) {
-						qry = qry + " and department_code = ?";
-						arrSize++;
-					}
-					
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-						qry = qry + " and status = ? ";
-						arrSize++;
-					}
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-						qry = qry + " and  assigned_to_sbu like '"+obj.getSbu_code()+"%'  ";
-					}
-					qry = qry +  " ) as all_department ,";
-					qry = qry +	"(select count( department_code) from department where department_code is not null and status = 'Active' ";
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getDepartment_code())) {
-						qry = qry + " and department_code = ?";
-						arrSize++;
-					}
-					
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-						qry = qry + " and status = ? ";
-						arrSize++;
-					}
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-						qry = qry + " and  assigned_to_sbu like '"+obj.getSbu_code()+"%'  ";
-					}
-							qry = qry + " ) as active_department,"
-							+ "(select count( department_code) from department where department_code is not null   and status <> 'Active' ";
-							if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getDepartment_code())) {
-								qry = qry + " and department_code = ?";
-								arrSize++;
-							}
-							
-							if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-								qry = qry + " and status = ? ";
-								arrSize++;
-							}
-							if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-								qry = qry + " and  assigned_to_sbu like '"+obj.getSbu_code()+"%'  ";
-							}
-							qry = qry + " ) as inActive_department,"
-					+ "s.id,s.department_code,s.created_by,FORMAT(s.created_date, 'dd-MMM-yy  HH:mm') as created_date,FORMAT(s.modified_date, 'dd-MMM-yy  HH:mm') as modified_date,"
-					+ "s.modified_by,s.department_name,p.user_name,p1.user_name as  modified_by,assigned_to_sbu as assigned_to_sbu_multiple,s.status from department s "
-					+ "left join user_profile p on s.created_by = p.user_id "//cross apply STRING_SPLIT ([assigned_to_sbu], ',')
-					+ "left join user_profile p1 on s.modified_by = p1.user_id "
-					+ " where s.department_code is not null and s.department_code <> '' ";
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getDepartment_code())) {
-				qry = qry + " and s.department_code = ?";
-				arrSize++;
-			}	
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and s.status = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				qry = qry + " and assigned_to_sbu like '"+obj.getSbu_code()+"%' ";
-			}
-			qry = qry + " ORDER BY department_code ASC ";
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getDepartment_code())) {
-				pValues[i++] = obj.getDepartment_code();
-			}
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getDepartment_code())) {
-				pValues[i++] = obj.getDepartment_code();
-			}
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getDepartment_code())) {
-				pValues[i++] = obj.getDepartment_code();
-			}
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getDepartment_code())) {
-				pValues[i++] = obj.getDepartment_code();
-			}
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			objsList = jdbcTemplate.query( qry,pValues, new BeanPropertyRowMapper<Department>(Department.class));
-		
-		}catch(Exception e){ 
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return objsList;
-	}
+    // Add new department
+    public boolean addDepartment(Department obj) throws Exception {
+        int count = 0;
+        boolean flag = false;
+        TransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        
+        try {
+            NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+            String insertQry = "INSERT INTO [capexDB].[dbo].[department] " +
+                               "([sbu], [plant_code], [department_code], [department_name], [status]) " +
+                               "VALUES (:sbu, :plant_code, :department_code, :department_name, :status)";
+            
+            BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);         
+            count = namedParamJdbcTemplate.update(insertQry, paramSource);
+            
+            if(count > 0) {
+                flag = true;
+            }
+            transactionManager.commit(status);
+            
+        } catch (Exception e) {
+            transactionManager.rollback(status);
+            e.printStackTrace();
+            throw new Exception(e);
+        }
+        return flag;
+    }
 
-	public List<Department> getSBUsFilterList(Department obj) throws Exception {
-		List<Department> objsList = new ArrayList<Department>();
-		try {
-			String qry = "SELECT  Value as sbu_code,c.sbu_name FROM department s cross apply STRING_SPLIT (assigned_to_sbu, ',') "
-					+ " left join sbu c on Value = c.sbu_code "
-					+ " where Value is not null and Value <> ''  "; 
-			int arrSize = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getDepartment_code())) {
-				qry = qry + " and s.department_code = ?";
-				arrSize++;
-			}	
-		
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and s.status = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				qry = qry + " and  assigned_to_sbu like '"+obj.getSbu_code()+"%'  ";
-			}
-			qry = qry + "group by Value,c.sbu_name order by  Value asc";
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getDepartment_code())) {
-				pValues[i++] = obj.getDepartment_code();
-			}
-		
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			objsList = jdbcTemplate.query( qry, pValues, new BeanPropertyRowMapper<Department>(Department.class));
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return objsList;
-	}
+    // Update existing department
+    public boolean updateDepartment(Department obj) throws Exception {
+        int count = 0;
+        boolean flag = false;
+        TransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        
+        try {
+            NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+            String updateQry = "UPDATE [capexDB].[dbo].[department] " +
+                               "SET [sbu] = :sbu, " +
+                               "[plant_code] = :plant_code, " +
+                               "[department_code] = :department_code, " +
+                               "[department_name] = :department_name, " +
+                               "[status] = :status " +
+                               "WHERE [id] = :id";
+            
+            BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);         
+            count = namedParamJdbcTemplate.update(updateQry, paramSource);
+            
+            if(count > 0) {
+                flag = true;
+            }
+            transactionManager.commit(status);
+            
+        } catch (Exception e) {
+            transactionManager.rollback(status);
+            e.printStackTrace();
+            throw new Exception(e);
+        }
+        return flag;
+    }
 
-	public List<Department> getDepartmentFilterList(Department obj) throws Exception {
-		List<Department> objsList = new ArrayList<Department>();
-		try {
-			String qry = "SELECT department_code, department_name FROM department s "
-					+ " where department_code is not null and department_code <> ''  "; 
-			int arrSize = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getDepartment_code())) {
-				qry = qry + " and s.department_code = ?";
-				arrSize++;
-			}	
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and s.status = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				qry = qry + " and  assigned_to_sbu like '"+obj.getSbu_code()+"%'  ";
-			}
-			qry = qry + " order by department_code asc";
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getDepartment_code())) {
-				pValues[i++] = obj.getDepartment_code();
-			}
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			objsList = jdbcTemplate.query( qry, pValues, new BeanPropertyRowMapper<Department>(Department.class));
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return objsList;
-	}
+    // Check if department code already exists (for unique validation)
+    public List<Department> checkUniqueIfForDept(Department obj) throws Exception {
+        List<Department> departmentsList = new ArrayList<Department>();
+        try {
+            String qry = "SELECT [department_code] FROM [capexDB].[dbo].[department] " +
+                         "WHERE [department_code] = ? ";
+            
+            List<Object> params = new ArrayList<>();
+            params.add(obj.getDepartment_code());
+            
+            departmentsList = jdbcTemplate.query(qry, params.toArray(), 
+                new BeanPropertyRowMapper<Department>(Department.class));
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception(e);
+        }
+        return departmentsList;
+    }
 
-	public List<Department> getStatusFilterListFromDepartment(Department obj) throws Exception {
-		List<Department> objsList = new ArrayList<Department>();
-		try {
-			String qry = "SELECT status FROM department s "
-					+ " where status is not null and status <> ''  "; 
-			int arrSize = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getDepartment_code())) {
-				qry = qry + " and s.department_code = ?";
-				arrSize++;
-			}	
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and s.status = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				qry = qry + " and  assigned_to_sbu like '"+obj.getSbu_code()+"%'  ";
-			}
-			qry = qry + " group by status order by status asc";
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getDepartment_code())) {
-				pValues[i++] = obj.getDepartment_code();
-			}
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			objsList = jdbcTemplate.query( qry, pValues, new BeanPropertyRowMapper<Department>(Department.class));
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return objsList;
-	}
+    // Delete department by ID
+    public boolean deleteDepartment(String id) throws Exception {
+        int count = 0;
+        boolean flag = false;
+        TransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        
+        try {
+            String deleteQry = "DELETE FROM [capexDB].[dbo].[department] WHERE [id] = ?";
+            count = jdbcTemplate.update(deleteQry, id);
+            
+            if(count > 0) {
+                flag = true;
+            }
+            transactionManager.commit(status);
+            
+        } catch (Exception e) {
+            transactionManager.rollback(status);
+            e.printStackTrace();
+            throw new Exception(e);
+        }
+        return flag;
+    }
 
-	public boolean addDepartment(Department obj) throws Exception {
-		int count = 0;
-		boolean flag = false;
-		TransactionDefinition def = new DefaultTransactionDefinition();
-		TransactionStatus status = transactionManager.getTransaction(def);
-		try {
-			NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-			String insertQry = "INSERT INTO department (assigned_to_sbu,department_code,department_name,status,created_by,created_date) VALUES (:assigned_to_sbu,:department_code,:department_name,:status,:craeted_by,getdate())";
-			BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);		 
-		    count = namedParamJdbcTemplate.update(insertQry, paramSource);
-			if(count > 0) {
-				flag = true;
-			}
-			transactionManager.commit(status);
-		}catch (Exception e) {
-			transactionManager.rollback(status);
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return flag;
-	}
+    // Get department by ID
+    public Department getDepartmentById(String id) throws Exception {
+        Department department = null;
+        try {
+            String qry = "SELECT TOP (1) [id], [sbu], [plant_code], " +
+                         "[department_code], [department_name], [status] " +
+                         "FROM [capexDB].[dbo].[department] " +
+                         "WHERE [id] = ?";
+            
+            List<Department> result = jdbcTemplate.query(
+                qry, 
+                new Object[]{id}, 
+                new BeanPropertyRowMapper<Department>(Department.class)
+            );
+            
+            if (result != null && !result.isEmpty()) {
+                department = result.get(0);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception(e);
+        }
+        return department;
+    }
 
-	public boolean updateDepartment(Department obj) throws Exception {
-		int count = 0;
-		boolean flag = false;
-		TransactionDefinition def = new DefaultTransactionDefinition();
-		TransactionStatus status = transactionManager.getTransaction(def);
-		try {
-			NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-			String updateQry = "UPDATE department set assigned_to_sbu= :assigned_to_sbu,department_code= :department_code,department_name=:department_name,status= :status, modified_by= :modified_by,modified_date= getdate() "
-					+ " where id= :id ";
-			BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);		 
-		    count = namedParamJdbcTemplate.update(updateQry, paramSource);
-			if(count > 0) {
-				flag = true;
-			}
-			transactionManager.commit(status);
-		}catch (Exception e) {
-			transactionManager.rollback(status);
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return flag;
-	}
+    // Get distinct SBU list
+    public List<Department> getSBUList() throws SQLException {
+        List<Department> sbuList = null;
+        try {  
+            String qry = "SELECT DISTINCT [sbu] FROM [capexDB].[dbo].[department] " +
+                         "WHERE [sbu] IS NOT NULL AND [sbu] <> '' " +
+                         "ORDER BY [sbu] ASC";
+            
+            sbuList = jdbcTemplate.query(qry, new BeanPropertyRowMapper<Department>(Department.class));
+            
+        } catch(Exception e) { 
+            e.printStackTrace();
+            throw new SQLException(e.getMessage());
+        }
+        return sbuList;
+    }
 
-	public List<Department> checkUniqueIfForDept(Department obj) throws Exception {
-		List<Department> objsList = new ArrayList<Department>();
-		try {
-			String qry = "SELECT department_code FROM department "
-					+ " where status is not null and status <> ''  "; 
-			int arrSize = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getDepartment_code())) {
-				qry = qry + " and department_code = ?";
-				arrSize++;
-			}	
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getDepartment_code())) {
-				pValues[i++] = obj.getDepartment_code();
-			}
-			
-			objsList = jdbcTemplate.query( qry, pValues, new BeanPropertyRowMapper<Department>(Department.class));
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return objsList;
-	}
-	
-	
-	
+    // Get distinct plant codes
+    public List<Department> getPlantList() throws SQLException {
+        List<Department> plantList = null;
+        try {  
+            String qry = "SELECT DISTINCT [plant_code] FROM [capexDB].[dbo].[department] " +
+                         "WHERE [plant_code] IS NOT NULL AND [plant_code] <> '' " +
+                         "ORDER BY [plant_code] ASC";
+            
+            plantList = jdbcTemplate.query(qry, new BeanPropertyRowMapper<Department>(Department.class));
+            
+        } catch(Exception e) { 
+            e.printStackTrace();
+            throw new SQLException(e.getMessage());
+        }
+        return plantList;
+    }
+
+    // Get status filter list
+    public List<Department> getStatusFilterList() throws Exception {
+        List<Department> statusList = new ArrayList<Department>();
+        try {
+            String qry = "SELECT DISTINCT [status] FROM [capexDB].[dbo].[department] " +
+                         "WHERE [status] IS NOT NULL AND [status] <> '' " +
+                         "ORDER BY [status] ASC";
+            
+            statusList = jdbcTemplate.query(qry, new BeanPropertyRowMapper<Department>(Department.class));
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception(e);
+        }
+        return statusList;
+    }
 }

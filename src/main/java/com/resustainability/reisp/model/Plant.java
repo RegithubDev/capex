@@ -1,8 +1,7 @@
 package com.resustainability.reisp.model;
-
-public class Department {
+public class Plant {
+    private String id,location,sbu,plant_code,plant_name,status;
     
-    private String id, sbu, plant_code,department_code, department_name,status;
 
 	public String getId() {
 		return id;
@@ -10,6 +9,14 @@ public class Department {
 
 	public void setId(String id) {
 		this.id = id;
+	}
+
+	public String getLocation() {
+		return location;
+	}
+
+	public void setLocation(String location) {
+		this.location = location;
 	}
 
 	public String getSbu() {
@@ -28,20 +35,12 @@ public class Department {
 		this.plant_code = plant_code;
 	}
 
-	public String getDepartment_code() {
-		return department_code;
+	public String getPlant_name() {
+		return plant_name;
 	}
 
-	public void setDepartment_code(String department_code) {
-		this.department_code = department_code;
-	}
-
-	public String getDepartment_name() {
-		return department_name;
-	}
-
-	public void setDepartment_name(String department_name) {
-		this.department_name = department_name;
+	public void setPlant_name(String plant_name) {
+		this.plant_name = plant_name;
 	}
 
 	public String getStatus() {
@@ -50,9 +49,9 @@ public class Department {
 
 	public void setStatus(String status) {
 		this.status = status;
-	}
+	}       
     
-    // Getters and Setters
-   
   
+    
+    
 }

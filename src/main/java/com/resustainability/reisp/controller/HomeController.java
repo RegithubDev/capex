@@ -78,7 +78,7 @@ public class HomeController {
 			user.setRole(role);
 			
 			if(!StringUtils.isEmpty(role) &&  role.equals("Admin")) {
-				 model = new ModelAndView(PageConstants.dashboardAdmin);
+				 model = new ModelAndView(PageConstants.welcome);
 			}
 			
 		} catch (Exception e) {

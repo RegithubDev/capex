@@ -1,50 +1,94 @@
 package com.resustainability.reisp.service;
 
-import java.sql.SQLException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.resustainability.reisp.dao.SBUDao;
-import com.resustainability.reisp.model.Company;
 import com.resustainability.reisp.model.SBU;
 
 @Service
 public class SBUService {
-	@Autowired
-	SBUDao dao;
+    
+    @Autowired
+    SBUDao dao;
 
-	public List<SBU> getSBUsList(SBU obj)  throws Exception {
-		return dao.getSBUsList(obj);
-	}
+    /**
+     * Get all SBUs with optional filters
+     */
+    public List<SBU> getSBUsList(SBU obj) throws Exception {
+        return dao.getSBUsList(obj);
+    }
 
-	public List<SBU> getCompanyFilterList(SBU obj)  throws Exception {
-		return dao.getCompanyFilterList(obj);
-	}
+    /**
+     * Get SBU by ID
+     */
+    public SBU getSBUById(String id) throws Exception {
+        return dao.getSBUById(id);
+    }
 
-	public List<SBU> getSBUFilterList(SBU obj)  throws Exception {
-		return dao.getSBUFilterList(obj);
-	}
+    /**
+     * Add new SBU
+     */
+    public boolean addSBU(SBU obj) throws Exception {
+        return dao.addSBU(obj);
+    }
 
-	public boolean addSBU(SBU obj)  throws Exception {
-		return dao.addSBU(obj);
-	}
+    /**
+     * Update existing SBU
+     */
+    public boolean updateSBU(SBU obj) throws Exception {
+        return dao.updateSBU(obj);
+    }
 
-	public boolean updateSBU(SBU obj) throws Exception  {
-		return dao.updateSBU(obj);
-	}
+    /**
+     * Delete SBU
+     */
+    public boolean deleteSBU(String id) throws Exception {
+        return dao.deleteSBU(id);
+    }
 
-	public List<SBU> getCompaniesList(SBU obj) throws Exception {
-		return dao.getCompaniesList(obj);
-	}
+    /**
+     * Get active SBUs for dropdown
+     */
+    public List<SBU> getActiveSBUs() throws Exception {
+        return dao.getActiveSBUs();
+    }
 
-	public List<SBU> getStatusFilterListFromSBU(SBU obj) throws Exception {
-		return dao.getStatusFilterListFromSBU(obj);
-	}
+    /**
+     * Get SBU statistics
+     */
+    public SBU getSBUStatistics() throws Exception {
+        return dao.getSBUStatistics();
+    }
 
-	public List<SBU> checkUniqueIfForSBU(SBU obj) throws Exception {
-		return dao.checkUniqueIfForSBU(obj);
-	}
-	
+    /**
+     * Check if SBU code is unique
+     */
+    public boolean isSBUCodeUnique(String sbuCode, String excludeId) throws Exception {
+        return dao.isSBUCodeUnique(sbuCode, excludeId);
+    }
+
+    /**
+     * Get status filter list
+     */
+    public List<String> getStatusFilterList() throws Exception {
+        return dao.getStatusFilterList();
+    }
+
+    /**
+     * Search SBUs with pagination
+     */
+    public List<SBU> searchSBUsWithPagination(SBU obj, int page, int pageSize) throws Exception {
+        return dao.searchSBUsWithPagination(obj, page, pageSize);
+    }
+
+    /**
+     * Count total SBUs for pagination
+     */
+    public int countSBUs(SBU obj) throws Exception {
+        return dao.countSBUs(obj);
+    }
+  
 }

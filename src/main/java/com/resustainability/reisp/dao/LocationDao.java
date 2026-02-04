@@ -1,6 +1,5 @@
 package com.resustainability.reisp.dao;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,333 +17,476 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StringUtils;
 
-import com.resustainability.reisp.model.Project;
-import com.resustainability.reisp.model.ProjectLocation;
-import com.resustainability.reisp.model.ProjectLocation;
+import com.resustainability.reisp.model.Location;
 
 @Repository
 public class LocationDao {
+    
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+    
+    @Autowired
+    DataSource dataSource;
 
-	@Autowired
-	JdbcTemplate jdbcTemplate;
-	
-	@Autowired
-	DataSource dataSource;
+    @Autowired
+    DataSourceTransactionManager transactionManager;
 
-	@Autowired
-	DataSourceTransactionManager transactionManager;
+    /**
+     * Get all locations list with optional filters
+     */
+    public List<Location> getLocationsList(Location obj) throws Exception {
+        List<Location> locationList = new ArrayList<>();
+        try {
+            StringBuilder query = new StringBuilder();
+            List<Object> params = new ArrayList<>();
+            
+            // Build query with optional filters
+            query.append("SELECT id, location, status FROM location WHERE 1=1 ");
+            
+            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation())) {
+                query.append(" AND location LIKE ? ");
+                params.add("%" + obj.getLocation() + "%");
+            }
+            
+            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
+                query.append(" AND status = ? ");
+                params.add(obj.getStatus());
+            }
+            
+            query.append(" ORDER BY location ASC"); // Changed to order by location name
+            
+            locationList = jdbcTemplate.query(
+                query.toString(), 
+                params.toArray(), 
+                new BeanPropertyRowMapper<>(Location.class)
+            );
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error fetching location list: " + e.getMessage(), e);
+        }
+        return locationList;
+    }
 
-	public List<ProjectLocation> getProjectsList(ProjectLocation obj) throws SQLException {
-		List<ProjectLocation> menuList = null;
-		try{  
-			String qry = "select project_code, project_name from project ";
-			menuList = jdbcTemplate.query( qry, new BeanPropertyRowMapper<ProjectLocation>(ProjectLocation.class));
-			
-		}catch(Exception e){ 
-			e.printStackTrace();
-			throw new SQLException(e.getMessage());
-		}
-		return menuList;
-	}
+    /**
+     * Get location by ID
+     */
+    public Location getLocationById(String id) throws Exception {
+        Location location = null;
+        try {
+            String query = "SELECT id, location, status FROM location WHERE id = ?";
+            List<Location> result = jdbcTemplate.query(
+                query, 
+                new Object[]{id}, 
+                new BeanPropertyRowMapper<>(Location.class)
+            );
+            
+            if (result != null && !result.isEmpty()) {
+                location = result.get(0);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error fetching location by ID: " + e.getMessage(), e);
+        }
+        return location;
+    }
 
-	public List<ProjectLocation> getLocationsList(ProjectLocation obj) throws Exception {
-		List<ProjectLocation> objsList = null;
-		try {
-			int arrSize = 0;
-			String qry =" select ";
-					qry = qry +"(select count( location_code) from project_location where location_code is not null  ";
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject_code())) {
-						qry = qry + " and project_code = ?";
-						arrSize++;
-					}
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation_code())) {
-						qry = qry + " and location_code = ? ";
-						arrSize++;
-					}
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-						qry = qry + " and status = ? ";
-						arrSize++;
-					}
-					qry = qry +  " ) as all_location ,";
-					qry = qry +	"(select count( location_code) from project_location where location_code is not null and status = 'Active' ";
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject_code())) {
-						qry = qry + " and project_code = ?";
-						arrSize++;
-					}
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation_code())) {
-						qry = qry + " and location_code = ? ";
-						arrSize++;
-					}
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-						qry = qry + " and status = ? ";
-						arrSize++;
-					}
-							qry = qry + " ) as active_location,"
-							+ "(select count( location_code) from project_location where location_code is not null   and status <> 'Active' ";
-							if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject_code())) {
-								qry = qry + " and project_code = ?";
-								arrSize++;
-							}
-							if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation_code())) {
-								qry = qry + " and location_code = ? ";
-								arrSize++;
-							}
-							if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-								qry = qry + " and status = ? ";
-								arrSize++;
-							}
-							qry = qry + " ) as inActive_location,"
-					+ "c.id,c.project_code,pp.project_name,location_code,location_name,c.status,"
-					+ "	FORMAT (c.created_date, 'dd-MMM-yy') as created_date,up.user_name as 	"
-					+ "created_by,FORMAT	(c.modified_date, 'dd-MMM-yy') as modified_date,up1.user_name as  modified_by from project_location c "
-					+ "left join user_profile up on c.created_by = up.user_id "
-					+ "left join user_profile up1 on c.modified_by = up1.user_id "
-					+ " left join [project] pp on pp.project_code = c.project_code "
-					+ " where c.location_code is not null and c.location_code <> '' ";
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject_code())) {
-				qry = qry + " and c.project_code = ?";
-				arrSize++;
-			}	
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation_code())) {
-				qry = qry + " and location_code = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and c.status = ? ";
-				arrSize++;
-			}
-			qry = qry + " ORDER BY location_code ASC ";
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject_code())) {
-				pValues[i++] = obj.getProject_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation_code())) {
-				pValues[i++] = obj.getLocation_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject_code())) {
-				pValues[i++] = obj.getProject_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation_code())) {
-				pValues[i++] = obj.getLocation_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject_code())) {
-				pValues[i++] = obj.getProject_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation_code())) {
-				pValues[i++] = obj.getLocation_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject_code())) {
-				pValues[i++] = obj.getProject_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation_code())) {
-				pValues[i++] = obj.getLocation_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			objsList = jdbcTemplate.query( qry,pValues, new BeanPropertyRowMapper<ProjectLocation>(ProjectLocation.class));
-		
-		}catch(Exception e){ 
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return objsList;
-	}
+    /**
+     * Add new location
+     */
+    public boolean addLocation(Location obj) throws Exception {
+        int count = 0;
+        boolean flag = false;
+        TransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        
+        try {
+            // First check if location name already exists
+            String checkQuery = "SELECT COUNT(*) FROM location WHERE location = ?";
+            int existingCount = jdbcTemplate.queryForObject(checkQuery, Integer.class, obj.getLocation());
+            
+            if (existingCount > 0) {
+                throw new Exception("Location name already exists: " + obj.getLocation());
+            }
+            
+            NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+            String insertQuery = "INSERT INTO location (location, status) " +
+                               "VALUES (:location, :status)";
+            
+            BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);
+            count = namedParamJdbcTemplate.update(insertQuery, paramSource);
+            
+            if (count > 0) {
+                flag = true;
+            }
+            
+            transactionManager.commit(status);
+            
+        } catch (Exception e) {
+            transactionManager.rollback(status);
+            e.printStackTrace();
+            throw new Exception("Error adding location: " + e.getMessage(), e);
+        }
+        return flag;
+    }
 
-	public List<ProjectLocation> getProjectFilterList(ProjectLocation obj) throws Exception {
-		List<ProjectLocation> objsList = new ArrayList<ProjectLocation>();
-		try {
-			String qry = "SELECT  s.project_code,c.project_name FROM project_location s "
-					+ " left join project c on c.project_code = s.project_code "
-					+ " where c.project_code is not null and c.project_code <> ''  "; 
-			int arrSize = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject_code())) {
-				qry = qry + " and c.project_code = ?";
-				arrSize++;
-			}	
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation_code())) {
-				qry = qry + " and location_code = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and s.status = ? ";
-				arrSize++;
-			}
-			qry = qry + "group by s.project_code,c.project_name order by  s.project_code asc";
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject_code())) {
-				pValues[i++] = obj.getProject_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation_code())) {
-				pValues[i++] = obj.getLocation_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			objsList = jdbcTemplate.query( qry, pValues, new BeanPropertyRowMapper<ProjectLocation>(ProjectLocation.class));
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return objsList;
-	}
+    /**
+     * Update existing location
+     */
+    public boolean updateLocation(Location obj) throws Exception {
+        int count = 0;
+        boolean flag = false;
+        TransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        
+        try {
+            // Check if location name exists for another record (excluding current one)
+            String checkQuery = "SELECT COUNT(*) FROM location WHERE location = ? AND id != ?";
+            int existingCount = jdbcTemplate.queryForObject(
+                checkQuery, 
+                Integer.class, 
+                obj.getLocation(), 
+                obj.getId()
+            );
+            
+            if (existingCount > 0) {
+                throw new Exception("Location name already exists for another record: " + obj.getLocation());
+            }
+            
+            NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+            String updateQuery = "UPDATE location SET location = :location, status = :status " +
+                               "WHERE id = :id";
+            
+            BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);
+            count = namedParamJdbcTemplate.update(updateQuery, paramSource);
+            
+            if (count > 0) {
+                flag = true;
+            }
+            
+            transactionManager.commit(status);
+            
+        } catch (Exception e) {
+            transactionManager.rollback(status);
+            e.printStackTrace();
+            throw new Exception("Error updating location: " + e.getMessage(), e);
+        }
+        return flag;
+    }
 
-	public List<ProjectLocation> getLocationFilterList(ProjectLocation obj) throws Exception {
-		List<ProjectLocation> objsList = new ArrayList<ProjectLocation>();
-		try {
-			String qry = "SELECT location_code, location_name FROM project_location s "
-					+ " where location_code is not null and location_code <> ''  "; 
-			int arrSize = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject_code())) {
-				qry = qry + " and s.project_code = ?";
-				arrSize++;
-			}	
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation_code())) {
-				qry = qry + " and location_code = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and s.status = ? ";
-				arrSize++;
-			}
-			qry = qry + " group by location_code, location_name order by location_code asc";
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject_code())) {
-				pValues[i++] = obj.getProject_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation_code())) {
-				pValues[i++] = obj.getLocation_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			objsList = jdbcTemplate.query( qry, pValues, new BeanPropertyRowMapper<ProjectLocation>(ProjectLocation.class));
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return objsList;
-	}
+    /**
+     * Delete location
+     */
+    public boolean deleteLocation(String id) throws Exception {
+        int count = 0;
+        boolean flag = false;
+        TransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        
+        try {
+            // First check if location is being used in plant table
+            String checkQuery = "SELECT COUNT(*) FROM plant WHERE location = (SELECT location FROM location WHERE id = ?)";
+            int usageCount = jdbcTemplate.queryForObject(checkQuery, Integer.class, id);
+            
+            if (usageCount > 0) {
+                throw new Exception("Cannot delete location. It is being used in " + usageCount + " plant(s).");
+            }
+            
+            String deleteQuery = "DELETE FROM location WHERE id = ?";
+            count = jdbcTemplate.update(deleteQuery, id);
+            
+            if (count > 0) {
+                flag = true;
+            }
+            
+            transactionManager.commit(status);
+            
+        } catch (Exception e) {
+            transactionManager.rollback(status);
+            e.printStackTrace();
+            throw new Exception("Error deleting location: " + e.getMessage(), e);
+        }
+        return flag;
+    }
 
-	public List<ProjectLocation> getStatusFilterListFromLocation(ProjectLocation obj) throws Exception {
-		List<ProjectLocation> objsList = new ArrayList<ProjectLocation>();
-		try {
-			String qry = "SELECT status FROM project_location s "
-					+ " where status is not null and status <> ''  "; 
-			int arrSize = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject_code())) {
-				qry = qry + " and s.project_code = ?";
-				arrSize++;
-			}	
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation_code())) {
-				qry = qry + " and location_code = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and s.status = ? ";
-				arrSize++;
-			}
-			qry = qry + "  group by status order by status asc";
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject_code())) {
-				pValues[i++] = obj.getProject_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation_code())) {
-				pValues[i++] = obj.getLocation_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			objsList = jdbcTemplate.query( qry, pValues, new BeanPropertyRowMapper<ProjectLocation>(ProjectLocation.class));
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return objsList;
-	}
+    /**
+     * Get active locations for dropdown
+     */
+    public List<Location> getActiveLocations() throws Exception {
+        List<Location> locationList = new ArrayList<>();
+        try {
+            String query = "SELECT id, location, status " +
+                          "FROM location WHERE status = 'Active' ORDER BY location ASC";
+            locationList = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Location.class));
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error fetching active locations: " + e.getMessage(), e);
+        }
+        return locationList;
+    }
 
-	public boolean addLocation(ProjectLocation obj) throws Exception {
-		int count = 0;
-		boolean flag = false;
-		TransactionDefinition def = new DefaultTransactionDefinition();
-		TransactionStatus status = transactionManager.getTransaction(def);
-		try {
-			NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-			String insertQry = "INSERT INTO project_location (location_name,location_code,project_code,status,created_by) VALUES (:location_name,:location_code,:project_code,:status,:created_by)";
-			BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);		 
-		    count = namedParamJdbcTemplate.update(insertQry, paramSource);
-			if(count > 0) {
-				flag = true;
-			}
-			transactionManager.commit(status);
-		}catch (Exception e) {
-			transactionManager.rollback(status);
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return flag;
-	}
+    /**
+     * Check if location name is unique
+     */
+    public boolean isLocationUnique(String locationName, String excludeId) throws Exception {
+        try {
+            String query;
+            Object[] params;
+            
+            if (StringUtils.isEmpty(excludeId)) {
+                query = "SELECT COUNT(*) FROM location WHERE location = ?";
+                params = new Object[]{locationName};
+            } else {
+                query = "SELECT COUNT(*) FROM location WHERE location = ? AND id != ?";
+                params = new Object[]{locationName, excludeId};
+            }
+            
+            int count = jdbcTemplate.queryForObject(query, Integer.class, params);
+            return count == 0;
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error checking location uniqueness: " + e.getMessage(), e);
+        }
+    }
 
-	public boolean updateLocation(ProjectLocation obj) throws Exception {
-		int count = 0;
-		boolean flag = false;
-		TransactionDefinition def = new DefaultTransactionDefinition();
-		TransactionStatus status = transactionManager.getTransaction(def);
-		try {
-			NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-			String updateQry = "UPDATE project_location set location_name= :location_name,location_code= :location_code,project_code=:project_code,status= :status,modified_by= :modified_by  "
-					+ " where id= :id ";
-			BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);		 
-		    count = namedParamJdbcTemplate.update(updateQry, paramSource);
-			if(count > 0) {
-				flag = true;
-			}
-			transactionManager.commit(status);
-		}catch (Exception e) {
-			transactionManager.rollback(status);
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return flag;
-	}
+    /**
+     * Get distinct status values for filter
+     */
+    public List<String> getStatusFilterList() throws Exception {
+        List<String> statusList = new ArrayList<>();
+        try {
+            String query = "SELECT DISTINCT status FROM location WHERE status IS NOT NULL AND status != '' ORDER BY status ASC";
+            statusList = jdbcTemplate.queryForList(query, String.class);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error fetching status filter list: " + e.getMessage(), e);
+        }
+        return statusList;
+    }
 
-	public List<ProjectLocation> checkUniqueIfForlocation(ProjectLocation obj) throws Exception {
-		List<ProjectLocation> objsList = new ArrayList<ProjectLocation>();
-		try {
-			String qry = "SELECT location_code FROM project_location  "
-					+ " where status is not null and status <> ''  "; 
-			int arrSize = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation_code())) {
-				qry = qry + " and location_code = ?";
-				arrSize++;
-			}	
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation_code())) {
-				pValues[i++] = obj.getLocation_code();
-			}
-			
-			objsList = jdbcTemplate.query( qry, pValues, new BeanPropertyRowMapper<ProjectLocation>(ProjectLocation.class));
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return objsList;
-	}
-	
-	
+    /**
+     * Search locations with pagination
+     */
+    public List<Location> searchLocationsWithPagination(Location obj, int page, int pageSize) throws Exception {
+        List<Location> locationList = new ArrayList<>();
+        try {
+            StringBuilder query = new StringBuilder();
+            List<Object> params = new ArrayList<>();
+            
+            query.append("SELECT id, location, status FROM location WHERE 1=1 ");
+            
+            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation())) {
+                query.append(" AND location LIKE ? ");
+                params.add("%" + obj.getLocation() + "%");
+            }
+            
+            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
+                query.append(" AND status = ? ");
+                params.add(obj.getStatus());
+            }
+            
+            query.append(" ORDER BY location ASC ");
+            
+            // Add pagination for SQL Server
+            query.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+            params.add((page - 1) * pageSize);
+            params.add(pageSize);
+            
+            locationList = jdbcTemplate.query(
+                query.toString(), 
+                params.toArray(), 
+                new BeanPropertyRowMapper<>(Location.class)
+            );
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error searching locations with pagination: " + e.getMessage(), e);
+        }
+        return locationList;
+    }
+
+    /**
+     * Count total locations for pagination
+     */
+    public int countLocations(Location obj) throws Exception {
+        try {
+            StringBuilder query = new StringBuilder();
+            List<Object> params = new ArrayList<>();
+            
+            query.append("SELECT COUNT(*) FROM location WHERE 1=1 ");
+            
+            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation())) {
+                query.append(" AND location LIKE ? ");
+                params.add("%" + obj.getLocation() + "%");
+            }
+            
+            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
+                query.append(" AND status = ? ");
+                params.add(obj.getStatus());
+            }
+            
+            return jdbcTemplate.queryForObject(query.toString(), Integer.class, params.toArray());
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error counting locations: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Get location statistics (counts)
+     */
+    public Location getLocationStatistics() throws Exception {
+        Location stats = new Location();
+        try {
+            String query = "SELECT " +
+                          "(SELECT COUNT(*) FROM location) AS total_locations, " +
+                          "(SELECT COUNT(*) FROM location WHERE status = 'Active') AS active_locations, " +
+                          "(SELECT COUNT(*) FROM location WHERE status != 'Active') AS inactive_locations";
+            
+            List<Location> result = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Location.class));
+            
+            if (result != null && !result.isEmpty()) {
+                stats = result.get(0);
+                // Map the result to the location object
+                // Note: You need to add these fields to your Location model if not present
+                // stats.setTotalLocations(String.valueOf(total));
+                // stats.setActiveLocations(String.valueOf(active));
+                // stats.setInactiveLocations(String.valueOf(inactive));
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error fetching location statistics: " + e.getMessage(), e);
+        }
+        return stats;
+    }
+
+    /**
+     * Validate location data before save
+     */
+    public boolean validateLocationData(Location location) throws Exception {
+        try {
+            // Check required fields
+            if (StringUtils.isEmpty(location.getLocation())) {
+                throw new Exception("Location name is required");
+            }
+            
+            if (StringUtils.isEmpty(location.getStatus())) {
+                throw new Exception("Status is required");
+            }
+            
+            // Check length constraints
+            if (location.getLocation().length() > 100) {
+                throw new Exception("Location name must be less than 100 characters");
+            }
+            
+            return true;
+            
+        } catch (Exception e) {
+            throw new Exception("Location validation failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Get locations by status
+     */
+    public List<Location> getLocationsByStatus(String status) throws Exception {
+        List<Location> locationList = new ArrayList<>();
+        try {
+            String query = "SELECT id, location, status " +
+                          "FROM location WHERE status = ? ORDER BY location ASC";
+            locationList = jdbcTemplate.query(query, new Object[]{status}, new BeanPropertyRowMapper<>(Location.class));
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error fetching locations by status: " + e.getMessage(), e);
+        }
+        return locationList;
+    }
+
+    /**
+     * Check if location is being used in other tables
+     */
+    public boolean isLocationInUse(String locationName) throws Exception {
+        try {
+            // Check plant table
+            String query = "SELECT COUNT(*) FROM plant WHERE location = ?";
+            int count = jdbcTemplate.queryForObject(query, Integer.class, locationName);
+            
+            return count > 0;
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error checking location usage: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Get all distinct locations for dropdown (active and inactive)
+     */
+    public List<String> getAllLocationNames() throws Exception {
+        List<String> locationList = new ArrayList<>();
+        try {
+            String query = "SELECT DISTINCT location FROM location WHERE location IS NOT NULL AND location != '' ORDER BY location ASC";
+            locationList = jdbcTemplate.queryForList(query, String.class);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error fetching all location names: " + e.getMessage(), e);
+        }
+        return locationList;
+    }
+
+    /**
+     * Bulk update location status
+     */
+    public boolean bulkUpdateStatus(List<String> ids, String status) throws Exception {
+        int count = 0;
+        boolean flag = false;
+        TransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus transactionStatus = transactionManager.getTransaction(def);
+        
+        try {
+            if (ids == null || ids.isEmpty()) {
+                throw new Exception("No location IDs provided for bulk update");
+            }
+            
+            // Create parameter placeholders for IN clause
+            StringBuilder placeholders = new StringBuilder();
+            for (int i = 0; i < ids.size(); i++) {
+                placeholders.append("?");
+                if (i < ids.size() - 1) {
+                    placeholders.append(",");
+                }
+            }
+            
+            String updateQuery = "UPDATE location SET status = ? WHERE id IN (" + placeholders.toString() + ")";
+            
+            // Build parameters array
+            Object[] params = new Object[ids.size() + 1];
+            params[0] = status;
+            for (int i = 0; i < ids.size(); i++) {
+                params[i + 1] = ids.get(i);
+            }
+            
+            count = jdbcTemplate.update(updateQuery, params);
+            
+            if (count > 0) {
+                flag = true;
+            }
+            
+            transactionManager.commit(transactionStatus);
+            
+        } catch (Exception e) {
+            transactionManager.rollback(transactionStatus);
+            e.printStackTrace();
+            throw new Exception("Error in bulk update status: " + e.getMessage(), e);
+        }
+        return flag;
+    }
 }

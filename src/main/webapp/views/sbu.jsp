@@ -1,1107 +1,1152 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding = "UTF-8"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<!--
-Template Name: Safety - Vuejs, HTML & Laravel Admin Dashboard Template
-Author: PixInvent
-Website: http://www.pixinvent.com/
-Contact: hello@pixinvent.com
-Follow: www.twitter.com/pixinvents
-Like: www.facebook.com/pixinvents
-Purchase: https://1.envato.market/vuexy_admin
-Renew Support: https://1.envato.market/vuexy_admin
-License: You must have a valid license purchased only from themeforest(the above link) in order to legally use the theme for your project.
-
--->
-<html class="loading" lang="en" data-textdirection="ltr">
-  <!-- BEGIN: Head--> 
-  
-<!-- Mirrored from pixinvent.com/demo/vuexy-html-bootstrap-admin-template/html/ltr/horizontal-menu-template/table-datatable-basic.html by HTTrack Website Copier/3.x [XR&CO'2014], Sun, 07 Aug 2022 05:37:16 GMT -->
+<html lang="en">
 <head>
-   
-<style>
-
-.mdl-grid{
-	display: flex !important;
-    padding: 4px;
-    justify-content: space-between;
-    height: 4.5rem;
-} 
-.dt-table{
-display: block !important;
-height: 100%;
-}
-.modal {
-    width: 100% !important;
-}
-.required{
-	color:red;
-}
-.my-error-class {
- 	 color:red;
-}
-.my-valid-class {
- 	 color:green;
-}
-.select2-container--default .select2-selection--single .select2-selection__arrow b {
-     left: -25% !important;
-    margin-top: 1p% !important;
-}
-body {
-    font-family: var(--bs-body-font-family) !important;
-}
-.dark-layout h1, .dark-layout h2, .dark-layout h3, .dark-layout h4, .dark-layout h5, .dark-layout h6, .dark-layout span  {
-    color: #D0D2D6;
-}
-.select2-container--classic .select2-selection--single .select2-selection__arrow b, .select2-container--default .select2-selection--single .select2-selection__arrow b {
-    background-image: url(data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23d8d6de\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\' class=\'feather feather-chevron-down\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E);
-    background-size: 18px 14px,18px 14px !important;
-    background-repeat: no-repeat !important;
-    height: 1rem !important;
-    padding-right: 1.5rem !important;
-    margin-left: 0 !important;
-    margin-top: 0 !important;
-    left: -8px !important;
-    border-style: none !important;
-}
-</style>
- 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=0,minimal-ui">
-    <meta name="description" content="Safety admin is super flexible, powerful, clean &amp; modern responsive bootstrap 4 SBU with unlimited possibilities.">
-    <meta name="keywords" content="admin template,SBU, Safety admin template, dashboard template, flat admin template, responsive admin template, web app">
-    <meta name="author" content="PIXINVENT">
-  <title>SBU</title>
-        <link rel="icon" type="image/png" sizes="96x96" href="/reirm/resources/images/protect-favicon.png" >
-
-	<script src="/reirm/resources/js/jQuery-v.3.5.min.js"  ></script>
-    <!-- BEGIN: Vendor CSS-->
-      <link rel="apple-touch-icon" href="/reirm/resources/images/ico/apple-icon-120.html">
-	<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500;1,600" rel="stylesheet">
-    <!-- BEGIN: Vendor CSS-->
-    <link rel="stylesheet" type="text/css" href="/reirm/resources/vendors/css/vendors.min.css">
-    <link rel="stylesheet" type="text/css" href="/reirm/resources/vendors/css/tables/datatable/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" type="text/css" href="/reirm/resources/vendors/css/tables/datatable/responsive.bootstrap5.min.css">
-    <link rel="stylesheet" type="text/css" href="/reirm/resources/vendors/css/tables/datatable/buttons.bootstrap5.min.css">
-    <link rel="stylesheet" type="text/css" href="/reirm/resources/vendors/css/tables/datatable/rowGroup.bootstrap5.min.css">
-    <link rel="stylesheet" type="text/css" href="/reirm/resources/vendors/css/pickers/flatpickr/flatpickr.min.css">
-    <!-- END: Vendor CSS-->
- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
-	  <link rel="stylesheet" href="<c:url value="/resources/css/font-awesome-v.4.7.css" />">
-    <!-- BEGIN: Theme CSS-->
-            <link rel="stylesheet" type="text/css" href="/reirm/resources/vendors/css/extensions/toastr.min.css">
-    <link rel="stylesheet" type="text/css" href="/reirm/resources/css/plugins/extensions/ext-component-toastr.min.css">
-    <link rel="stylesheet" type="text/css" href="/reirm/resources/css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="/reirm/resources/css/bootstrap-extended.min.css">
-    <link rel="stylesheet" type="text/css" href="/reirm/resources/css/colors.min.css">
-    <link rel="stylesheet" type="text/css" href="/reirm/resources/css/components.min.css">
-    <link rel="stylesheet" type="text/css" href="/reirm/resources/css/themes/dark-layout.min.css">
-    <link rel="stylesheet" type="text/css" href="/reirm/resources/css/themes/bordered-layout.min.css">
-    <link rel="stylesheet" type="text/css" href="/reirm/resources/css/themes/semi-dark-layout.min.css">
-   <link rel="stylesheet" type="text/css" href="/reirm/resources/vendors/css/forms/select/select2.min.css">
-    <!-- BEGIN: Page CSS-->
-    <link rel="stylesheet" type="text/css" href="/reirm/resources/css/core/menu/menu-types/horizontal-menu.min.css">
-    <!-- END: Page CSS-->
-
-    <!-- BEGIN: Custom CSS-->
-    <link rel="stylesheet" type="text/css" href="/reirm/resources/css/style.css">
-    <!-- END: Custom CSS-->
-
-  </head>
-  <!-- END: Head-->
-
-  <!-- BEGIN: Body-->
-  <body class="horizontal-layout horizontal-menu  navbar-floating footer-static  " data-open="hover" data-menu="horizontal-menu" data-col="">
-
-    <!-- BEGIN: Header-->
-	<jsp:include page="../views/layout/header.jsp"></jsp:include> 
-
-
-    <!-- END: Header-->
-    <!-- BEGIN: Main Menu-->
-    <div class="horizontal-menu-wrapper">
-      <div class="header-navbar navbar-expand-sm navbar navbar-horizontal floating-nav navbar-light navbar-shadow menu-border container-xxl" role="navigation" data-menu="menu-wrapper" data-menu-type="floating-nav">
-        <div class="navbar-header">
-          <ul class="nav navbar-nav flex-row">
-            <li class="nav-item me-auto"><a class="navbar-brand" href="#"><span class="brand-logo">
-                  <svg viewbox="0 0 139 95" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="24">
-                    <defs>
-                      <lineargradient id="linearGradient-1" x1="100%" y1="10.5120544%" x2="50%" y2="89.4879456%">
-                        <stop stop-color="#000000" offset="0%"></stop>
-                        <stop stop-color="#FFFFFF" offset="100%"></stop>
-                      </lineargradient>
-                      <lineargradient id="linearGradient-2" x1="64.0437835%" y1="46.3276743%" x2="37.373316%" y2="100%">
-                        <stop stop-color="#EEEEEE" stop-opacity="0" offset="0%"></stop>
-                        <stop stop-color="#FFFFFF" offset="100%"></stop>
-                      </lineargradient>
-                    </defs>
-                    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                      <g id="Artboard" transform="translate(-400.000000, -178.000000)">
-                       			         <img src="<%=request.getContextPath() %>/resources/images/logo/protect-main.jpeg" width="50" height="40" class="card-img">
-
-                      </g>
-                    </g>
-                  </svg></span>
-                <h2 class="brand-text mb-0"></h2></a></li>
-            <li class="nav-item nav-toggle"><a class="nav-link modern-nav-toggle pe-0" data-bs-toggle="collapse"><i class="d-block d-xl-none text-primary toggle-icon font-medium-4" data-feather="x"></i></a></li>
-          </ul>
-        </div>
-        <div class="shadow-bottom"></div>
-        <!-- Horizontal menu content-->
- 			<jsp:include page="../views/layout/menu.jsp"></jsp:include> 
-      </div>
-    </div>
-    <!-- END: Main Menu-->
-
-    <!-- BEGIN: Content-->
-    <div class="app-content content ">
-      <div class="content-overlay"></div> 
-      <div class="header-navbar-shadow"></div>
-      <div class="content-wrapper container-xxl p-0">
-        <div class="content-header row">
-           <div class="content-header-left col-md-9 col-12 mb-2">
-            <div class="row breadcrumbs-top">
-              <div class="col-12">
-                <h2 class="content-header-title float-start mb-0">SBU </h2>
-                <div class="breadcrumb-wrapper">
-                  <ol class="breadcrumb">
-                    <%--   <li class="breadcrumb-item"><a href="<%=request.getContextPath() %>/home">Home</a>
-                    </li>--%>
-                    <li class="breadcrumb-item">Masters
-                    </li>
-                    <li class="breadcrumb-item active">SBU
-                    </li>
-                  </ol>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="content-body"><!-- Dashboard Analytics Start -->
-<section id="dashboard-analytics">
-<div class="row match-height" >
-<div class="col-lg-8 col-sm-6 col-12"  style="box-sizing:border-box; display:table;">
-     <div class="col-lg-3 col-sm-3 col-6"  style="padding: 1rem;display:table-cell;">
-       <div class="col-md-12 mb-1">
-              <select class="select2 form-select" id="select2-company_code_filter-container"  >
-                <option value="">Select Company</option>
-              </select>
- 				          </div>
-          <h2 class="fw-bolder mt-1"></h2> 
-    </div>
-  <div class="col-lg-3 col-sm-3 col-6"  style="padding: 1rem;display:table-cell;">
-       <div class="col-md-12 mb-1">
-              <select class="select2 form-select" id="select2-sbu_filter-container" name="sbu_code" >
-                <option value="">Select SBU</option>
-              </select>
- 	   </div>
-          <h2 class="fw-bolder mt-1"></h2>
-    </div>
-      <div class="col-lg-3 col-sm-3 col-6"  style="padding: 1rem;display:table-cell;">
-       <div class="col-md-12 mb-1">
-              <select class="select2 form-select" id="select2-status_filter-container" >
-                <option value="">Select Status</option>
-              </select>
- 	   </div>
-          <h2 class="fw-bolder mt-1"></h2>
-    </div>
-</div>
-<div class="col-lg-2 col-sm-2 col-12"  style="box-sizing:border-box; display:table;">
-    <div class="col-lg-3 col-sm-3 col-6"  style="padding: .5rem;display:table-cell;">
-     <button class="btn btn-primary col-md-12" style="margin-top: 10px; width: 45%;     background-color: gainsboro"  onclick="getSBUList();"><i class="fa fa-search" aria-hidden="true"></i></button>
-         <button class="btn btn-primary col-md-12" style="margin-top: 10px; width: 45%;     background-color: gainsboro"  onclick="clearFilter();"><i class="fa fa-undo" aria-hidden="true"></i></button>
-     </div>
-</div>
-  <div class="col-lg-2 col-sm-4 col-12"style="
-    display: flex;
-    align-items: center;
-">
-    <div class="col-lg-8 col-sm-6 col-6">
-    <button type="button" class="btn " data-bs-toggle="modal" onclick="addBox();"  data-bs-target="#addSBU"style="margin-top: 17px; color: white !important; background-color: orange !important; width: 42%;"><i class="fa fa-add" aria-hidden="true"></i></button>
-         <button class="btn col-md-12" style="margin-top: 17px; width: 42%;     background-color: #14e014 !important;color: white !important;"  onclick="exportSBU();"><i class="fa fa-download" aria-hidden="true"></i></button>
-     </div>
-  
-  </div>
-     
-</div> 
-  <div class="row match-height" style=" display: flex;  justify-content: left ">
-    <!-- Greetings Card starts -->
-
-    <!-- Greetings Card ends -->
-    <!-- Subscribers Chart Card starts -->
-
-    <div class="col-lg-3 col-sm-3 col-6">
-      <div class="card">
-        <div class="card-header flex-column align-items-start pb-0">
-          <div class="avatar bg-light-primary p-50 m-0">
-            <div class="avatar-content">
-              <i data-feather="users" class="font-medium-5"></i>
-            </div>
-          </div>
-          <h3 class="fw-bolder mt-1"><span id= "allSBU"><%-- ${sessionScope.ALL_COMPANIES} --%></span></h3>
-          <p class="card-text">Total SBU</p>
-        </div>
-      </div>
-    </div>
-    <!-- Subscribers Chart Card starts -->
-    <div class="col-lg-3 col-sm-3 col-6">
-      <div class="card">
-        <div class="card-header flex-column align-items-start pb-0">
-          <div class="avatar bg-light-primary p-50 m-0">
-            <div class="avatar-content">
-              <i data-feather="zap" class="font-medium-5"></i>
-            </div>
-          </div>
-          <h3 class="fw-bolder mt-1"><span id= "activeSBU"><%-- ${sessionScope.ACTIVE_COMPANIES} --%></span></h3>
-          <p class="card-text">Active SBU</p>
-        </div>
-      </div>
-    </div>
-    <!-- Subscribers Chart Card ends -->
-
-    <!-- Orders Chart Card starts -->
-    <div class="col-lg-3 col-sm-3 col-6">
-      <div class="card">
-        <div class="card-header flex-column align-items-start pb-0">
-          <div class="avatar bg-light-warning p-50 m-0">
-            <div class="avatar-content">
-              <i data-feather="zap-off" class="font-medium-5"></i>
-            </div>
-          </div>
-          <h3 class="fw-bolder mt-1"><span id= "inActiveSBU"></span></h3>
-          <p class="card-text">Inactive SBU</p>
-        </div>
-      </div>
-    </div> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SBU Management - CAPEX System</title>
     
-    <!-- Orders Chart Card ends -->
-  </div>
-  <!-- List DataTable -->
-  <div>
-  	
-  </div>
-  <div class="row">
-  
-    <div class="col-12">
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-      <div class="card invoice-list-wrapper">
-        <div class="card-datatable table-responsive">
-       <div class="dt-buttons" style="height : 0.5em;">
-      
-        </div>
-          <table id="datatable-sbu" class="invoice-list-table table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Action</th>
-                <th>SBU Code</th>
-                <th class="text-truncate">SBU Name</th>
-                <th>Company</th>
-                <th>Status </th>
-              </tr>
-            </thead>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!--/ List DataTable -->
-
-  																				 <!--  model -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
-<div class="modal fade" id="addSBU" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered modal-edit-user">
-    <div class="modal-content">
-      <div class="modal-header bg-transparent">
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body pb-5 px-sm-5 pt-50">
-        <div class="text-center mb-2">
-          <h1 class="mb-1">Add SBU</h1>
-        </div>
-        <form id="addSBUForm" class="row gy-1 pt-75" action="<%=request.getContextPath() %>/add-sbu" method="post" class="form-horizontal" role="form" >
-          <div class="col-12 col-md-6">
-            <label class="form-label" for="select2-basic">Company</label><span class="required"> *</span>
-            <select 
-              id="select2-company_code_add-container"
-              name="company_code"
-              class="select2 form-select formSelect"
-              aria-label="Default select example"
-            >
-              <option value="">Select Company</option>
-             	<c:forEach var="obj" items="${objList}">
-					<option value="${obj.company_code }" >[${obj.company_code }] - ${obj.company_name }</option>
-				</c:forEach>
-            </select>
-             <span id="select2-company_code_add-containerError" class="error-msg" ></span>
-          </div>
-          <div class="col-12 col-md-6">
-            <label class="form-label" for="modalEditUserLastName">SBU Code</label><span class="required"> *</span>
-            <input
-              type="text"
-              id="sbu_code_add"
-              name="sbu_code"
-              class="form-control"
-              placeholder="eg : RE"
-              value=""  onkeyup="checkUniqueId();"
-              data-msg="Please enter your last name"
-            />
-             <span id="sbu_code_addError" class="error-msg" ></span>
-          </div>
-		<div class="col-12 col-md-6">
-            <label class="form-label" for="modalEditUserFirstName">SBU Name</label><span class="required"> *</span>
-            <input
-              type="text"
-              id="sbu_name_add"
-              name="sbu_name"
-              class="form-control"
-              placeholder="eg : Re Sustainablity"
-              value=""
-              data-msg="Please enter your first name"
-            />
-             <span id="sbu_name_addError" class="error-msg" ></span>
-          </div>
-   		  <div class="col-12 col-md-6">
-            <label class="form-label" for="select2-basic">Status</label><span class="required"> *</span>
-            <select 
-              id="select2-status_add-container"
-              name="status"
-              class="select2 form-select formSelect"
-              aria-label="Default select example"
-            >
-              <option value="">Select Status</option>
-             	<option value="Active">Active</option>
-             	<option value="Inactive">Inactive</option>
-            </select>
-             <span id="select2-status_add-containerError" class="error-msg" ></span>
-          </div>
-      
-          <div class="col-12 text-center mt-2 pt-50">
-            <button type="submit" class="btn btn-primary me-1" onclick="addSBU();">Add</button>
-            <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-label="Close">
-              Discard
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
- 																					<!--  model end -->
- 																					
- 																					
- 																			
- 																			
- 																			
-
-  																				 <!-- Update model -->
-    
-<div class="modal fade" id="updateSBU" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered modal-edit-user">
-    <div class="modal-content">
-      <div class="modal-header bg-transparent">
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body pb-5 px-sm-5 pt-50">
-        <div class="text-center mb-2">
-          <h1 class="mb-1">Edit SBU</h1>
-        </div>
-        <form id="updateSBUForm" class="row gy-1 pt-75" action="<%=request.getContextPath() %>/update-sbu" method="post" class="form-horizontal" role="form" >
-        <input type="hidden" id="id" name="id" />
-        <div class="col-12 col-md-6">
-            <label class="form-label" for="select2-basic">Company</label><span class="required"> *</span>
-            <select
-            	class="select2 form-select formSelect" id="select2-company_code_edit-container"
-              name="company_code"
-              aria-label="Default select example"
-            >
-              <option value="">Select Company</option>
-              <c:forEach var="obj" items="${objList}">
-					<option value="${obj.company_code }" >[${obj.company_code }] - ${obj.company_name }</option>
-				</c:forEach>
-            </select>
-             <span id="select2-company_code_edit-containerError" class="error-msg" ></span>
-          </div>
-            <div class="col-12 col-md-6">
-            <label class="form-label" for="modalEditUserLastName">SBU Code</label><span class="required"> *</span>
-            <input
-              type="text"
-              id="sbu_code_edit"
-              name="sbu_code"
-              class="form-control"
-              placeholder="eg : RE"
-              value="" readonly
-              data-msg="Please enter your last name"
-            />
-             <span id="sbu_code_editError" class="error-msg" ></span>
-          </div>
-		<div class="col-12 col-md-6">
-            <label class="form-label" for="modalEditUserFirstName">SBU Name</label><span class="required"> *</span>
-            <input
-              type="text"
-              id="sbu_name_edit"
-              name="sbu_name"
-              class="form-control"
-              placeholder="eg : Re Sustainablity"
-              value=""
-              data-msg="Please enter your first name"
-            />
-             <span id="sbu_name_editError" class="error-msg" ></span>
-          </div>
-          <div class="col-12 col-md-6">
-            <label class="form-label" for="select2-basic">Status</label><span class="required"> *</span>
-            <select 
-              id="select2-status_edit-container"
-              name="status"
-              class="select2 form-select formSelect"
-              aria-label="Default select example"
-            >
-              <option value="">Select Status</option>
-             	<option value="Active">Active</option>
-             	<option value="Inactive">Inactive</option>
-            </select>
-             <span id="select2-status_edit-containerError" class="error-msg" ></span>
-          </div>
-          
-          <div class="col-12 text-center mt-2 pt-50">
-            <button type="submit" class="btn btn-primary me-1" onclick="updateSBU();">Update</button>
-            <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-label="Close">
-              Discard
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
- 																					<!--  model end -->		
- 																					
- 																					
- 																					
- 										
-</section>
-
-											
- 																					
- 																					
- 																					
-<!-- Dashboard Analytics end -->
-
-        </div>
-      </div>
-    </div>
-    <!-- END: Content-->
-
-
-    <!-- BEGIN: Customizer-->     <!--
-    <div class="customizer d-none d-md-block"><a class="customizer-toggle d-flex align-items-center justify-content-center" href="#"><i class="spinner" data-feather="settings"></i></a><div class="customizer-content">
-  <!-- Customizer header -->
-  <!-- <div class="customizer-header px-2 pt-1 pb-0 position-relative">
-    <h4 class="mb-0">Theme Customizer</h4>
-    <p class="m-0">Customize & Preview in Real Time</p>
-
-    <a class="customizer-close" href="#"><i data-feather="x"></i></a>
-  </div>
-
-  <hr />
-
-  <!-- Styling & Text Direction -->
-  <!-- <div class="customizer-styling-direction px-2">
-    <p class="fw-bold">Skin</p>
-    <div class="d-flex">
-      <div class="form-check me-1">
-        <input
-          type="radio"
-          id="skinlight"
-          name="skinradio"
-          class="form-check-input layout-name"
-          checked
-          data-layout=""
-        />
-        <label class="form-check-label" for="skinlight">Light</label>
-      </div>
-      <div class="form-check me-1">
-        <input
-          type="radio"
-          id="skinbordered"
-          name="skinradio"
-          class="form-check-input layout-name"
-          data-layout="bordered-layout"
-        />
-        <label class="form-check-label" for="skinbordered">Bordered</label>
-      </div>
-      <div class="form-check me-1">
-        <input
-          type="radio"
-          id="skindark"
-          name="skinradio"
-          class="form-check-input layout-name"
-          data-layout="dark-layout"
-        />
-        <label class="form-check-label" for="skindark">Dark</label>
-      </div>
-      <div class="form-check">
-        <input
-          type="radio"
-          id="skinsemidark"
-          name="skinradio"
-          class="form-check-input layout-name"
-          data-layout="semi-dark-layout"
-        />
-        <label class="form-check-label" for="skinsemidark">Semi Dark</label>
-      </div>
-    </div>
-  </div>
-
-  <hr />
-
-  <!-- Menu --> <!--
-  <div class="customizer-menu px-2">
-    <div id="customizer-menu-collapsible" class="d-flex">
-      <p class="fw-bold me-auto m-0">Menu Collapsed</p>
-      <div class="form-check form-check-primary form-switch">
-        <input type="checkbox" class="form-check-input" id="collapse-sidebar-switch" />
-        <label class="form-check-label" for="collapse-sidebar-switch"></label>
-      </div>
-    </div>
-  </div>
-  <hr />
-
-  --> <!-- Layout Width --> <!--
-  <div class="customizer-footer px-2">
-    <p class="fw-bold">Layout Width</p>
-    <div class="d-flex">
-      <div class="form-check me-1">
-        <input type="radio" id="layout-width-full" name="layoutWidth" class="form-check-input" checked />
-        <label class="form-check-label" for="layout-width-full">Full Width</label>
-      </div>
-      <div class="form-check me-1">
-        <input type="radio" id="layout-width-boxed" name="layoutWidth" class="form-check-input" />
-        <label class="form-check-label" for="layout-width-boxed">Boxed</label>
-      </div>
-    </div>
-  </div>
-  <hr />
-
-  <!-- Navbar --> <!-- 
-  <div class="customizer-navbar px-2">
-    <div id="customizer-navbar-colors">
-      <p class="fw-bold">Navbar Color</p>
-      <ul class="list-inline unstyled-list">
-        <li class="color-box bg-white border selected" data-navbar-default=""></li>
-        <li class="color-box bg-primary" data-navbar-color="bg-primary"></li>
-        <li class="color-box bg-secondary" data-navbar-color="bg-secondary"></li>
-        <li class="color-box bg-success" data-navbar-color="bg-success"></li>
-        <li class="color-box bg-danger" data-navbar-color="bg-danger"></li>
-        <li class="color-box bg-info" data-navbar-color="bg-info"></li>
-        <li class="color-box bg-warning" data-navbar-color="bg-warning"></li>
-        <li class="color-box bg-dark" data-navbar-color="bg-dark"></li>
-      </ul>
-    </div>
-
-    <p class="navbar-type-text fw-bold">Navbar Type</p>
-    <div class="d-flex">
-      <div class="form-check me-1">
-        <input type="radio" id="nav-type-floating" name="navType" class="form-check-input" checked />
-        <label class="form-check-label" for="nav-type-floating">Floating</label>
-      </div>
-      <div class="form-check me-1">
-        <input type="radio" id="nav-type-sticky" name="navType" class="form-check-input" />
-        <label class="form-check-label" for="nav-type-sticky">Sticky</label>
-      </div>
-      <div class="form-check me-1">
-        <input type="radio" id="nav-type-static" name="navType" class="form-check-input" />
-        <label class="form-check-label" for="nav-type-static">Static</label>
-      </div>
-      <div class="form-check">
-        <input type="radio" id="nav-type-hidden" name="navType" class="form-check-input" />
-        <label class="form-check-label" for="nav-type-hidden">Hidden</label>
-      </div>
-    </div>
-  </div>
-  <hr />
-
-  --> <!-- Footer --> <!-- 
-  <div class="customizer-footer px-2">
-    <p class="fw-bold">Footer Type</p>
-    <div class="d-flex">
-      <div class="form-check me-1">
-        <input type="radio" id="footer-type-sticky" name="footerType" class="form-check-input" />
-        <label class="form-check-label" for="footer-type-sticky">Sticky</label>
-      </div>
-      <div class="form-check me-1">
-        <input type="radio" id="footer-type-static" name="footerType" class="form-check-input" checked />
-        <label class="form-check-label" for="footer-type-static">Static</label>
-      </div>
-      <div class="form-check me-1">
-        <input type="radio" id="footer-type-hidden" name="footerType" class="form-check-input" />
-        <label class="form-check-label" for="footer-type-hidden">Hidden</label>
-      </div>
-    </div>
-  </div>
-</div>
-
-    </div>
-    --> <!-- End: Customizer-->
-
-    <div class="sidenav-overlay"></div>
-    <div class="drag-target"></div>
-
-    <!-- BEGIN: Footer-->
-    <footer class="footer footer-static footer-light">
-      <p class="clearfix mb-0"><span class="float-md-start d-block d-md-inline-block mt-25">COPYRIGHT  &copy;  <span id="currentYear"></span> | Powered by<a class="ms-25" href="https://resustainability.com/" target="_blank">Re Sustainability Limited</a><span class="d-none d-sm-inline-block"> . All Rights Reserved.</span></span></p>
-    </footer>
-    <button class="btn btn-primary btn-icon scroll-top" type="button"><i data-feather="arrow-up"></i></button>
-    <!-- END: Footer-->
-
- 
-    <!-- BEGIN: Vendor JS-->
-    <script src="/reirm/resources/vendors/js/vendors.min.js"></script>
-    <!-- BEGIN Vendor JS-->
-
-    <!-- BEGIN: Page Vendor JS-->
-    <script src="/reirm/resources/vendors/js/ui/jquery.sticky.js"></script>
-    <script src="/reirm/resources/vendors/js/forms/select/select2.full.min.js"></script>
-    <script src="/reirm/resources/vendors/js/charts/apexcharts.min.js"></script>
-    <script src="/reirm/resources/vendors/js/extensions/toastr.min.js"></script>
-    <script src="/reirm/resources/vendors/js/extensions/moment.min.js"></script>
-    <script src="/reirm/resources/vendors/js/tables/datatable/jquery.dataTables.min.js"></script>
-    <script src="/reirm/resources/vendors/js/tables/datatable/datatables.buttons.min.js"></script>
-    <script src="/reirm/resources/vendors/js/tables/datatable/dataTables.bootstrap5.min.js"></script>
-    <script src="/reirm/resources/vendors/js/tables/datatable/dataTables.responsive.min.js"></script>
-    <script src="/reirm/resources/vendors/js/tables/datatable/responsive.bootstrap5.js"></script>
-    <!-- END: Page Vendor JS-->
- <script src="/reirm/resources/js/materialize-v.1.0.min.js "  ></script>
-    <script src="/reirm/resources/js/jquery-validation-1.19.1.min.js"  ></script>
-    <script src="/reirm/resources/js/jquery.dataTables-v.1.10.min.js"  ></script>
-     <script src="/reirm/resources/js/datetime-moment-v1.10.12.js"  ></script>
-         <script src="/reirm/resources/js/dataTables.material.min.js"  ></script>
-      <script src="/reirm/resources/js/moment-v2.8.4.min.js"  ></script>
-    <!-- BEGIN: Theme JS-->
-    <script src="/reirm/resources/js/core/app-menu.min.js"></script>
-    <script src="/reirm/resources/js/core/app.min.js"></script>
-    <script src="/reirm/resources/js/scripts/customizer.min.js"></script>
-     <script src="/reirm/resources/js/scripts/forms/form-select2.min.js"></script>
-    <!-- END: Theme JS-->
-   <script src="/reirm/resources/js/scripts/pages/modal-add-new-cc.min.js"></script>
-    <script src="/reirm/resources/js/scripts/pages/page-pricing.min.js"></script>
-    <script src="/reirm/resources/js/scripts/pages/modal-add-new-address.min.js"></script>
-    <script src="/reirm/resources/js/scripts/pages/modal-create-app.min.js"></script>
-    <script src="/reirm/resources/js/scripts/pages/modal-two-factor-auth.min.js"></script>
-    <script src="/reirm/resources/js/scripts/pages/modal-edit-user.min.js"></script>
-    <script src="/reirm/resources/js/scripts/pages/modal-share-project.min.js"></script>
-    <!-- BEGIN: Page JS-->
-     <script src="/reirm/resources/js/scripts/pages/dashboard-analytics.min.js"></script>
-    <script src="/reirm/resources/js/scripts/pages/app-invoice-list.min.js"></script>
-    <!-- END: Page JS-->
-    
-  <form action="<%=request.getContextPath()%>/export-sbu" name="exportSBUForm" id="exportSBUForm" target="_blank" method="post">	
-      
-        <input type="hidden" name="sbu_code" id="exportSBU_filter" />
-        <input type="hidden" name="company_code" id="exportCompany_Code_filter" />
-            <input type="hidden" name="status" id="exportStatus_filter" />
-	</form>
-    <script>
-    $('#addSBU').on('show.bs.modal', function (event) {
-        $(document).ready(function() {
-            $('.select2').select2({
-                dropdownParent: $('#addSBU')
-            });
-        }); 
-    });
-    $('#updateSBU').on('show.bs.modal', function (event) {
-        $(document).ready(function() {
-            $('.select2').select2({
-                dropdownParent: $('#updateSBU')
-            });
-        });
-    });
-      $(window).on("load",(function(){
-    	  
-          if (feather) {
-            feather.replace({ width: 14, height: 14 });
-          }
-          $('.modal').modal({ dismissible: false });
-          getSBUList();
-         }));
-      document.getElementById("currentYear").innerHTML = new Date().getFullYear();
-      
-      function clearFilter(){
-		    	$("#select2-sbu_filter-container").val(""); 
-		    	$("#select2-company_code_filter-container").val("");
-		    	$("#select2-status_filter-container").val("");
-		    	window.location.href= "<%=request.getContextPath()%>/sbu";
-	    }
-      
-      function getSBUFilterList() {
-	        var sbu_code = $("#select2-sbu_filter-container").val();
-	        var company_code = $("#select2-company_code_filter-container").val();
-	        var status = $("#select2-status_filter-container").val();
-	        if ($.trim(sbu_code) == "") {
-	        	$("#select2-sbu_filter-container option:not(:first)").remove();
-	        	var myParams = { sbu_code: sbu_code, company_code: company_code, status :status };
-	            $.ajax({
-	                url: "<%=request.getContextPath()%>/ajax/getSBUFilterList",
-	                data: myParams, cache: false,async: true,
-	                success: function (data) {
-	                    if (data.length > 0) {
-	                        $.each(data, function (i, val) {
-	                             $("#select2-sbu_filter-container").append('<option value="' + val.sbu_code + '">'+ "[ "+$.trim(val.sbu_code) +" ]"+" - " + $.trim(val.sbu_name) +'</option>');
-	                        });
-	                    }
-	                },error: function (jqXHR, exception) {
-	    	   			      $(".page-loader").hide();
-	       	          	  getErrorMessage(jqXHR, exception);
-	       	     	  }
-	            });
-	        }
-	    }
-      function getCompanyFilterList() {
-    	  var sbu_code = $("#select2-sbu_filter-container").val();
-	        var company_code = $("#select2-company_code_filter-container").val();
-	        var status = $("#select2-status_filter-container").val();
-	        if ($.trim(company_code) == "") {
-	        	$("#select2-company_code_filter-container option:not(:first)").remove();
-	        	var myParams = { sbu_code: sbu_code, company_code: company_code, status : status };
-	            $.ajax({
-	                url: "<%=request.getContextPath()%>/ajax/getCompanyFilterListFromSBU",
-	                data: myParams, cache: false,async: true,
-	                success: function (data) {
-	                    if (data.length > 0) {
-	                        $.each(data, function (i, val) {
-	                             $("#select2-company_code_filter-container").append('<option value="' + val.company_code + '">' + "[ "+$.trim(val.company_code) +" ]"+" - " + $.trim(val.company_name)  +'</option>');
-	                        });
-	                    }
-	                },error: function (jqXHR, exception) {
-	    	   			      $(".page-loader").hide();
-	       	          	  getErrorMessage(jqXHR, exception);
-	       	     	  }
-	            });
-	        }
-	    }
-
-      function getStatusFilterList() {
-    	  var sbu_code = $("#select2-sbu_filter-container").val();
-	        var company_code = $("#select2-company_code_filter-container").val();
-	        var status = $("#select2-status_filter-container").val();
-	        if ($.trim(status) == "") {
-	        	$("#select2-status_filter-container option:not(:first)").remove();
-	        	var myParams = { sbu_code: sbu_code, company_code: company_code, status : status };
-	            $.ajax({
-	                url: "<%=request.getContextPath()%>/ajax/getStatusFilterListFromSBU",
-	                data: myParams, cache: false,async: true,
-	                success: function (data) {
-	                    if (data.length > 0) {
-	                        $.each(data, function (i, val) {
-	                             $("#select2-status_filter-container").append('<option value="' + val.status + '">' + $.trim(val.status) +'</option>');
-	                        });
-	                    }
-	                },error: function (jqXHR, exception) {
-	    	   			      $(".page-loader").hide();
-	       	          	  getErrorMessage(jqXHR, exception);
-	       	     	  }
-	            });
-	        }
-	    }
-
-      
-	    function exportSBU(){
-	    	 var sbu_code = $("#select2-sbu_filter-container").val();
-	         var company_code = $("#select2-company_code_filter-container").val();
-	         var status = $("#select2-status_filter-container").val();
-	    	
-	    	 $("#exportSBU_filter").val(sbu_code);
-	     	 $("#exportCompany_Code_filter").val(company_code);
-	     	$("#exportStatus_filter").val(company_code);
-	     	 $("#exportSBUForm ").submit();
-	  	}
-	    
-	    function getSBUList(){
-	    	getSBUFilterList('');
-	    	getCompanyFilterList('');
-	    	getStatusFilterList('');
-	    	var sbu_code = $("#select2-sbu_filter-container").val();
-	        var company_code = $("#select2-company_code_filter-container").val();
-	        var status = $("#select2-status_filter-container").val();
-	    	$('#allSBU').html(0)
-    		$('#activeSBU').html(0)
-    		$('#inActiveSBU').html(0)
-	     	table = $('#datatable-sbu').DataTable();
-			table.destroy();
-			$.fn.dataTable.moment('DD-MMM-YYYY');
-			table = $('#datatable-sbu').DataTable({
-				"bStateSave": true,  
-	     		fixedHeader: true,
-	         	//Default: Page display length
-					"iDisplayLength" : 10,
-					"iData" : {
-						"start" : 52
-					},"iDisplayStart" : 0,
-					"drawCallback" : function() {
-					},
-	            columnDefs: [],
-	            // "ScrollX": true,
-	            //"scrollCollapse": true,
-	            "sScrollX": "100%",
-	            "sScrollXInner": "100%",
-	            "bScrollCollapse": true,
-	            "initComplete" : function() {
-				/* 		$('.dataTables_filter input[type="search"]')
-								.attr('placeholder', 'Search')
-								.css({
-									'width' : '300px ',
-									'display' : 'inline-block'
-								});
-						var input = $('.dataTables_filter input')
-								.unbind()
-								.bind('keyup',function(e){
-							    if (e.which == 13){
-							    	self.search(input.val()).draw();
-							    }
-							}), self = this.api(), $searchButton = $('<i class="fa fa-search" title="Go" >')
-						.click(function() {
-							self.search(input.val()).draw();
-						}), 
-						$clearButton = $('<i class="fa fa-close" title="Reset">')
-						.click(function() {
-							input.val('');
-							$searchButton.click();
-						})
-						$('.dataTables_filter').append( '<div class="right-btns"></div>');
-						$('.dataTables_filter div').append( $searchButton, $clearButton); */ 					
-					}
-	        }).rows().remove().draw();
-			table.state.clear();		
-		 	var myParams = {sbu_code: sbu_code, company_code: company_code, status : status};
-			$.ajax({url : "<%=request.getContextPath()%>/ajax/getSBUList",type:"POST",data:myParams,success : function(data){    				
-					if(data != null && data != '' && data.length > 0){    					
-		         		$.each(data,function(key,val){
-		         			var sbu_data = "'"+val.sbu_code+"','"+val.company_code+"','"+val.sbu_name+"','"+val.id+"','"+val.status+"'";
-		                    var actions = '<a href="javascript:void(0);"  onclick="getSBU('+sbu_data+');" class="btn btn-primary"  title="Edit"><i class="fa fa-pencil"></i></a>';    	                   	
-		                   	var rowArray = [];    	                 
-		                   	$('#allSBU').html(val.all_sbu)
-		            		$('#activeSBU').html(val.active_sbu)
-		            		$('#inActiveSBU').html(val.inActive_sbu)
-		                   	rowArray.push($.trim(val.id));
-		                	rowArray.push($.trim(actions));  
-		                   	rowArray.push($.trim(val.sbu_code));
-		                   	rowArray.push($.trim(val.sbu_name));
-		                   	rowArray.push("["+ $.trim(val.company_code)+"]"+" - "+ val.company_name);
-		                   	rowArray.push($.trim(val.status));
-		                   
-		                    table.row.add(rowArray).draw( true );
-						});
-					}
-				},error: function (jqXHR, exception) {
-		         	getErrorMessage(jqXHR, exception);
-		     }});
-	    } 
-	    
-	    function getSBU(sbu_code,company_code,sbu_name,id,status){
-	    	 $('#sbu_name_edit').val('');
-			 $('#sbu_code_edit').val('');
-			 $('select[name^="company_code"] option:selected').removeAttr("selected");
-			 $('select[name^="status"] option:selected').removeAttr("selected");
-		      $('#id').val($.trim(id));
-		      $('#updateSBU').modal('show');
-		      $('#updateSBU #sbu_name_edit').val($.trim(sbu_name)).focus();
-		      $('#updateSBU #sbu_code_edit').val($.trim(sbu_code)).focus();
-		      if(company_code != null && company_code != ''  && company_code != "undefined"){
-		    	  $('select[name^="company_code"] option[value="'+ company_code +'"]').attr("selected",true);
-		    	  $('select[name^="status"] option[value="'+ status +'"]').attr("selected",true);
-		    	  $('select').select2();
-		      }
-	   }
-	    
-	    function getErrorMessage(jqXHR, exception) {
-	  	    var msg = '';
-	  	    if (jqXHR.company_code === 0) {
-	  	        msg = 'Not connect.\n Verify Network.';
-	  	    } else if (jqXHR.company_code == 404) {
-	  	        msg = 'Requested page not found. [404]';
-	  	    } else if (jqXHR.company_code == 500) {
-	  	        msg = 'Internal Server Error [500].';
-	  	    } else if (exception === 'parsererror') {
-	  	        msg = 'Requested JSON parse failed.';
-	  	    } else if (exception === 'timeout') {
-	  	        msg = 'Time out error.';
-	  	    } else if (exception === 'abort') {
-	  	        msg = 'Ajax request aborted.';
-	  	    } else {
-	  	        msg = 'Uncaught Error.\n' + jqXHR.responseText;
-	  	    }
-	  	    console.log(msg);
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-	    
-	    function addSBU(){
-	    	if(validator.form()){ // validation perform
-	        	document.getElementById("addSBUForm").submit();	
-	    	}
-	    }
-	    function updateSBU(){
-	    	if(validator1.form()){ // validation perform
-	        	document.getElementById("updateSBUForm").submit();	
-	    	}
-	    }
-	    var validator1 =	$('#updateSBUForm').validate({
-		   	 errorClass: "my-error-class",
-		   	 validClass: "my-valid-class",
-		   	 ignore: ":hidden:not(.select2 form-select)",
-		   		    rules: {
-		   		 		  "sbu_name": {
-		   			 			required: true
-		   			 	  },"sbu_code": {										
-		   			 			required: true
-		   			 	  },"company_code": {
-		   	                 	required: true,
-		   			 	  },"status": {
-		   	                 	required: true,
-		   			 	  }
-		   		 	},
-		   		    messages: {
-		   		 		 "sbu_name": {
-		   				 	required: 'Required',
-		   			 	  },"sbu_code": {
-		   			 		required: 'Required'
-		   			 	  },"company_code": {
-		   		 			required: 'Required'
-		   		 	  	  },"status": {
-		   		 			required: 'Required'
-		   		 	  	  }
-		      		},
-		      		errorPlacement:function(error, element){
-		      		 	if (element.attr("id") == "sbu_name_edit" ){
-		   				 document.getElementById("sbu_name_editError").innerHTML="";
-		   		 		 error.appendTo('#sbu_name_editError');
-		   			}else if(element.attr("id") == "sbu_code_edit" ){
-		   			   document.getElementById("sbu_code_editError").innerHTML="";
-		   		 	   error.appendTo('#sbu_code_editError');
-		   			}else if(element.attr("id") == "select2-company_code_edit-container" ){
-		   				document.getElementById("select2-company_code_edit-containerError").innerHTML="";
-		   			 	error.appendTo('#select2-company_code_edit-containerError');
-		   			}else if(element.attr("id") == "select2-status_edit-container" ){
-		   				document.getElementById("select2-status_edit-containerError").innerHTML="";
-		   			 	error.appendTo('#select2-status_edit-containerError');
-		   			}else{
-		   					error.insertAfter(element);
-		   	        } 
-		      		},invalidHandler: function (form, validator) {
-		               var errors = validator.numberOfInvalids();
-		               if (errors) {
-		                   var position = validator.errorList[0].element;
-		                   jQuery('html, body').animate({
-		                       scrollTop:jQuery(validator.errorList[0].element).offset().top - 100
-		                   }, 1000);
-		               }
-		           },submitHandler:function(form){
-		   	    	//form.submit();
-		   	    }
-		   	});
-	    var validator =	$('#addSBUForm').validate({
-	   	 errorClass: "my-error-class",
-	   	 validClass: "my-valid-class",
-	   	 ignore: ":hidden:not(.select2 form-select)",
-	   		    rules: {
-	   		 		  "sbu_name": {
-	   			 			required: true
-	   			 	  },"sbu_code": {										
-	   			 			required: true
-	   			 	  },"company_code": {
-	   	                 	required: true,
-	   			 	  },"status": {
-	   	                 	required: true,
-	   			 	  }
-	   		 	},
-	   		    messages: {
-	   		 		 "sbu_name": {
-	   				 	required: 'Required',
-	   			 	  },"sbu_code": {
-	   			 		required: 'Required'
-	   			 	  },"company_code": {
-	   		 			required: 'Required'
-	   		 	  	  },"status": {
-		   		 		required: 'Required'
-	   		 	  	  }
-	      		},
-	      		errorPlacement:function(error, element){
-	      		 	if (element.attr("id") == "sbu_name_add" ){
-	   				 document.getElementById("sbu_name_addError").innerHTML="";
-	   		 		 error.appendTo('#sbu_name_addError');
-	   			}else if(element.attr("id") == "sbu_code_add" ){
-	   			   document.getElementById("sbu_code_addError").innerHTML="";
-	   		 	   error.appendTo('#sbu_code_addError');
-	   			}else if(element.attr("id") == "select2-company_code_add-container" ){
-	   				document.getElementById("select2-company_code_add-containerError").innerHTML="";
-	   			 	error.appendTo('#select2-company_code_add-containerError');
-	   			}else if(element.attr("id") == "select2-status_add-container" ){
-	   				document.getElementById("select2-status_add-containerError").innerHTML="";
-	   			 	error.appendTo('#select2-status_add-containerError');
-	   			}else{
-	   					error.insertAfter(element);
-	   	        } 
-	      		},invalidHandler: function (form, validator) {
-	               var errors = validator.numberOfInvalids();
-	               if (errors) {
-	                   var position = validator.errorList[0].element;
-	                   jQuery('html, body').animate({
-	                       scrollTop:jQuery(validator.errorList[0].element).offset().top - 100
-	                   }, 1000);
-	               }
-	           },submitHandler:function(form){
-	   	    	//form.submit();
-	   	    }
-	   	}); 
-	   	$('.formSelect').change(function(){
-	   	    if ($(this).val() != ""){
-	   	        $(this).valid();
-	   	    }
-	   	});
-	   	
-	   	$('input').change(function(){
-	   	    if ($(this).val() != ""){
-	   	        $(this).valid();
-	   	    }
-	   	});
-	   	function addBox(){
-	   		$('select[name^="company_code"] option:selected').removeAttr("selected");
-	   		$('select[name^="status"] option:selected').removeAttr("selected");
-	   		$('select').select2();
-	   	}
-	   	
-	 	function checkUniqueId(){
-	   		var sbu_code = $('#sbu_code_add').val();
-	        if ($.trim(sbu_code) != "" ) {
-	        	var myParams = {sbu_code: sbu_code };
-	            $.ajax({
-	                url: "<%=request.getContextPath()%>/ajax/checkUniqueIfForSBU",
-	                data: myParams, cache: false,async: true,
-	                success: function (data) {
-	                    if (data.length > 0) {
-	                        $.each(data, function (i, val) {
-		                      $("#sbu_code_addError").html(sbu_code+" Already Exists!").css("color","red");
-		                      $('#sbu_code_add').removeClass("is-valid")
-		                      $('#sbu_code_add').addClass("is-invalid")
-		                      $("#addBtn").prop("disabled",true);
-	                    	});
-	                     }else{
-	                    	  $("#sbu_code_addError").text("");
-	                    	  $('#sbu_code_add').removeClass("is-invalid")
-		                      $('#sbu_code_add').addClass("is-valid")
-		                      $("#addBtn").prop("disabled",false);
-	                     }           
-	                    
-	                    },error: function (jqXHR, exception) {
-	    	   			      $(".page-loader").hide();
-	       	          	  getErrorMessage(jqXHR, exception);
-	       	     	  }
-	            });
-	        }
-	   		
-	   	}
-    </script>
-  </body>
-  <!-- END: Body-->
 
-<!-- Mirrored from pixinvent.com/demo/vuexy-html-bootstrap-admin-template/html/ltr/horizontal-menu-template/dashboard-analytics.html by HTTrack Website Copier/3.x [XR&CO'2014], Sun, 07 Aug 2022 05:36:10 GMT -->
+        body {
+            font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .welcome-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .welcome-header-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .welcome-icon img {
+            height: 60px;
+            width: auto;
+            filter: brightness(0) invert(1);
+        }
+
+        .welcome-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .welcome-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info span {
+            font-weight: 500;
+        }
+
+        .user-info button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .user-info button:hover {
+            background: #c0392b;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eaeaea;
+        }
+
+        .page-title {
+            font-size: 28px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .page-title i {
+            color: #3498db;
+            font-size: 32px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.2);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.3);
+        }
+
+        /* SBU Form Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-overlay.active {
+            display: flex !important;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .form-group label span {
+            color: #e74c3c;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        /* Table Styles */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+
+        .table-header {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eaeaea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: #2c3e50;
+            color: white;
+            font-weight: 600;
+            text-align: left;
+            padding: 15px;
+            font-size: 14px;
+        }
+
+        .table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-active {
+            display: inline-block;
+            padding: 5px 12px;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-inactive {
+            display: inline-block;
+            padding: 5px 12px;
+            background: #f8d7da;
+            color: #721c24;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .action-icons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .edit-btn {
+            color: #3498db;
+            background: #e3f2fd;
+        }
+
+        .edit-btn:hover {
+            background: #bbdefb;
+        }
+
+        .delete-btn {
+            color: #e74c3c;
+            background: #fdedec;
+        }
+
+        .delete-btn:hover {
+            background: #fadbd8;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-btn:hover {
+            background: #f8f9fa;
+        }
+
+        .page-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            color: #666;
+            font-size: 14px;
+            margin-left: 20px;
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert i {
+            font-size: 20px;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .welcome-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+                padding: 15px;
+            }
+
+            .welcome-header-content {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .action-buttons {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .search-box {
+                width: 100%;
+                margin-top: 15px;
+            }
+
+            .modal {
+                width: 95%;
+                margin: 10px;
+            }
+            
+            .pagination {
+                gap: 5px;
+            }
+            
+            .page-btn {
+                padding: 6px 12px;
+                min-width: 36px;
+                height: 36px;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="welcome-header">
+        <div class="welcome-header-content">
+            <div class="welcome-icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/201/201623.png" alt="CAPEX Logo">
+            </div>
+            <div>
+                <h1>CAPEX Management System</h1>
+                <p>SBU Management</p>
+            </div>
+        </div>
+
+        <div class="user-info">
+            <span><i class="fas fa-user-circle"></i> <c:out value="${sessionScope.USER_NAME}" default="Admin" /></span>
+            <button onclick="window.location.href='<c:url value="/home" />'">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </button>
+            <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-title">
+                <i class="fas fa-sitemap"></i>
+                <div>
+                    <h2>SBU Management</h2>
+                    <p style="font-size: 14px; color: #666; margin-top: 5px;">Manage Strategic Business Units</p>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button class="btn btn-primary" onclick="openAddSBUModal()">
+                    <i class="fas fa-plus"></i> Add New SBU
+                </button>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div id="alertContainer">
+            <!-- Display flash messages -->
+            <c:if test="${not empty success}">
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> <c:out value="${success}" />
+                </div>
+            </c:if>
+            <c:if test="${not empty error}">
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i> <c:out value="${error}" />
+                </div>
+            </c:if>
+        </div>
+
+        <!-- Table Section -->
+        <div class="table-container">
+            <div class="table-header">
+                <div class="table-title">SBU List</div>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search SBUs..." onkeyup="searchSBUs()">
+                </div>
+            </div>
+            
+            <table class="table" id="sbuTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>SBU Code</th>
+                        <th>SBU Name</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data will be populated by JavaScript -->
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px;">
+                            <div style="color: #999; font-size: 16px;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 15px;"></i>
+                                <p>Loading SBUs...</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination">
+            <!-- Pagination will be generated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Add/Edit SBU Modal -->
+    <div class="modal-overlay" id="sbuModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-sitemap"></i> <span id="modalTitle">Add New SBU</span></h3>
+                <button class="modal-close" onclick="closeSBUModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="sbuForm" onsubmit="saveSBU(event)">
+                    <div class="form-group">
+                        <label for="sbu_code">SBU Code <span>*</span></label>
+                        <input type="text" id="sbu_code" name="sbu_code" required 
+                               placeholder="Enter SBU code (e.g., SBU-001)" maxlength="50">
+                        <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                            Unique identifier for the SBU
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sbu_name">SBU Name <span>*</span></label>
+                        <input type="text" id="sbu_name" name="sbu_name" required 
+                               placeholder="Enter SBU name" maxlength="100">
+                        <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                            Full name of the Strategic Business Unit
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="status">Status <span>*</span></label>
+                        <select id="status" name="status" required>
+                            <option value="">Select Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                        <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                            Active SBUs will be available for selection in other modules
+                        </small>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeSBUModal()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Save SBU
+                        </button>
+                    </div>
+                    
+                    <input type="hidden" id="sbu_id" name="id" value="">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+<script>
+    // Global variables
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    const baseUrl = '${pageContext.request.contextPath}';
+    let sbus = [];
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('SBU Management Page loaded');
+        loadSBUs();
+        initEventListeners();
+    });
+
+    // Initialize event listeners
+    function initEventListeners() {
+        // Close modal when clicking outside
+        document.getElementById('sbuModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSBUModal();
+            }
+        });
+    }
+
+    // Load SBUs from server - FIXED ENDPOINT
+    function loadSBUs() {
+        console.log('Loading SBUs...');
+        showLoading();
+        
+        $.ajax({
+            url: baseUrl + '/ajax/getSBUList', // FIXED: Changed from '/sbu/ajax/getList'
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                console.log('SBUs loaded:', data);
+                sbus = data || [];
+                populateTable(sbus);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading SBUs:', error);
+                showAlert('Error loading SBUs. Please try again.', 'error');
+                showNoData();
+            }
+        });
+    }
+
+    // Populate table with data
+    function populateTable(sbus) {
+        console.log('Populating table with', sbus.length, 'SBUs');
+        const tableBody = document.getElementById('tableBody');
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        
+        // Filter SBUs based on search
+        let filteredSBUs = sbus || [];
+        if (searchTerm) {
+            filteredSBUs = sbus.filter(function(sbu) {
+                return (sbu.sbu && sbu.sbu.toLowerCase().includes(searchTerm)) ||
+                       (sbu.sbu_name && sbu.sbu_name.toLowerCase().includes(searchTerm)) ||
+                       (sbu.status && sbu.status.toLowerCase().includes(searchTerm));
+            });
+        }
+        
+        // Calculate pagination
+        const totalPages = Math.ceil(filteredSBUs.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageSBUs = filteredSBUs.slice(startIndex, endIndex);
+        
+        // Clear table
+        tableBody.innerHTML = '';
+        
+        if (pageSBUs.length === 0) {
+            showNoData(searchTerm);
+        } else {
+            // Add rows
+            pageSBUs.forEach(function(sbu) {
+                const row = document.createElement('tr');
+                
+                // Determine status class
+                const statusClass = (sbu.status === 'Active') ? 'status-active' : 'status-inactive';
+                const statusText = sbu.status || 'Inactive';
+                
+                row.innerHTML = 
+                    '<td>' + (sbu.id || 'N/A') + '</td>' +
+                    '<td>' + (sbu.sbu || 'N/A') + '</td>' +
+                    '<td>' + (sbu.sbu_name || 'N/A') + '</td>' +
+                    '<td>' +
+                        '<span class="' + statusClass + '">' + statusText + '</span>' +
+                    '</td>' +
+                    '<td>' +
+                        '<div class="action-icons">' +
+                            '<button class="action-btn edit-btn" onclick="editSBU(\'' + sbu.id + '\')" title="Edit">' +
+                                '<i class="fas fa-edit"></i>' +
+                            '</button>' +
+                            '<button class="action-btn delete-btn" onclick="deleteSBU(\'' + sbu.id + '\')" title="Delete">' +
+                                '<i class="fas fa-trash"></i>' +
+                            '</button>' +
+                        '</div>' +
+                    '</td>';
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Update pagination
+        updatePagination(filteredSBUs.length, totalPages);
+    }
+
+    // Show loading state
+    function showLoading() {
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = 
+            '<tr>' +
+                '<td colspan="5" style="text-align: center; padding: 40px;">' +
+                    '<div style="color: #999; font-size: 16px;">' +
+                        '<i class="fas fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 15px;"></i>' +
+                        '<p>Loading SBUs...</p>' +
+                    '</div>' +
+                '</td>' +
+            '</tr>';
+    }
+
+    // Show no data message
+    function showNoData(searchTerm) {
+        const tableBody = document.getElementById('tableBody');
+        const message = searchTerm ? 
+            'No SBUs found matching your search. Try a different search or add a new SBU.' :
+            'No SBU data available. Click "Add New SBU" to get started.';
+        const icon = searchTerm ? 'search' : 'database';
+        
+        tableBody.innerHTML = 
+            '<tr>' +
+                '<td colspan="5" style="text-align: center; padding: 40px;">' +
+                    '<div style="color: #999; font-size: 16px;">' +
+                        '<i class="fas fa-' + icon + '" style="font-size: 48px; margin-bottom: 15px;"></i>' +
+                        '<p>' + message + '</p>' +
+                    '</div>' +
+                '</td>' +
+            '</tr>';
+    }
+
+    // Update pagination controls
+    function updatePagination(totalItems, totalPages) {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+        
+        if (totalPages <= 1) return;
+        
+        // Previous button
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.onclick = function() {
+            if (currentPage > 1) {
+                currentPage--;
+                populateTable(sbus);
+            }
+        };
+        pagination.appendChild(prevBtn);
+        
+        // Page numbers
+        for (let i = 1; i <= totalPages; i++) {
+            const pageBtn = document.createElement('button');
+            
+            let className = 'page-btn';
+            if (i === currentPage) {
+                className += ' active';
+            }
+            
+            pageBtn.className = className;
+            pageBtn.textContent = i;
+            pageBtn.onclick = (function(pageNum) {
+                return function() {
+                    currentPage = pageNum;
+                    populateTable(sbus);
+                };
+            })(i);
+            pagination.appendChild(pageBtn);
+        }
+        
+        // Next button
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.onclick = function() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                populateTable(sbus);
+            }
+        };
+        pagination.appendChild(nextBtn);
+        
+        // Page info
+        const pageInfo = document.createElement('span');
+        pageInfo.className = 'page-info';
+        const start = ((currentPage - 1) * itemsPerPage) + 1;
+        const end = Math.min(currentPage * itemsPerPage, totalItems);
+        pageInfo.textContent = 'Showing ' + start + ' to ' + end + ' of ' + totalItems + ' SBUs';
+        pagination.appendChild(pageInfo);
+    }
+
+    // Search SBUs
+    function searchSBUs() {
+        currentPage = 1;
+        populateTable(sbus);
+    }
+
+    // Open modal for adding new SBU
+    function openAddSBUModal() {
+        console.log('Opening add SBU modal');
+        document.getElementById('modalTitle').textContent = 'Add New SBU';
+        
+        // Reset form
+        document.getElementById('sbuForm').reset();
+        document.getElementById('sbu_id').value = '';
+        
+        // Set default status
+        document.getElementById('status').value = 'Active';
+        
+        // Show modal
+        const modal = document.getElementById('sbuModal');
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+        
+        console.log('Modal should be visible now');
+    }
+
+    // Open modal for editing SBU - FIXED ENDPOINT
+    function editSBU(id) {
+        console.log('Editing SBU with ID:', id);
+        
+        $.ajax({
+            url: baseUrl + '/ajax/getSBUById/' + id, // FIXED: Changed from '/sbu/ajax/getById'
+            type: 'GET',
+            dataType: 'json',
+            success: function(sbu) {
+                if (sbu) {
+                    console.log('SBU data received:', sbu);
+                    document.getElementById('modalTitle').textContent = 'Edit SBU';
+                    document.getElementById('sbu_id').value = sbu.id || '';
+                    document.getElementById('sbu_code').value = sbu.sbu || '';
+                    document.getElementById('sbu_name').value = sbu.sbu_name || '';
+                    document.getElementById('status').value = sbu.status || 'Active';
+                    
+                    // Show modal
+                    const modal = document.getElementById('sbuModal');
+                    modal.classList.add('active');
+                    modal.style.display = 'flex';
+                } else {
+                    showAlert('SBU not found', 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading SBU details:', error);
+                showAlert('Error loading SBU details', 'error');
+            }
+        });
+    }
+
+    // Close modal
+    function closeSBUModal() {
+        console.log('Closing modal');
+        const modal = document.getElementById('sbuModal');
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        document.getElementById('sbuForm').reset();
+    }
+
+    // Save SBU (Add/Edit) - FIXED ENDPOINTS
+    function saveSBU(event) {
+        event.preventDefault();
+        console.log('Saving SBU...');
+        
+        // Get form data
+        const formData = {
+            id: document.getElementById('sbu_id').value,
+            sbu: document.getElementById('sbu_code').value,
+            sbu_name: document.getElementById('sbu_name').value,
+            status: document.getElementById('status').value
+        };
+        
+        console.log('Form data to save:', formData);
+        
+        // Determine URL based on add/edit
+        let url, method;
+        if (formData.id) {
+            url = baseUrl + '/sbu/update'; // FIXED: Changed from '/sbu/update'
+            method = 'POST';
+        } else {
+            url = baseUrl + '/sbu/add'; // FIXED: Changed from '/sbu/add'
+            method = 'POST';
+        }
+        
+        console.log('Sending to:', url, 'with method:', method);
+        
+        // Send AJAX request
+        $.ajax({
+            url: url,
+            type: method,
+            data: formData,
+            success: function(response) {
+                console.log('Save successful:', response);
+                showAlert(formData.id ? 'SBU updated successfully!' : 'SBU added successfully!', 'success');
+                closeSBUModal();
+                
+                // Reload data after a short delay to ensure server processed
+                setTimeout(function() {
+                    loadSBUs();
+                }, 500);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error saving SBU:', error);
+                console.error('Response text:', xhr.responseText);
+                showAlert('Error saving SBU. Please check all fields and try again.', 'error');
+            }
+        });
+    }
+
+    // Delete SBU - FIXED ENDPOINT
+    function deleteSBU(id) {
+        if (confirm('Are you sure you want to delete this SBU?')) {
+            console.log('Deleting SBU with ID:', id);
+            
+            $.ajax({
+                url: baseUrl + '/sbu/delete/' + id, // FIXED: Changed from '/sbu/delete'
+                type: 'POST',
+                success: function(response) {
+                    console.log('Delete successful:', response);
+                    showAlert('SBU deleted successfully!', 'success');
+                    
+                    // Reload data
+                    setTimeout(function() {
+                        loadSBUs();
+                    }, 300);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error deleting SBU:', error);
+                    showAlert('Error deleting SBU', 'error');
+                }
+            });
+        }
+    }
+
+    // Show alert message
+    function showAlert(message, type) {
+        const alertContainer = document.getElementById('alertContainer');
+        
+        // Clear any existing alerts
+        alertContainer.innerHTML = '';
+        
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-' + type;
+        alert.innerHTML = 
+            '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + '"></i>' +
+            '<span>' + message + '</span>';
+        alertContainer.appendChild(alert);
+        
+        // Remove alert after 5 seconds
+        setTimeout(function() {
+            if (alert.parentNode === alertContainer) {
+                alert.remove();
+            }
+        }, 5000);
+    }
+
+    // Refresh data
+    function refreshData() {
+        console.log('Refreshing data...');
+        currentPage = 1;
+        document.getElementById('searchInput').value = '';
+        loadSBUs();
+        showAlert('Data refreshed successfully!', 'success');
+    }
+
+    // Debug function to check current state
+    function debugState() {
+        console.log('=== DEBUG INFO ===');
+        console.log('Current SBUs:', sbus);
+        console.log('Current page:', currentPage);
+        console.log('Base URL:', baseUrl);
+        console.log('==================');
+    }
+
+    // Add debug button (remove in production)
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add debug button temporarily
+        const debugBtn = document.createElement('button');
+        debugBtn.innerHTML = '<i class="fas fa-bug"></i> Debug';
+        debugBtn.style.position = 'fixed';
+        debugBtn.style.bottom = '20px';
+        debugBtn.style.right = '20px';
+        debugBtn.style.zIndex = '9999';
+        debugBtn.style.padding = '10px';
+        debugBtn.style.background = '#3498db';
+        debugBtn.style.color = 'white';
+        debugBtn.style.border = 'none';
+        debugBtn.style.borderRadius = '5px';
+        debugBtn.style.cursor = 'pointer';
+        debugBtn.onclick = debugState;
+        document.body.appendChild(debugBtn);
+    });
+
+    // Navigation function
+    function goBackToDashboard() {
+        window.location.href = baseUrl + '/home';
+    }
+
+    function logout() {
+        if (confirm('Are you sure you want to logout?')) {
+            window.location.href = baseUrl + '/logout';
+        }
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl + F for search
+        if (e.ctrlKey && e.key === 'f') {
+            e.preventDefault();
+            document.getElementById('searchInput').focus();
+        }
+        
+        // Escape to close modal
+        if (e.key === 'Escape') {
+            closeSBUModal();
+        }
+        
+        // Ctrl + N for new SBU
+        if (e.ctrlKey && e.key === 'n') {
+            e.preventDefault();
+            openAddSBUModal();
+        }
+    });
+</script>
+</body>
 </html>

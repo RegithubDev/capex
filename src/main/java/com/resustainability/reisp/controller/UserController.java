@@ -99,7 +99,7 @@ public class UserController {
 	@Value("${template.upload.formatError}")
 	public String uploadformatError;
 	
-	@RequestMapping(value = "/user", method = {RequestMethod.POST, RequestMethod.GET})
+	@RequestMapping(value = "/user-profile", method = {RequestMethod.POST, RequestMethod.GET})
 	public ModelAndView user(@ModelAttribute User user, HttpSession session) {
 		ModelAndView model = new ModelAndView(PageConstants.user);
 		User obj = null;

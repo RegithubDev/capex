@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Location Management - CAPEX System</title>
+    <title>Plant Management - CAPEX System</title>
     
     <!-- Fonts and Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -95,7 +95,7 @@
 
         /* Main Container */
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 30px auto;
             padding: 0 20px;
         }
@@ -173,7 +173,7 @@
             box-shadow: 0 6px 20px rgba(39, 174, 96, 0.3);
         }
 
-        /* Location Form Modal */
+        /* Plant Form Modal */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -195,7 +195,7 @@
             background: white;
             border-radius: 15px;
             width: 90%;
-            max-width: 500px;
+            max-width: 700px;
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
@@ -243,6 +243,13 @@
         }
 
         /* Form Styles */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
@@ -527,6 +534,10 @@
                 justify-content: center;
             }
 
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
             .search-box {
                 width: 100%;
             }
@@ -563,7 +574,7 @@
             </div>
             <div>
                 <h1>CAPEX Management System</h1>
-                <p>Location Management</p>
+                <p>Plant Management</p>
             </div>
         </div>
 
@@ -581,10 +592,10 @@
         <!-- Page Header -->
         <div class="page-header">
             <div class="page-title">
-                <i class="fas fa-map-marker-alt"></i>
+                <i class="fas fa-industry"></i>
                 <div>
-                    <h2>Location Management</h2>
-                    <p style="font-size: 14px; color: #666; margin-top: 5px;">Manage location information</p>
+                    <h2>Plant Management</h2>
+                    <p style="font-size: 14px; color: #666; margin-top: 5px;">Manage plant/facility information</p>
                 </div>
             </div>
             
@@ -592,8 +603,8 @@
                 <button class="btn btn-secondary" onclick="refreshData()">
                     <i class="fas fa-sync-alt"></i> Refresh
                 </button>
-                <button class="btn btn-primary" onclick="openAddLocationModal()">
-                    <i class="fas fa-plus"></i> Add New Location
+                <button class="btn btn-primary" onclick="openAddPlantModal()">
+                    <i class="fas fa-plus"></i> Add New Plant
                 </button>
             </div>
         </div>
@@ -616,18 +627,21 @@
         <!-- Table Section -->
         <div class="table-container">
             <div class="table-header">
-                <div class="table-title">Location List</div>
+                <div class="table-title">Plant List</div>
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="Search locations..." onkeyup="searchLocations()">
+                    <input type="text" id="searchInput" placeholder="Search plants..." onkeyup="searchPlants()">
                 </div>
             </div>
             
-            <table class="table" id="locationTable">
+            <table class="table" id="plantTable">
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>Location Name</th>
+                        <th>ID</th>
+                        <th>Location</th>
+                        <th>SBU</th>
+                        <th>Plant Code</th>
+                        <th>Plant Name</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -635,10 +649,10 @@
                 <tbody id="tableBody">
                     <!-- Data will be populated by JavaScript -->
                     <tr>
-                        <td colspan="4" style="text-align: center; padding: 40px;">
+                        <td colspan="7" style="text-align: center; padding: 40px;">
                             <div style="color: #999; font-size: 16px;">
                                 <i class="fas fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 15px;"></i>
-                                <p>Loading locations...</p>
+                                <p>Loading plants...</p>
                             </div>
                         </td>
                     </tr>
@@ -652,22 +666,55 @@
         </div>
     </div>
 
-    <!-- Add/Edit Location Modal -->
-    <div class="modal-overlay" id="locationModal">
+    <!-- Add/Edit Plant Modal -->
+    <div class="modal-overlay" id="plantModal">
         <div class="modal">
             <div class="modal-header">
-                <h3><i class="fas fa-map-marker-alt"></i> <span id="modalTitle">Add New Location</span></h3>
-                <button class="modal-close" onclick="closeLocationModal()">&times;</button>
+                <h3><i class="fas fa-industry"></i> <span id="modalTitle">Add New Plant</span></h3>
+                <button class="modal-close" onclick="closePlantModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="locationForm" onsubmit="saveLocation(event)">
-                    <div class="form-group">
-                        <label for="location">Location Name <span>*</span></label>
-                        <input type="text" id="location" name="location" required 
-                               placeholder="Enter location name (e.g., City, State, Country)" maxlength="100">
-                        <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
-                            Physical location name
-                        </small>
+                <form id="plantForm" onsubmit="savePlant(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="location">Location <span>*</span></label>
+                            <input type="text" id="location" name="location" required 
+                                   placeholder="Enter location (e.g., City, State)" maxlength="100">
+                            <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                                Physical location of the plant
+                            </small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sbu">SBU <span>*</span></label>
+                            <select id="sbu" name="sbu" required>
+                                <option value="">Select SBU</option>
+                                <!-- SBU options will be populated dynamically -->
+                            </select>
+                            <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                                Strategic Business Unit this plant belongs to
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="plant_code">Plant Code <span>*</span></label>
+                            <input type="text" id="plant_code" name="plant_code" required 
+                                   placeholder="Enter plant code (e.g., PLANT-001)" maxlength="50">
+                            <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                                Unique identifier for the plant
+                            </small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="plant_name">Plant Name <span>*</span></label>
+                            <input type="text" id="plant_name" name="plant_name" required 
+                                   placeholder="Enter plant name" maxlength="100">
+                            <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                                Full name of the plant/facility
+                            </small>
+                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -678,20 +725,20 @@
                             <option value="Inactive">Inactive</option>
                         </select>
                         <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
-                            Active locations will be available for selection in other modules
+                            Active plants will be available for selection in other modules
                         </small>
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeLocationModal()">
+                        <button type="button" class="btn btn-secondary" onclick="closePlantModal()">
                             <i class="fas fa-times"></i> Cancel
                         </button>
                         <button type="submit" class="btn btn-success">
-                            <i class="fas fa-save"></i> Save Location
+                            <i class="fas fa-save"></i> Save Plant
                         </button>
                     </div>
                     
-                    <input type="hidden" id="location_id" name="id" value="">
+                    <input type="hidden" id="plant_id" name="id" value="">
                 </form>
             </div>
         </div>
@@ -703,125 +750,162 @@
         let currentPage = 1;
         const itemsPerPage = 10;
         const baseUrl = '${pageContext.request.contextPath}';
-        let locations = [];
+        let plants = [];
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Location Management Page loaded');
-            loadLocations();
+            console.log('Plant Management Page loaded');
+            loadPlants();
+            loadSBUOptions();
             initEventListeners();
         });
 
         // Initialize event listeners
         function initEventListeners() {
             // Close modal when clicking outside
-            document.getElementById('locationModal').addEventListener('click', function(e) {
+            document.getElementById('plantModal').addEventListener('click', function(e) {
                 if (e.target === this) {
-                    closeLocationModal();
+                    closePlantModal();
                 }
             });
         }
 
-        // Load locations from server
-        function loadLocations() {
-            console.log('Loading locations...');
+        // Load plants from server
+        function loadPlants() {
+            console.log('Loading plants...');
             showLoading();
             
             $.ajax({
-                url: baseUrl + '/ajax/getLocationList',
+                url: baseUrl + '/ajax/getPlantList',
                 type: 'GET',
                 dataType: 'json',
                 success: function(data) {
-                    console.log('Locations loaded:', data);
-                    locations = data || [];
-                    populateTable(locations);
+                    console.log('Plants loaded:', data);
+                    plants = data || [];
+                    populateTable(plants);
                 },
                 error: function(xhr, status, error) {
-                    console.error('Error loading locations:', error);
-                    showAlert('Error loading locations. Please try again.', 'error');
+                    console.error('Error loading plants:', error);
+                    showAlert('Error loading plants. Please try again.', 'error');
                     showNoData();
                 }
             });
         }
 
-        // Populate table with data
-        function populateTable(locations) {
-            console.log('Populating table with', locations.length, 'locations');
-            const tableBody = document.getElementById('tableBody');
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        // Load SBU options for dropdown
+        function loadSBUOptions() {
+            console.log('Loading SBU options...');
             
-            // Filter locations based on search
-            let filteredLocations = locations || [];
-            if (searchTerm) {
-                filteredLocations = locations.filter(function(loc) {
-                    return (loc.location && loc.location.toLowerCase().includes(searchTerm)) ||
-                           (loc.status && loc.status.toLowerCase().includes(searchTerm));
-                });
-            }
-            
-            // Sort by ID in ascending order (oldest first, newest last)
-            filteredLocations.sort(function(a, b) {
-                const idA = parseInt(a.id) || 0;
-                const idB = parseInt(b.id) || 0;
-                return idA - idB;
+            $.ajax({
+                url: baseUrl + '/ajax/getActiveSBUs',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    const sbuSelect = document.getElementById('sbu');
+                    sbuSelect.innerHTML = '<option value="">Select SBU</option>';
+                    
+                    data.forEach(function(sbu) {
+                        if (sbu.sbu) {
+                            const option = document.createElement('option');
+                            option.value = sbu.sbu;
+                            option.textContent = sbu.sbu + ' - ' + (sbu.sbu_name || '');
+                            sbuSelect.appendChild(option);
+                        }
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading SBU options:', error);
+                    showAlert('Error loading SBU options', 'error');
+                }
             });
-            
-            // Calculate pagination
-            const totalPages = Math.ceil(filteredLocations.length / itemsPerPage);
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const pageLocations = filteredLocations.slice(startIndex, endIndex);
-            
-            // Clear table
-            tableBody.innerHTML = '';
-            
-            if (pageLocations.length === 0) {
-                showNoData(searchTerm);
-            } else {
-                // Add rows
-                pageLocations.forEach(function(loc, index) {
-                    const row = document.createElement('tr');
-                    
-                    // Determine status class
-                    const statusClass = (loc.status === 'Active') ? 'status-active' : 'status-inactive';
-                    const statusText = loc.status || 'Inactive';
-                    
-                    // Calculate row number
-                    const rowNumber = startIndex + index + 1;
-                    
-                    row.innerHTML = 
-                        '<td>' + rowNumber + '</td>' +
-                        '<td>' + (loc.location || 'N/A') + '</td>' +
-                        '<td>' +
-                            '<span class="' + statusClass + '">' + statusText + '</span>' +
-                        '</td>' +
-                        '<td>' +
-                            '<div class="action-icons">' +
-                                '<button class="action-btn edit-btn" onclick="editLocation(\'' + loc.id + '\')" title="Edit">' +
-                                    '<i class="fas fa-edit"></i>' +
-                                '</button>' +
-                                '<button class="action-btn delete-btn" onclick="deleteLocation(\'' + loc.id + '\')" title="Delete">' +
-                                    '<i class="fas fa-trash"></i>' +
-                                '</button>' +
-                            '</div>' +
-                        '</td>';
-                    tableBody.appendChild(row);
-                });
-            }
-            
-            // Update pagination
-            updatePagination(filteredLocations.length, totalPages);
         }
+
+        // Populate table with data
+   // Populate table with data
+function populateTable(plants) {
+    console.log('Populating table with', plants.length, 'plants');
+    const tableBody = document.getElementById('tableBody');
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    
+    // Filter plants based on search
+    let filteredPlants = plants || [];
+    if (searchTerm) {
+        filteredPlants = plants.filter(function(plant) {
+            return (plant.location && plant.location.toLowerCase().includes(searchTerm)) ||
+                   (plant.sbu && plant.sbu.toLowerCase().includes(searchTerm)) ||
+                   (plant.plant_code && plant.plant_code.toLowerCase().includes(searchTerm)) ||
+                   (plant.plant_name && plant.plant_name.toLowerCase().includes(searchTerm)) ||
+                   (plant.status && plant.status.toLowerCase().includes(searchTerm));
+        });
+    }
+    
+    // ADD THIS: Sort by ID in ascending order (newest at bottom)
+    filteredPlants.sort(function(a, b) {
+        // Convert IDs to numbers if they are numeric
+        const idA = parseInt(a.id) || 0;
+        const idB = parseInt(b.id) || 0;
+        return idA - idB; // Ascending order (oldest first, newest last)
+    });
+    
+    // Calculate pagination
+    const totalPages = Math.ceil(filteredPlants.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pagePlants = filteredPlants.slice(startIndex, endIndex);
+    
+    // Clear table
+    tableBody.innerHTML = '';
+    
+    if (pagePlants.length === 0) {
+        showNoData(searchTerm);
+    } else {
+        // Add rows
+        pagePlants.forEach(function(plant, index) {
+            const row = document.createElement('tr');
+            
+            // Determine status class
+            const statusClass = (plant.status === 'Active') ? 'status-active' : 'status-inactive';
+            const statusText = plant.status || 'Inactive';
+            
+            // Calculate row number based on all filtered plants
+            const rowNumber = startIndex + index + 1;
+            
+            row.innerHTML = 
+                '<td>' + rowNumber + '</td>' + // Changed from plant.id to row number
+                '<td>' + (plant.location || 'N/A') + '</td>' +
+                '<td>' + (plant.sbu || 'N/A') + '</td>' +
+                '<td>' + (plant.plant_code || 'N/A') + '</td>' +
+                '<td>' + (plant.plant_name || 'N/A') + '</td>' +
+                '<td>' +
+                    '<span class="' + statusClass + '">' + statusText + '</span>' +
+                '</td>' +
+                '<td>' +
+                    '<div class="action-icons">' +
+                        '<button class="action-btn edit-btn" onclick="editPlant(\'' + plant.id + '\')" title="Edit">' +
+                            '<i class="fas fa-edit"></i>' +
+                        '</button>' +
+                        '<button class="action-btn delete-btn" onclick="deletePlant(\'' + plant.id + '\')" title="Delete">' +
+                            '<i class="fas fa-trash"></i>' +
+                        '</button>' +
+                    '</div>' +
+                '</td>';
+            tableBody.appendChild(row);
+        });
+    }
+    
+    // Update pagination
+    updatePagination(filteredPlants.length, totalPages);
+}
 
         // Show loading state
         function showLoading() {
             const tableBody = document.getElementById('tableBody');
             tableBody.innerHTML = 
                 '<tr>' +
-                    '<td colspan="4" style="text-align: center; padding: 40px;">' +
+                    '<td colspan="7" style="text-align: center; padding: 40px;">' +
                         '<div style="color: #999; font-size: 16px;">' +
                             '<i class="fas fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 15px;"></i>' +
-                            '<p>Loading locations...</p>' +
+                            '<p>Loading plants...</p>' +
                         '</div>' +
                     '</td>' +
                 '</tr>';
@@ -831,13 +915,13 @@
         function showNoData(searchTerm) {
             const tableBody = document.getElementById('tableBody');
             const message = searchTerm ? 
-                'No locations found matching your search. Try a different search or add a new location.' :
-                'No location data available. Click "Add New Location" to get started.';
-            const icon = searchTerm ? 'search' : 'map-marker-alt';
+                'No plants found matching your search. Try a different search or add a new plant.' :
+                'No plant data available. Click "Add New Plant" to get started.';
+            const icon = searchTerm ? 'search' : 'database';
             
             tableBody.innerHTML = 
                 '<tr>' +
-                    '<td colspan="4" style="text-align: center; padding: 40px;">' +
+                    '<td colspan="7" style="text-align: center; padding: 40px;">' +
                         '<div style="color: #999; font-size: 16px;">' +
                             '<i class="fas fa-' + icon + '" style="font-size: 48px; margin-bottom: 15px;"></i>' +
                             '<p>' + message + '</p>' +
@@ -861,7 +945,7 @@
             prevBtn.onclick = function() {
                 if (currentPage > 1) {
                     currentPage--;
-                    populateTable(locations);
+                    populateTable(plants);
                 }
             };
             pagination.appendChild(prevBtn);
@@ -880,7 +964,7 @@
                 pageBtn.onclick = (function(pageNum) {
                     return function() {
                         currentPage = pageNum;
-                        populateTable(locations);
+                        populateTable(plants);
                     };
                 })(i);
                 pagination.appendChild(pageBtn);
@@ -894,7 +978,7 @@
             nextBtn.onclick = function() {
                 if (currentPage < totalPages) {
                     currentPage++;
-                    populateTable(locations);
+                    populateTable(plants);
                 }
             };
             pagination.appendChild(nextBtn);
@@ -904,101 +988,103 @@
             pageInfo.className = 'page-info';
             const start = ((currentPage - 1) * itemsPerPage) + 1;
             const end = Math.min(currentPage * itemsPerPage, totalItems);
-            pageInfo.textContent = 'Showing ' + start + ' to ' + end + ' of ' + totalItems + ' locations';
+            pageInfo.textContent = 'Showing ' + start + ' to ' + end + ' of ' + totalItems + ' plants';
             pagination.appendChild(pageInfo);
         }
 
-        // Search locations
-        function searchLocations() {
+        // Search plants
+        function searchPlants() {
             currentPage = 1;
-            populateTable(locations);
+            populateTable(plants);
         }
 
-        // Open modal for adding new location
-        function openAddLocationModal() {
-            console.log('Opening add location modal');
-            document.getElementById('modalTitle').textContent = 'Add New Location';
+        // Open modal for adding new plant
+        function openAddPlantModal() {
+            console.log('Opening add plant modal');
+            document.getElementById('modalTitle').textContent = 'Add New Plant';
             
             // Reset form
-            document.getElementById('locationForm').reset();
-            document.getElementById('location_id').value = '';
+            document.getElementById('plantForm').reset();
+            document.getElementById('plant_id').value = '';
             
             // Set default status
             document.getElementById('status').value = 'Active';
             
             // Show modal
-            const modal = document.getElementById('locationModal');
+            const modal = document.getElementById('plantModal');
             modal.classList.add('active');
             modal.style.display = 'flex';
+            
+            console.log('Modal should be visible now');
         }
 
-        // Open modal for editing location
-        function editLocation(id) {
-            console.log('Editing location with ID:', id);
+        // Open modal for editing plant
+        function editPlant(id) {
+            console.log('Editing plant with ID:', id);
             
             $.ajax({
-                url: baseUrl + '/ajax/getLocationById/' + id,
+                url: baseUrl + '/ajax/getPlantById/' + id,
                 type: 'GET',
                 dataType: 'json',
-                success: function(location) {
-                    if (location) {
-                        console.log('Location data received:', location);
-                        document.getElementById('modalTitle').textContent = 'Edit Location';
-                        document.getElementById('location_id').value = location.id || '';
-                        document.getElementById('location').value = location.location || '';
-                        document.getElementById('status').value = location.status || 'Active';
+                success: function(plant) {
+                    if (plant) {
+                        console.log('Plant data received:', plant);
+                        document.getElementById('modalTitle').textContent = 'Edit Plant';
+                        document.getElementById('plant_id').value = plant.id || '';
+                        document.getElementById('location').value = plant.location || '';
+                        document.getElementById('sbu').value = plant.sbu || '';
+                        document.getElementById('plant_code').value = plant.plant_code || '';
+                        document.getElementById('plant_name').value = plant.plant_name || '';
+                        document.getElementById('status').value = plant.status || 'Active';
                         
                         // Show modal
-                        const modal = document.getElementById('locationModal');
+                        const modal = document.getElementById('plantModal');
                         modal.classList.add('active');
                         modal.style.display = 'flex';
                     } else {
-                        showAlert('Location not found', 'error');
+                        showAlert('Plant not found', 'error');
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('Error loading location details:', error);
-                    showAlert('Error loading location details', 'error');
+                    console.error('Error loading plant details:', error);
+                    showAlert('Error loading plant details', 'error');
                 }
             });
         }
 
         // Close modal
-        function closeLocationModal() {
+        function closePlantModal() {
             console.log('Closing modal');
-            const modal = document.getElementById('locationModal');
+            const modal = document.getElementById('plantModal');
             modal.classList.remove('active');
             modal.style.display = 'none';
-            document.getElementById('locationForm').reset();
+            document.getElementById('plantForm').reset();
         }
 
-        // Save location (Add/Edit)
-        function saveLocation(event) {
+        // Save plant (Add/Edit)
+        function savePlant(event) {
             event.preventDefault();
-            console.log('Saving location...');
+            console.log('Saving plant...');
             
             // Get form data
             const formData = {
-                id: document.getElementById('location_id').value,
+                id: document.getElementById('plant_id').value,
                 location: document.getElementById('location').value,
+                sbu: document.getElementById('sbu').value,
+                plant_code: document.getElementById('plant_code').value,
+                plant_name: document.getElementById('plant_name').value,
                 status: document.getElementById('status').value
             };
             
             console.log('Form data to save:', formData);
             
-            // Validate location name
-            if (!formData.location || formData.location.trim() === '') {
-                showAlert('Location name is required', 'error');
-                return;
-            }
-            
             // Determine URL based on add/edit
             let url, method;
             if (formData.id) {
-                url = baseUrl + '/location/update';
+                url = baseUrl + '/plant/update';
                 method = 'POST';
             } else {
-                url = baseUrl + '/location/add';
+                url = baseUrl + '/plant/add';
                 method = 'POST';
             }
             
@@ -1011,42 +1097,42 @@
                 data: formData,
                 success: function(response) {
                     console.log('Save successful:', response);
-                    showAlert(formData.id ? 'Location updated successfully!' : 'Location added successfully!', 'success');
-                    closeLocationModal();
+                    showAlert(formData.id ? 'Plant updated successfully!' : 'Plant added successfully!', 'success');
+                    closePlantModal();
                     
-                    // Reload data after a short delay
+                    // Reload data after a short delay to ensure server processed
                     setTimeout(function() {
-                        loadLocations();
+                        loadPlants();
                     }, 500);
                 },
                 error: function(xhr, status, error) {
-                    console.error('Error saving location:', error);
+                    console.error('Error saving plant:', error);
                     console.error('Response text:', xhr.responseText);
-                    showAlert('Error saving location. Please check all fields and try again.', 'error');
+                    showAlert('Error saving plant. Please check all fields and try again.', 'error');
                 }
             });
         }
 
-        // Delete location
-        function deleteLocation(id) {
-            if (confirm('Are you sure you want to delete this location?')) {
-                console.log('Deleting location with ID:', id);
+        // Delete plant
+        function deletePlant(id) {
+            if (confirm('Are you sure you want to delete this plant?')) {
+                console.log('Deleting plant with ID:', id);
                 
                 $.ajax({
-                    url: baseUrl + '/location/delete/' + id,
+                    url: baseUrl + '/plant/delete/' + id,
                     type: 'POST',
                     success: function(response) {
                         console.log('Delete successful:', response);
-                        showAlert('Location deleted successfully!', 'success');
+                        showAlert('Plant deleted successfully!', 'success');
                         
                         // Reload data
                         setTimeout(function() {
-                            loadLocations();
+                            loadPlants();
                         }, 300);
                     },
                     error: function(xhr, status, error) {
-                        console.error('Error deleting location:', error);
-                        showAlert('Error deleting location', 'error');
+                        console.error('Error deleting plant:', error);
+                        showAlert('Error deleting plant', 'error');
                     }
                 });
             }
@@ -1079,7 +1165,7 @@
             console.log('Refreshing data...');
             currentPage = 1;
             document.getElementById('searchInput').value = '';
-            loadLocations();
+            loadPlants();
             showAlert('Data refreshed successfully!', 'success');
         }
 
@@ -1104,13 +1190,13 @@
             
             // Escape to close modal
             if (e.key === 'Escape') {
-                closeLocationModal();
+                closePlantModal();
             }
             
-            // Ctrl + N for new location
+            // Ctrl + N for new plant
             if (e.ctrlKey && e.key === 'n') {
                 e.preventDefault();
-                openAddLocationModal();
+                openAddPlantModal();
             }
         });
     </script>

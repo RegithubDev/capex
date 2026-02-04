@@ -18,331 +18,351 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StringUtils;
 
-import com.resustainability.reisp.model.Company;
-import com.resustainability.reisp.model.SBU;
 import com.resustainability.reisp.model.SBU;
 
 @Repository
 public class SBUDao {
-	@Autowired
-	JdbcTemplate jdbcTemplate;
-	
-	@Autowired
-	DataSource dataSource;
+    
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+    
+    @Autowired
+    DataSource dataSource;
 
-	@Autowired
-	DataSourceTransactionManager transactionManager;
+    @Autowired
+    DataSourceTransactionManager transactionManager;
 
-	public List<SBU> getSBUsList(SBU obj) throws Exception {
-		List<SBU> objsList = null;
-		try {
-			int arrSize = 0;
-			String qry =" select ";
-					qry = qry +"(select count( sbu_code) from sbu where sbu_code is not null  ";
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getCompany_code())) {
-						qry = qry + " and company_code = ?";
-						arrSize++;
-					}
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-						qry = qry + " and sbu_code = ? ";
-						arrSize++;
-					}
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-						qry = qry + " and status = ? ";
-						arrSize++;
-					}
-					qry = qry +  " ) as all_sbu ,";
-					qry = qry +	"(select count( sbu_code) from sbu where sbu_code is not null and status = 'Active' ";
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getCompany_code())) {
-						qry = qry + " and company_code = ?";
-						arrSize++;
-					}
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-						qry = qry + " and sbu_code = ? ";
-						arrSize++;
-					}
-					if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-						qry = qry + " and status = ? ";
-						arrSize++;
-					}
-							qry = qry + " ) as active_sbu,"
-							+ "(select count( sbu_code) from sbu where sbu_code is not null   and status <> 'Active' ";
-							if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getCompany_code())) {
-								qry = qry + " and company_code = ?";
-								arrSize++;
-							}
-							if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-								qry = qry + " and sbu_code = ? ";
-								arrSize++;
-							}
-							if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-								qry = qry + " and status = ? ";
-								arrSize++;
-							}
-							qry = qry + " ) as inActive_sbu,"
-					+ "s.id,s.company_code,c.company_name,sbu_code,sbu_name,s.status from sbu s "
-					+ " left join company c on c.company_code = s.company_code "
-					+ " where s.sbu_code is not null and s.sbu_code <> '' ";
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getCompany_code())) {
-				qry = qry + " and c.company_code = ?";
-				arrSize++;
-			}	
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				qry = qry + " and sbu_code = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and s.status = ? ";
-				arrSize++;
-			}
-			qry = qry + " ORDER BY sbu_code ASC ";
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getCompany_code())) {
-				pValues[i++] = obj.getCompany_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				pValues[i++] = obj.getSbu_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getCompany_code())) {
-				pValues[i++] = obj.getCompany_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				pValues[i++] = obj.getSbu_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getCompany_code())) {
-				pValues[i++] = obj.getCompany_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				pValues[i++] = obj.getSbu_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getCompany_code())) {
-				pValues[i++] = obj.getCompany_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				pValues[i++] = obj.getSbu_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			objsList = jdbcTemplate.query( qry,pValues, new BeanPropertyRowMapper<SBU>(SBU.class));
-		
-		}catch(Exception e){ 
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return objsList;
-	}
+    /**
+     * Get all SBUs list with optional filters
+     */
+    public List<SBU> getSBUsList(SBU obj) throws Exception {
+        List<SBU> sbuList = new ArrayList<>();
+        try {
+            StringBuilder query = new StringBuilder();
+            List<Object> params = new ArrayList<>();
+            
+            // Build query with optional filters
+            query.append("SELECT id, sbu, sbu_name, status FROM sbu WHERE 1=1 ");
+            
+            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
+                query.append(" AND sbu LIKE ? ");
+                params.add("%" + obj.getSbu() + "%");
+            }
+            
+            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_name())) {
+                query.append(" AND sbu_name LIKE ? ");
+                params.add("%" + obj.getSbu_name() + "%");
+            }
+            
+            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
+                query.append(" AND status = ? ");
+                params.add(obj.getStatus());
+            }
+            
+            query.append(" ORDER BY sbu ASC");
+            
+            sbuList = jdbcTemplate.query(
+                query.toString(), 
+                params.toArray(), 
+                new BeanPropertyRowMapper<>(SBU.class)
+            );
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error fetching SBU list: " + e.getMessage(), e);
+        }
+        return sbuList;
+    }
 
-	public List<SBU> getCompanyFilterList(SBU obj) throws Exception {
-		List<SBU> objsList = new ArrayList<SBU>();
-		try {
-			String qry = "SELECT  distinct s.company_code,c.company_name FROM sbu s "
-					+ " left join company c on c.company_code = s.company_code "
-					+ " where c.company_code is not null and c.company_code <> ''  "; 
-			int arrSize = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getCompany_code())) {
-				qry = qry + " and c.company_code = ?";
-				arrSize++;
-			}	
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				qry = qry + " and sbu_code = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and s.status = ? ";
-				arrSize++;
-			}
-			qry = qry + " order by  s.company_code asc";
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getCompany_code())) {
-				pValues[i++] = obj.getCompany_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				pValues[i++] = obj.getSbu_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			objsList = jdbcTemplate.query( qry, pValues, new BeanPropertyRowMapper<SBU>(SBU.class));
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return objsList;
-	}
+    /**
+     * Get SBU by ID
+     */
+    public SBU getSBUById(String id) throws Exception {
+        SBU sbu = null;
+        try {
+            String query = "SELECT id, sbu, sbu_name, status FROM sbu WHERE id = ?";
+            List<SBU> result = jdbcTemplate.query(
+                query, 
+                new Object[]{id}, 
+                new BeanPropertyRowMapper<>(SBU.class)
+            );
+            
+            if (result != null && !result.isEmpty()) {
+                sbu = result.get(0);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error fetching SBU by ID: " + e.getMessage(), e);
+        }
+        return sbu;
+    }
 
-	public List<SBU> getSBUFilterList(SBU obj) throws Exception {
-		List<SBU> objsList = new ArrayList<SBU>();
-		try {
-			String qry = "SELECT distinct sbu_code, sbu_name FROM sbu s "
-					+ " where sbu_code is not null and sbu_code <> ''  "; 
-			int arrSize = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getCompany_code())) {
-				qry = qry + " and s.company_code = ?";
-				arrSize++;
-			}	
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				qry = qry + " and sbu_code = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and s.status = ? ";
-				arrSize++;
-			}
-			qry = qry + " order by sbu_code asc";
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getCompany_code())) {
-				pValues[i++] = obj.getCompany_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				pValues[i++] = obj.getSbu_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			objsList = jdbcTemplate.query( qry, pValues, new BeanPropertyRowMapper<SBU>(SBU.class));
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return objsList;
-	}
+    /**
+     * Add new SBU
+     */
+    public boolean addSBU(SBU obj) throws Exception {
+        int count = 0;
+        boolean flag = false;
+        TransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        
+        try {
+            // First check if SBU code already exists
+            String checkQuery = "SELECT COUNT(*) FROM sbu WHERE sbu = ?";
+            int existingCount = jdbcTemplate.queryForObject(checkQuery, Integer.class, obj.getSbu());
+            
+            if (existingCount > 0) {
+                throw new Exception("SBU code already exists: " + obj.getSbu());
+            }
+            
+            NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+            String insertQuery = "INSERT INTO sbu (sbu, sbu_name, status) VALUES (:sbu, :sbu_name, :status)";
+            
+            BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);
+            count = namedParamJdbcTemplate.update(insertQuery, paramSource);
+            
+            if (count > 0) {
+                flag = true;
+            }
+            
+            transactionManager.commit(status);
+            
+        } catch (Exception e) {
+            transactionManager.rollback(status);
+            e.printStackTrace();
+            throw new Exception("Error adding SBU: " + e.getMessage(), e);
+        }
+        return flag;
+    }
 
-	public boolean addSBU(SBU obj) throws Exception {
-		int count = 0;
-		boolean flag = false;
-		TransactionDefinition def = new DefaultTransactionDefinition();
-		TransactionStatus status = transactionManager.getTransaction(def);
-		try {
-			NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-			String insertQry = "INSERT INTO sbu (sbu_name,sbu_code,company_code,status) VALUES (:sbu_name,:sbu_code,:company_code,:status)";
-			BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);		 
-		    count = namedParamJdbcTemplate.update(insertQry, paramSource);
-			if(count > 0) {
-				flag = true;
-			}
-			transactionManager.commit(status);
-		}catch (Exception e) {
-			transactionManager.rollback(status);
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return flag;
-		
-	}
+    /**
+     * Update existing SBU
+     */
+    public boolean updateSBU(SBU obj) throws Exception {
+        int count = 0;
+        boolean flag = false;
+        TransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        
+        try {
+            // Check if SBU code exists for another record (excluding current one)
+            String checkQuery = "SELECT COUNT(*) FROM sbu WHERE sbu = ? AND id != ?";
+            int existingCount = jdbcTemplate.queryForObject(
+                checkQuery, 
+                Integer.class, 
+                obj.getSbu(), 
+                obj.getId()
+            );
+            
+            if (existingCount > 0) {
+                throw new Exception("SBU code already exists for another record: " + obj.getSbu());
+            }
+            
+            NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+            String updateQuery = "UPDATE sbu SET sbu = :sbu, sbu_name = :sbu_name, status = :status WHERE id = :id";
+            
+            BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);
+            count = namedParamJdbcTemplate.update(updateQuery, paramSource);
+            
+            if (count > 0) {
+                flag = true;
+            }
+            
+            transactionManager.commit(status);
+            
+        } catch (Exception e) {
+            transactionManager.rollback(status);
+            e.printStackTrace();
+            throw new Exception("Error updating SBU: " + e.getMessage(), e);
+        }
+        return flag;
+    }
 
-	public boolean updateSBU(SBU obj) throws Exception {
-		int count = 0;
-		boolean flag = false;
-		TransactionDefinition def = new DefaultTransactionDefinition();
-		TransactionStatus status = transactionManager.getTransaction(def);
-		try {
-			NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-			String updateQry = "UPDATE sbu set sbu_name= :sbu_name,sbu_code= :sbu_code,company_code=:company_code,status= :status "
-					+ " where id= :id ";
-			BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);
-		    count = namedParamJdbcTemplate.update(updateQry, paramSource);
-			if(count > 0) {
-				flag = true;
-			}
-			transactionManager.commit(status);
-		}catch (Exception e) {
-			transactionManager.rollback(status);
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return flag;
-		
-	}
+    /**
+     * Delete SBU
+     */
+    public boolean deleteSBU(String id) throws Exception {
+        int count = 0;
+        boolean flag = false;
+        TransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        
+        try {
+            String deleteQuery = "DELETE FROM sbu WHERE id = ?";
+            count = jdbcTemplate.update(deleteQuery, id);
+            
+            if (count > 0) {
+                flag = true;
+            }
+            
+            transactionManager.commit(status);
+            
+        } catch (Exception e) {
+            transactionManager.rollback(status);
+            e.printStackTrace();
+            throw new Exception("Error deleting SBU: " + e.getMessage(), e);
+        }
+        return flag;
+    }
 
-	public List<SBU> getCompaniesList(SBU obj) throws SQLException {
-		List<SBU> menuList = null;
-		try{  
-			String qry = "select company_code, company_name from company ";
-			menuList = jdbcTemplate.query( qry, new BeanPropertyRowMapper<SBU>(SBU.class));
-			
-		}catch(Exception e){ 
-			e.printStackTrace();
-			throw new SQLException(e.getMessage());
-		}
-		return menuList;
-	}
+    /**
+     * Get all active SBUs for dropdown
+     */
+    public List<SBU> getActiveSBUs() throws Exception {
+        List<SBU> sbuList = new ArrayList<>();
+        try {
+            String query = "SELECT id, sbu, sbu_name, status FROM sbu WHERE status = 'Active' ORDER BY sbu ASC";
+            sbuList = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(SBU.class));
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error fetching active SBUs: " + e.getMessage(), e);
+        }
+        return sbuList;
+    }
 
-	public List<SBU> getStatusFilterListFromSBU(SBU obj) throws Exception {
-		List<SBU> objsList = new ArrayList<SBU>();
-		try {
-			String qry = "SELECT distinct status FROM sbu s "
-					+ " where status is not null and status <> ''  "; 
-			int arrSize = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getCompany_code())) {
-				qry = qry + " and s.company_code = ?";
-				arrSize++;
-			}	
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				qry = qry + " and sbu_code = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and s.status = ? ";
-				arrSize++;
-			}
-			qry = qry + " order by status asc";
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getCompany_code())) {
-				pValues[i++] = obj.getCompany_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				pValues[i++] = obj.getSbu_code();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			objsList = jdbcTemplate.query( qry, pValues, new BeanPropertyRowMapper<SBU>(SBU.class));
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return objsList;
-	}
+    /**
+     * Get SBU statistics (counts)
+     */
+    public SBU getSBUStatistics() throws Exception {
+        SBU stats = new SBU();
+        try {
+            String query = "SELECT " +
+                          "(SELECT COUNT(*) FROM sbu) AS all_sbu, " +
+                          "(SELECT COUNT(*) FROM sbu WHERE status = 'Active') AS active_sbu, " +
+                          "(SELECT COUNT(*) FROM sbu WHERE status != 'Active') AS inActive_sbu";
+            
+            List<SBU> result = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(SBU.class));
+            
+            if (result != null && !result.isEmpty()) {
+                stats = result.get(0);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error fetching SBU statistics: " + e.getMessage(), e);
+        }
+        return stats;
+    }
 
-	public List<SBU> checkUniqueIfForSBU(SBU obj) throws Exception {
-		List<SBU> objsList = new ArrayList<SBU>();
-		try {
-			String qry = "SELECT sbu_code FROM sbu  "
-					+ " where status is not null and status <> ''  "; 
-			int arrSize = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				qry = qry + " and sbu_code = ?";
-				arrSize++;
-			}	
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_code())) {
-				pValues[i++] = obj.getSbu_code();
-			}
-			
-			objsList = jdbcTemplate.query( qry, pValues, new BeanPropertyRowMapper<SBU>(SBU.class));
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return objsList;
-	}
-	
-	
-	
+    /**
+     * Check if SBU code is unique
+     */
+    public boolean isSBUCodeUnique(String sbuCode, String excludeId) throws Exception {
+        try {
+            String query;
+            Object[] params;
+            
+            if (StringUtils.isEmpty(excludeId)) {
+                query = "SELECT COUNT(*) FROM sbu WHERE sbu = ?";
+                params = new Object[]{sbuCode};
+            } else {
+                query = "SELECT COUNT(*) FROM sbu WHERE sbu = ? AND id != ?";
+                params = new Object[]{sbuCode, excludeId};
+            }
+            
+            int count = jdbcTemplate.queryForObject(query, Integer.class, params);
+            return count == 0;
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error checking SBU code uniqueness: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Get distinct status values for filter
+     */
+    public List<String> getStatusFilterList() throws Exception {
+        List<String> statusList = new ArrayList<>();
+        try {
+            String query = "SELECT DISTINCT status FROM sbu WHERE status IS NOT NULL AND status != '' ORDER BY status ASC";
+            statusList = jdbcTemplate.queryForList(query, String.class);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error fetching status filter list: " + e.getMessage(), e);
+        }
+        return statusList;
+    }
+
+    /**
+     * Search SBUs with pagination
+     */
+    public List<SBU> searchSBUsWithPagination(SBU obj, int page, int pageSize) throws Exception {
+        List<SBU> sbuList = new ArrayList<>();
+        try {
+            StringBuilder query = new StringBuilder();
+            List<Object> params = new ArrayList<>();
+            
+            query.append("SELECT id, sbu, sbu_name, status FROM sbu WHERE 1=1 ");
+            
+            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
+                query.append(" AND sbu LIKE ? ");
+                params.add("%" + obj.getSbu() + "%");
+            }
+            
+            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_name())) {
+                query.append(" AND sbu_name LIKE ? ");
+                params.add("%" + obj.getSbu_name() + "%");
+            }
+            
+            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
+                query.append(" AND status = ? ");
+                params.add(obj.getStatus());
+            }
+            
+            query.append(" ORDER BY sbu ASC ");
+            
+            // Add pagination
+            query.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+            params.add((page - 1) * pageSize);
+            params.add(pageSize);
+            
+            sbuList = jdbcTemplate.query(
+                query.toString(), 
+                params.toArray(), 
+                new BeanPropertyRowMapper<>(SBU.class)
+            );
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error searching SBUs with pagination: " + e.getMessage(), e);
+        }
+        return sbuList;
+    }
+
+    /**
+     * Count total SBUs for pagination
+     */
+    public int countSBUs(SBU obj) throws Exception {
+        try {
+            StringBuilder query = new StringBuilder();
+            List<Object> params = new ArrayList<>();
+            
+            query.append("SELECT COUNT(*) FROM sbu WHERE 1=1 ");
+            
+            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
+                query.append(" AND sbu LIKE ? ");
+                params.add("%" + obj.getSbu() + "%");
+            }
+            
+            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu_name())) {
+                query.append(" AND sbu_name LIKE ? ");
+                params.add("%" + obj.getSbu_name() + "%");
+            }
+            
+            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
+                query.append(" AND status = ? ");
+                params.add(obj.getStatus());
+            }
+            
+            return jdbcTemplate.queryForObject(query.toString(), Integer.class, params.toArray());
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error counting SBUs: " + e.getMessage(), e);
+        }
+    }
 }
