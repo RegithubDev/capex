@@ -425,6 +425,14 @@
                 </div>
                 
                 <div class="dropdown-menu">
+                 <!-- Department -->
+                    <div class="dropdown-item" data-url="/department">
+                        <i class="fas fa-building"></i>
+                        <div class="item-content">
+                            <div class="item-title">Capex Proposal</div>
+                            <div class="item-desc">Capex Proposal Submission</div>
+                        </div>
+                    </div>
                     <!-- Department -->
                     <div class="dropdown-item" data-url="/department">
                         <i class="fas fa-building"></i>

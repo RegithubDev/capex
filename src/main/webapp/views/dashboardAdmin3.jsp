@@ -883,6 +883,200 @@
         </div>
     </section>
 
+    <!-- Finance Department -->
+    <section class="capex-card finance-section">
+        <h3 class="finance-title">TO BE COMPLETED BY FINANCE DEPARTMENT</h3>
+        <div class="finance-grid">
+            <div class="finance-card">
+                <h4>CAPITAL EXPENDITURE BUDGET</h4>
+                <div class="finance-field">
+                    <label>Department</label>
+                    <select id="financeDept" name="finance_department">
+                        <option value="">Select department</option>
+                        <option value="IT">IT</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Operations">Operations</option>
+                    </select>
+                </div>
+                <div class="finance-field">
+                    <label>Capital Expenditure Category</label>
+                    <select id="financeCategory" name="finance_category">
+                        <option value="Software">Software</option>
+                        <option value="Hardware">Hardware</option>
+                        <option value="Infrastructure">Infrastructure</option>
+                    </select>
+                </div>
+                <div class="finance-field">
+                    <label>Total Budget Available for the Year (₹)</label>
+                    <input type="number" id="totalBudget" name="total_budget" placeholder="0" step="0.01" min="0">
+                    <small>90CR limit</small>
+                </div>
+                <div class="finance-field">
+                    <label>Proposed Purchase Price (₹)</label>
+                    <input type="number" id="proposedPrice" name="proposed_price" placeholder="0.00" step="0.01" min="0">
+                </div>
+                <div class="finance-field">
+                    <label>Available Balance After (₹)</label>
+                    <input type="text" id="availableBalance" name="available_balance" disabled>
+                    <small>Auto-calculated (A − B = C)</small>
+                </div>
+            </div>
+            <div class="finance-card">
+                <h4>Reviewed by Finance Department</h4>
+                <div class="finance-field">
+                    <label>Signature Status</label>
+                    <select id="financeStatus" name="finance_status">
+                        <option value="">Select status</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="On Hold">On Hold</option>
+                    </select>
+                </div>
+                <div class="finance-field">
+                    <label>Name</label>
+                    <input type="text" id="financeName" name="finance_name" placeholder="Employee name">
+                </div>
+                <div class="finance-field">
+                    <label>Designation</label>
+                    <input type="text" id="financeDesignation" name="finance_designation" placeholder="Designation">
+                </div>
+                <div class="finance-field">
+                    <label>Date</label>
+                    <input type="date" id="financeDate" name="finance_date">
+                </div>
+                <div class="finance-field">
+                    <label>Comments (100 chars max)</label>
+                    <textarea id="financeComments" name="finance_comments" maxlength="100" placeholder="Enter comments..."></textarea>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Appropriate Authority -->
+    <section class="capex-card">
+        <h3 class="finance-title">TO BE COMPLETED BY APPROPRIATE AUTHORITY</h3>
+        <div class="signature-grid">
+
+            <!-- Head Projects -->
+            <div class="signature-card">
+                <h4>Head Projects (HO)</h4>
+                <div class="signature-box" id="headProjectsSignatureBox">
+                    <span>Upload Signature</span>
+                </div>
+                <div class="signature-actions">
+                    <label class="upload-btn">
+                        <i class="material-icons">upload</i> Upload
+                        <input type="file" class="authority-upload" name="head_projects_signature" data-role="headProjects" accept="image/*" hidden>
+                    </label>
+                </div>
+                <div class="signature-fields">
+                    <select class="authority-name" name="head_projects_name" data-role="headProjects">
+                        <option value="">Select Name</option>
+                        <option value="Ashok Pawar">Ashok Pawar</option>
+                    </select>
+                    <select class="authority-designation" name="head_projects_designation" data-role="headProjects">
+                        <option value="">Select Designation</option>
+                        <option value="Head Projects (HO)">Head Projects (HO)</option>
+                    </select>
+                    <input type="date" class="authority-date" name="head_projects_date" data-role="headProjects">
+                    <div class="comment-field">
+                        <textarea class="authority-comment" name="head_projects_comment" data-role="headProjects" maxlength="200" placeholder="Enter comments (max 200 characters)"></textarea>
+                        <span class="comment-counter">0 / 200</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Head -->
+            <div class="signature-card">
+                <h4>Business Head</h4>
+                <div class="signature-box" id="businessHeadSignatureBox">
+                    <span>Upload Signature</span>
+                </div>
+                <div class="signature-actions">
+                    <label class="upload-btn">
+                        <i class="material-icons">upload</i> Upload
+                        <input type="file" class="authority-upload" name="business_head_signature" data-role="businessHead" accept="image/*" hidden>
+                    </label>
+                </div>
+                <div class="signature-fields">
+                    <select class="authority-name" name="business_head_name" data-role="businessHead">
+                        <option value="">Select Name</option>
+                        <option value="Business Head">Business Head</option>
+                    </select>
+                    <select class="authority-designation" name="business_head_designation" data-role="businessHead">
+                        <option value="">Select Designation</option>
+                        <option value="Business Head">Business Head</option>
+                    </select>
+                    <input type="date" class="authority-date" name="business_head_date" data-role="businessHead">
+                    <div class="comment-field">
+                        <textarea class="authority-comment" name="business_head_comment" data-role="businessHead" maxlength="200" placeholder="Enter comments (max 200 characters)"></textarea>
+                        <span class="comment-counter">0 / 200</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CFO -->
+            <div class="signature-card">
+                <h4>CFO</h4>
+                <div class="signature-box" id="cfoSignatureBox">
+                    <span>Upload Signature</span>
+                </div>
+                <div class="signature-actions">
+                    <label class="upload-btn">
+                        <i class="material-icons">upload</i> Upload
+                        <input type="file" class="authority-upload" name="cfo_signature" data-role="cfo" accept="image/*" hidden>
+                    </label>
+                </div>
+                <div class="signature-fields">
+                    <select class="authority-name" name="cfo_name" data-role="cfo">
+                        <option value="">Select Name</option>
+                        <option value="CFO">CFO</option>
+                    </select>
+                    <select class="authority-designation" name="cfo_designation" data-role="cfo">
+                        <option value="">Select Designation</option>
+                        <option value="CFO">CFO</option>
+                    </select>
+                    <input type="date" class="authority-date" name="cfo_date" data-role="cfo">
+                    <div class="comment-field">
+                        <textarea class="authority-comment" name="cfo_comment" data-role="cfo" maxlength="200" placeholder="Enter comments (max 200 characters)"></textarea>
+                        <span class="comment-counter">0 / 200</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CEO & MD -->
+            <div class="signature-card">
+                <h4>CEO & MD</h4>
+                <div class="signature-box" id="ceoSignatureBox">
+                    <span>Upload Signature</span>
+                </div>
+                <div class="signature-actions">
+                    <label class="upload-btn">
+                        <i class="material-icons">upload</i> Upload
+                        <input type="file" class="authority-upload" name="ceo_signature" data-role="ceo" accept="image/*" hidden>
+                    </label>
+                </div>
+                <div class="signature-fields">
+                    <select class="authority-name" name="ceo_name" data-role="ceo">
+                        <option value="">Select Name</option>
+                        <option value="CEO & MD">CEO & MD</option>
+                    </select>
+                    <select class="authority-designation" name="ceo_designation" data-role="ceo">
+                        <option value="">Select Designation</option>
+                        <option value="CEO & MD">CEO & MD</option>
+                    </select>
+                    <input type="date" class="authority-date" name="ceo_date" data-role="ceo">
+                    <div class="comment-field">
+                        <textarea class="authority-comment" name="ceo_comment" data-role="ceo" maxlength="200" placeholder="Enter comments (max 200 characters)"></textarea>
+                        <span class="comment-counter">0 / 200</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Action Bar -->
     <div class="action-bar">
         <button type="button" class="submit-btn" onclick="submitForm()">
             <i class="material-icons">send</i> Submit Proposal
@@ -1009,6 +1203,7 @@
                 counter.css('color', '#6c757d');
             }
         }
+
         function submitForm() {
             const submitBtn = document.querySelector('.submit-btn');
             const originalText = submitBtn.innerHTML;
@@ -1016,12 +1211,12 @@
             // Disable button & show loading
             submitBtn.innerHTML = '<i class="material-icons spin">autorenew</i> Submitting...';
             submitBtn.disabled = true;
-            //showLoading();
+            showLoading();
 
             const form = document.getElementById('capexForm');
             if (!form) {
                 console.error("Form element #capexForm not found!");
-                //hideLoading();
+                hideLoading();
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
                 Swal.fire({
@@ -1081,6 +1276,10 @@
                 // Get raw text first (safer than .json() directly)
                 const text = await response.text();
 
+                if (!response.ok) {
+                    console.error("Server responded with error status:", response.status, text.substring(0, 300));
+                    throw new Error(`Server error ${response.status}: ${text.substring(0, 150)}...`);
+                }
 
                 // Try to parse as JSON
                 try {
@@ -1092,7 +1291,7 @@
                 }
             })
             .then(data => {
-                //hideLoading();
+                hideLoading();
 
                 if (data && data.success) {
                     Swal.fire({
@@ -1104,7 +1303,7 @@
                     }).then(() => {
                         // Clear local storage if needed
                         // localStorage.removeItem('capex_form_data');
-                        window.location.href = data.redirectUrl ||  '/home';
+                        window.location.href = data.redirectUrl || '<%= request.getContextPath() %>/dashboard.jsp';
                     });
                 } else {
                     Swal.fire({
@@ -1115,7 +1314,7 @@
                 }
             })
             .catch(error => {
-              //  hideLoading();
+                hideLoading();
                 console.error("Fetch / Submission failed:", error);
 
                 let displayMessage = 'Network or server error occurred';
@@ -1126,15 +1325,9 @@
                 }
 
                 Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text:  'Proposal submitted successfully',
-                    timer: 2500,
-                    showConfirmButton: false
-                }).then(() => {
-                    // Clear local storage if needed
-                    // localStorage.removeItem('capex_form_data');
-                    window.location.href = data.redirectUrl || '/home';
+                    icon: 'error',
+                    title: 'Error',
+                    html: `${displayMessage}<br><small style="font-size:0.85em;">Check browser console (F12) for details</small>`
                 });
             })
             .finally(() => {
@@ -1142,6 +1335,7 @@
                 submitBtn.disabled = false;
             });
         }
+  
     </script>
 </body>
 </html>
