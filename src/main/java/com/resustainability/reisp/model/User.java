@@ -658,5 +658,10 @@ public class User {
 	public void setMobile_number(String mobile_number) {
 		this.mobile_number = mobile_number;
 	}
+
+	public Object getDesignation() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 }

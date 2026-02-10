@@ -172,7 +172,7 @@ public class UserController {
 							session.setAttribute("NUMBER", userDetails.getContact_number());
 							session.setAttribute("USER_EMAIL", userDetails.getEmail_id());
 							session.setAttribute("BASE_SBU", userDetails.getBase_sbu());
-							session.setAttribute("BASE_PROJECT", userDetails.getProject_name());
+							session.setAttribute("BASE_PROJECT", userDetails.getBase_project());
 							session.setAttribute("BASE_DEPARTMENT", userDetails.getBase_department());
 							session.setAttribute("BASE_PROJECT_CODE", userDetails.getBase_project());
 				}

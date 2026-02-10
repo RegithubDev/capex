@@ -42,147 +42,191 @@ public class UserDao {
 	@Autowired
 	DataSourceTransactionManager transactionManager;
 	
-	
 	public List<User> getUsersList(User obj) throws Exception {
-		  List<User> objsList = null;
-		    try {
-		        jdbcTemplate = new JdbcTemplate(dataSource);
-		        List<Object> paramList = new ArrayList<>();
+	    List<User> objsList = null;
+	    try {
+	        jdbcTemplate = new JdbcTemplate(dataSource);
+	        List<Object> paramList = new ArrayList<>();
 
-		        StringBuilder qry = new StringBuilder();
-		        qry.append("SELECT DISTINCT up.user_id, up.id, up.user_name, up.email_id, up.contact_number, ");
-		        qry.append("up3.user_name AS reporting_to, ua.status, up.reporting_to AS reporting_to_id, ");
-		        qry.append("FORMAT(up.created_date, 'dd-MMM-yy') AS created_date, up1.user_name AS created_by, ");
-		        qry.append("FORMAT(up.modified_date, 'dd-MMM-yy') AS modified_date, up2.user_name AS modified_by, ");
-		        qry.append("up.base_sbu, up.base_project AS project_code, up.base_role AS user_role, ");
-		        qry.append("up.base_department AS department_code, p.project_name AS base_project, ss.sbu_name, ");
-		        qry.append("dd.department_name AS base_department, up.base_role, ");
+	        StringBuilder qry = new StringBuilder();
+	        qry.append("SELECT DISTINCT ");
+	        qry.append("up.id, ");
+	        qry.append("up.user_id, ");
+	        qry.append("up.user_name, ");
+	        qry.append("up.email_id, ");
+	        qry.append("up.contact_number, ");
+	        qry.append("up.base_role AS designation, ");
+	        qry.append("up.base_sbu, ");
+	        qry.append("up.base_project, ");
+	        qry.append("up.base_department, ");
+	        qry.append("up.reporting_to, ");
+	        qry.append("up.status, ");
+	        qry.append("up.created_by, ");
+	        qry.append("FORMAT(up.created_date, 'dd-MMM-yyyy') AS created_date, ");
+	        qry.append("up.modified_by, ");
+	        qry.append("FORMAT(up.modified_date, 'dd-MMM-yyyy') AS modified_date, ");
+	        qry.append("up2.user_name AS reporting_to_name, ");
+	        qry.append("p.project_name AS base_project_name, ");
+	        qry.append("s.sbu_name AS base_sbu_name, ");
+	        qry.append("d.department_name AS base_department_name ");
+	        
+	        qry.append("FROM user_profile up ");
+	        qry.append("LEFT JOIN user_profile up2 ON up.reporting_to = up2.user_id ");
+	        qry.append("LEFT JOIN project p ON up.base_project = p.project_code ");
+	        qry.append("LEFT JOIN sbu s ON up.base_sbu = s.sbu_code ");
+	        qry.append("LEFT JOIN department d ON up.base_department = d.department_code ");
+	        qry.append("WHERE up.user_id <> '' AND up.user_id IS NOT NULL ");
 
-		        qry.append("A.total_minutes / 60.0 AS minutes, ");
-		        qry.append("A.total_days AS days, ");
-		        qry.append("A.total_minutes / 60.0 AS hours, ");
-		        qry.append("A.active_users, A.inactive_users, ");
-		        qry.append("A.last_login ");
+	        if (obj != null) {
+	            if (!StringUtils.isEmpty(obj.getUser_id())) {
+	                qry.append("AND up.user_id = ? ");
+	                paramList.add(obj.getUser_id());
+	            }
+	            if (!StringUtils.isEmpty(obj.getStatus())) {
+	                qry.append("AND up.status = ? ");
+	                paramList.add(obj.getStatus());
+	            }
+	            if (!StringUtils.isEmpty(obj.getProject())) {
+	                qry.append("AND up.base_project = ? ");
+	                paramList.add(obj.getProject());
+	            }
+	            if (!StringUtils.isEmpty(obj.getBase_role())) {
+	                qry.append("AND up.base_role = ? ");
+	                paramList.add(obj.getBase_role());
+	            }
+	            if (!StringUtils.isEmpty(obj.getSbu())) {
+	                qry.append("AND up.base_sbu = ? ");
+	                paramList.add(obj.getSbu());
+	            }
+	        }
 
-		        qry.append("FROM user_profile up ");
-		        qry.append("LEFT JOIN user_accounts ua ON up.user_id = ua.user_id  ");
-		        qry.append("LEFT JOIN project p ON up.base_project = p.project_code ");
-		        qry.append("LEFT JOIN sbu ss ON up.base_sbu = ss.sbu_code ");
-		        qry.append("LEFT JOIN department dd ON up.base_department = dd.department_code ");
-		        qry.append("LEFT JOIN user_profile up1 ON up.created_by = up1.user_id ");
-		        qry.append("LEFT JOIN user_profile up3 ON up.reporting_to = up3.user_id ");
-		        qry.append("LEFT JOIN user_profile up2 ON up.modified_by = up2.user_id ");
+	        qry.append("ORDER BY up.user_name ASC ");
 
-		        // Use APPLY to reduce subquery duplication
-		        qry.append("OUTER APPLY ( ");
-		        qry.append("    SELECT ");
-		        qry.append("        SUM(DATEDIFF(MINUTE, user_login_time, user_logout_time)) AS total_minutes, ");
-		        qry.append("        DATEDIFF(DAY, MIN(user_login_time), MAX(user_login_time)) AS total_days, ");
-		        qry.append("        (SELECT MAX(user_login_time) FROM user_audit_log WHERE user_id = up.user_id) AS last_login, ");
-		        qry.append("        (SELECT COUNT(*) FROM user_profile up1 INNER JOIN user_accounts ua1 ON up1.user_id = ua1.user_id ");
-		        qry.append("         WHERE up1.user_id <> '' AND ua1.status = 'Active') AS active_users, ");
-		        qry.append("        (SELECT COUNT(*) FROM user_profile up2 INNER JOIN user_accounts ua2 ON up2.user_id = ua2.user_id ");
-		        qry.append("         WHERE up2.user_id <> '' AND ua2.status <> 'Active') AS inactive_users ");
-		        qry.append("    FROM user_audit_log ual ");
-		        qry.append("    WHERE ual.user_id = up.user_id ");
-		        if (obj != null && obj.getTime_period() != 0 && obj.getTime_period() != 13) {
-		            qry.append(" AND ual.user_login_time >= DATEADD(DAY, ?, GETDATE()) ");
-		            paramList.add(obj.getTime_period());
-		        } else if (obj != null && obj.getTime_period() == 13) {
-		            qry.append(" AND ual.user_login_time IS NULL ");
-		        }
-		        qry.append(") A ");
+	        System.out.println("Executing Users Query: " + qry.toString());
+	        System.out.println("Parameters: " + paramList);
 
-		        qry.append("WHERE up.user_id <> '' ");
+	        objsList = jdbcTemplate.query(qry.toString(), paramList.toArray(), new BeanPropertyRowMapper<>(User.class));
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        // Fallback to simple query if joins fail
+	        objsList = getSimpleUsersList(obj);
+	    }
+	    return objsList;
+	}
 
-		        if (obj != null) {
-		            if (!StringUtils.isEmpty(obj.getUser_id())) {
-		                qry.append("AND up.user_id = ? ");
-		                paramList.add(obj.getUser_id());
-		            }
-		            if (!StringUtils.isEmpty(obj.getStatus())) {
-		                qry.append("AND ua.status = ? ");
-		                paramList.add(obj.getStatus());
-		            }
-		            if (!StringUtils.isEmpty(obj.getProject())) {
-		                qry.append("AND up.base_project = ? ");
-		                paramList.add(obj.getProject());
-		            }
-		            if (!StringUtils.isEmpty(obj.getBase_role())) {
-		                qry.append("AND up.base_role = ? ");
-		                paramList.add(obj.getBase_role());
-		            }
-		            if (!StringUtils.isEmpty(obj.getSbu())) {
-		                qry.append("AND up.base_sbu = ? ");
-		                paramList.add(obj.getSbu());
-		            }
-		        }
+	// Fallback method if joins fail
+	private List<User> getSimpleUsersList(User obj) throws Exception {
+	    List<User> objsList = null;
+	    try {
+	        jdbcTemplate = new JdbcTemplate(dataSource);
+	        List<Object> paramList = new ArrayList<>();
 
+	        StringBuilder qry = new StringBuilder();
+	        qry.append("SELECT DISTINCT ");
+	        qry.append("id, ");
+	        qry.append("user_id, ");
+	        qry.append("user_name, ");
+	        qry.append("email_id, ");
+	        qry.append("contact_number, ");
+	        qry.append("base_role AS designation, ");
+	        qry.append("base_sbu, ");
+	        qry.append("base_project, ");
+	        qry.append("base_department, ");
+	        qry.append("reporting_to, ");
+	        qry.append("status, ");
+	        qry.append("created_by, ");
+	        qry.append("FORMAT(created_date, 'dd-MMM-yyyy') AS created_date, ");
+	        qry.append("modified_by, ");
+	        qry.append("FORMAT(modified_date, 'dd-MMM-yyyy') AS modified_date ");
+	        
+	        qry.append("FROM user_profile ");
+	        qry.append("WHERE user_id <> '' AND user_id IS NOT NULL ");
 
-		        qry.append("ORDER BY up.user_name ASC ");
+	        if (obj != null) {
+	            if (!StringUtils.isEmpty(obj.getUser_id())) {
+	                qry.append("AND user_id = ? ");
+	                paramList.add(obj.getUser_id());
+	            }
+	            if (!StringUtils.isEmpty(obj.getStatus())) {
+	                qry.append("AND status = ? ");
+	                paramList.add(obj.getStatus());
+	            }
+	        }
 
-		 
-		        objsList = jdbcTemplate.query(qry.toString(), paramList.toArray(), new BeanPropertyRowMapper<>(User.class));
-		    } catch (Exception e) {
-		        e.printStackTrace();
-		        throw new Exception(e);
-		    }
-		    return objsList;
+	        qry.append("ORDER BY user_name ASC ");
+
+	        objsList = jdbcTemplate.query(qry.toString(), paramList.toArray(), new BeanPropertyRowMapper<>(User.class));
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        throw new Exception(e);
+	    }
+	    return objsList;
 	}
 
 	public boolean addUser(User obj) throws Exception {
-		int count = 0;
-		boolean flag = false;
-		TransactionDefinition def = new DefaultTransactionDefinition();
-		TransactionStatus status = transactionManager.getTransaction(def);
-		try {
-			NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-			if(!StringUtils.isEmpty(obj.getPassword())) {
-				String encryptPwd = EncryptDecrypt.encrypt(obj.getPassword());	
-				obj.setPassword(encryptPwd);
-			}
-			obj.setReward_points("100");
-			String insertQry = "INSERT INTO user_profile "
-					+ "(user_id,user_name,email_id,contact_number,base_role,base_project,base_sbu,base_department,reporting_to,created_by,end_date,created_date,reward_points)"
-					+ " VALUES "
-					+ "(:user_id,:user_name,:email_id,:contact_number,:base_role,:base_project,:base_sbu,:base_department,:reporting_to,:created_by,:end_date,getdate(),:reward_points)";
-			BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);		 
-		    count = namedParamJdbcTemplate.update(insertQry, paramSource);
-		    if(count > 0) {
-		    	String UA_qry = "INSERT INTO user_accounts (user_id,user_name,status) VALUES (:user_id,:email_id,:status)";
-		    	paramSource = new BeanPropertySqlParameterSource(obj);		 
-			    count = namedParamJdbcTemplate.update(UA_qry, paramSource);
-			    obj.setAction("User Creation Reward");
-			    String HIS_qry = "INSERT INTO rewards_history (action,	reward_points,	user_id,created_date) VALUES (:action,:reward_points,:user_id,getdate())";
-		    	paramSource = new BeanPropertySqlParameterSource(obj);		 
-			    count = namedParamJdbcTemplate.update(HIS_qry, paramSource);
-		    }
-			if(count > 0) {
-				flag = true;
-				EMailSender emailSender = new EMailSender();
-				String login_url = CommonConstants.HOME ;
-				Mail mail = new Mail();
-				mail.setMailTo(obj.getEmail_id());
-				mail.setMailSubject("Welcome to ReOne");
-				String body = "Dear "+obj.getUser_name()+"<br>"
-						+ "Congratulations and a warm welcome to <b>ReOne</b> that brings all your work place apps together in one place! You are now Rewarded with <b>100 Reward PSoints</b>."
-						+ "<br>Thank you for joining <b>ReOne</b> Application, "
-						+ "<br>To explore more Please follow the link <a href="+login_url+"><button>Get Started</button></a>"
-						+ "<br><br>"
-						+ "Best regards,"
-						+ "<p style='color : red'><b>ReOne</b></p>"
-						+ "<b>Re Sustainability</b>";
-				String subject = "Thank You for Registering in ReOne";
-				emailSender.send(mail.getMailTo(), mail.getMailSubject(), body,obj,subject);
-			}
-			flag = true;
-			transactionManager.commit(status);
-		}catch (Exception e) {
-			transactionManager.rollback(status);
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return flag;
+	    int count = 0;
+	    boolean flag = false;
+	    TransactionDefinition def = new DefaultTransactionDefinition();
+	    TransactionStatus status = transactionManager.getTransaction(def);
+	    try {
+	        NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+	        
+	        // Encrypt password if provided
+	        if(!StringUtils.isEmpty(obj.getPassword())) {
+	            String encryptPwd = EncryptDecrypt.encrypt(obj.getPassword());	
+	            obj.setPassword(encryptPwd);
+	        } else {
+	            // Default password if not provided
+	            obj.setPassword(EncryptDecrypt.encrypt("Password@123"));
+	        }
+	        
+	        obj.setReward_points("100");
+	        obj.setStatus("Active"); // Set default status
+	        
+	        String insertQry = "INSERT INTO user_profile "
+	                + "(user_id, user_name, email_id, contact_number, password, "
+	                + "base_role, base_project, base_sbu, base_department, reporting_to, "
+	                + "created_by, end_date, created_date, reward_points, status) "
+	                + "VALUES "
+	                + "(:user_id, :user_name, :email_id, :contact_number, :password, "
+	                + ":base_role, :base_project, :base_sbu, :base_department, :reporting_to, "
+	                + ":created_by, :end_date, GETDATE(), :reward_points, :status)";
+	        
+	        BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);		 
+	        count = namedParamJdbcTemplate.update(insertQry, paramSource);
+	        
+	        if(count > 0) {
+	            flag = true;
+	            // Email sending logic (optional)
+	            try {
+	                EMailSender emailSender = new EMailSender();
+	                String login_url = CommonConstants.HOME;
+	                Mail mail = new Mail();
+	                mail.setMailTo(obj.getEmail_id());
+	                mail.setMailSubject("Welcome to CAPEX System");
+	                
+	                String body = "Dear " + obj.getUser_name() + "<br>"
+	                        + "Your account has been created successfully in CAPEX Management System.<br>"
+	                        + "User ID: " + obj.getUser_id() + "<br>"
+	                        + "Password: Password@123 (Please change after first login)<br><br>"
+	                        + "Please login at: <a href='" + login_url + "'>CAPEX System Login</a><br><br>"
+	                        + "Best regards,<br>"
+	                        + "CAPEX Management Team";
+	                
+	                emailSender.send(mail.getMailTo(), mail.getMailSubject(), body, obj, "Account Created Successfully");
+	            } catch (Exception e) {
+	                System.out.println("Email sending failed: " + e.getMessage());
+	                // Don't fail the transaction if email fails
+	            }
+	        }
+	        
+	        transactionManager.commit(status);
+	    } catch (Exception e) {
+	        transactionManager.rollback(status);
+	        e.printStackTrace();
+	        throw new Exception("Error adding user: " + e.getMessage());
+	    }
+	    return flag;
 	}
 
 	public boolean updateUser(User obj) throws Exception {
@@ -201,7 +245,7 @@ public class UserDao {
 			if(count > 0) {
 				updateUserAccounts(obj);
 				flag = true;
-				String updateAuditQry = "UPDATE user_accounts set status=:status where user_id = :user_id ";
+				String updateAuditQry = "UPDATE user_profile set status=:status where user_id = :user_id ";
 				paramSource = new BeanPropertySqlParameterSource(obj);		 
 			    count = namedParamJdbcTemplate.update(updateAuditQry, paramSource);
 			}
@@ -355,136 +399,93 @@ public class UserDao {
 		
 	}
 
-	private boolean setLastLoginTime(User userDetails) throws Exception {
-		boolean flag = false;
-		TransactionDefinition def = new DefaultTransactionDefinition();
-		TransactionStatus status = transactionManager.getTransaction(def);
-		try {
-			NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-			String insertQry = "if exists(SELECT * from user_accounts where user_id= :user_id and user_name= :email_id)            "
-					+ "BEGIN            "
-					+ " update user_accounts set last_login_date_time=GETDATE()  where user_id= :user_id  "
-					+ "End                    "
-					+ "else  "
-					+ "begin  "
-					+ "INSERT INTO user_accounts (user_id,user_name,last_login_date_time) values (:user_id,:email_id,GETDATE())  "
-					+ "end ";
-			BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(userDetails);		 
-		    namedParamJdbcTemplate.update(insertQry, paramSource);
-			transactionManager.commit(status);
-		}catch (Exception e) {
-			transactionManager.rollback(status);
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return flag;
-	}
+
 
 	public int getTotalRecords(User obj, String searchParameter) throws Exception {
-		int totalRecords = 0;
-		try {
-			int arrSize = 0;
-			String qry = "select count(DISTINCT up.user_id) as total_records FROM user_profile up "
-			+ "left join user_accounts ua on up.user_id = ua.user_id  "
-			+ "left join user_audit_log ual on up.user_id = ual.user_id  "
-			
-			+ "left join project p on up.base_project = p.project_code  "
-			+ "left join sbu ss on up.base_sbu = ss.sbu_code  "
-			+ "left join department dd on up.base_department = dd.department_code  "
-			
-			+ "left join user_profile up1 on up.created_by = up1.user_id "
-			+ "left join user_profile up3 on up.reporting_to = up3.user_id "
-			+ "left join user_profile up2 on up.modified_by = up2.user_id  where up.user_id <> '' ";
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getUser_id())) {
-				qry = qry + " and up.user_id = ? ";
-				arrSize++;
-			}	
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() != 0  && obj.getTime_period() != 13) {
-				qry = qry + " and user_login_time >= DATEADD(day, ?, GETDATE()) ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() == 13) {
-				qry = qry + " and user_login_time is null ";
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and ua.status = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject())) {
-				qry = qry + " and up.base_project = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getBase_role())) {
-				qry = qry + " and up.base_role = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
-				qry = qry + " and up.base_sbu = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(searchParameter)) {
-				qry = qry + " and (up.user_id like ? or up.user_name like ? or up.base_role like ?"
-						+ " or up.email_id like ? or up.base_sbu like ? or up.base_project like ? or up.base_department like ? "
-						+ "or ua.status like ? or sbu_name like ? or up.base_project like ? or up.base_department like ? or up.id like ? )";
-				arrSize++;
-				arrSize++;
-				arrSize++;
-				arrSize++;
-				arrSize++;
-				arrSize++;
-				arrSize++;
-				arrSize++;
-				arrSize++;
-				arrSize++;
-				arrSize++;
-				arrSize++;
-				
-			}	
-			
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getUser_id())) {
-				pValues[i++] = obj.getUser_id();
-			}
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() != 0  && obj.getTime_period() != 13) {
-				pValues[i++] = obj.getTime_period();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject())) {
-				pValues[i++] = obj.getProject();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getBase_role())) {
-				pValues[i++] = obj.getBase_role();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
-				pValues[i++] = obj.getSbu();
-			}
-			if(!StringUtils.isEmpty(searchParameter)) {
-				pValues[i++] = "%"+searchParameter+"%";
-				pValues[i++] = "%"+searchParameter+"%";
-				pValues[i++] = "%"+searchParameter+"%";
-				pValues[i++] = "%"+searchParameter+"%";
-				pValues[i++] = "%"+searchParameter+"%";
-				pValues[i++] = "%"+searchParameter+"%";
-				pValues[i++] = "%"+searchParameter+"%";
-				pValues[i++] = "%"+searchParameter+"%";
-				pValues[i++] = "%"+searchParameter+"%";
-				pValues[i++] = "%"+searchParameter+"%";
-				pValues[i++] = "%"+searchParameter+"%";
-				pValues[i++] = "%"+searchParameter+"%";
-				
-			}
-			
-			totalRecords = jdbcTemplate.queryForObject( qry,pValues,Integer.class);
-		}catch(Exception e){ 
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return totalRecords;
+	    int totalRecords = 0;
+	    try {
+	        int arrSize = 0;
+	        StringBuilder qry = new StringBuilder();
+	        qry.append("SELECT COUNT(DISTINCT up.user_id) as total_records ");
+	        qry.append("FROM user_profile up ");
+	        qry.append("WHERE up.user_id <> '' AND up.user_id IS NOT NULL ");
+	        
+	        if(!StringUtils.isEmpty(obj)) {
+	            if(!StringUtils.isEmpty(obj.getUser_id())) {
+	                qry.append(" AND up.user_id = ? ");
+	                arrSize++;
+	            }   
+	            if(!StringUtils.isEmpty(obj.getStatus())) {
+	                qry.append(" AND up.status = ? ");
+	                arrSize++;
+	            }
+	            if(!StringUtils.isEmpty(obj.getProject())) {
+	                qry.append(" AND up.base_project = ? ");
+	                arrSize++;
+	            }
+	            if(!StringUtils.isEmpty(obj.getBase_role())) {
+	                qry.append(" AND up.base_role = ? ");
+	                arrSize++;
+	            }
+	            if(!StringUtils.isEmpty(obj.getSbu())) {
+	                qry.append(" AND up.base_sbu = ? ");
+	                arrSize++;
+	            }
+	            if(!StringUtils.isEmpty(obj.getDesignation_new())) {
+	                qry.append(" AND up.designation = ? ");
+	                arrSize++;
+	            }
+	        }
+	        
+	        if(!StringUtils.isEmpty(searchParameter)) {
+	            qry.append(" AND (LOWER(up.user_id) LIKE ? OR LOWER(up.user_name) LIKE ? OR LOWER(up.email_id) LIKE ? ");
+	            qry.append(" OR LOWER(up.contact_number) LIKE ? OR LOWER(up.designation) LIKE ? OR LOWER(up.status) LIKE ?) ");
+	            arrSize += 6;
+	        }   
+	        
+	        Object[] pValues = new Object[arrSize];
+	        int i = 0;
+	        
+	        if(!StringUtils.isEmpty(obj)) {
+	            if(!StringUtils.isEmpty(obj.getUser_id())) {
+	                pValues[i++] = obj.getUser_id();
+	            }
+	            if(!StringUtils.isEmpty(obj.getStatus())) {
+	                pValues[i++] = obj.getStatus();
+	            }
+	            if(!StringUtils.isEmpty(obj.getProject())) {
+	                pValues[i++] = obj.getProject();
+	            }
+	            if(!StringUtils.isEmpty(obj.getBase_role())) {
+	                pValues[i++] = obj.getBase_role();
+	            }
+	            if(!StringUtils.isEmpty(obj.getSbu())) {
+	                pValues[i++] = obj.getSbu();
+	            }
+	            if(!StringUtils.isEmpty(obj.getDesignation_new())) {
+	                pValues[i++] = obj.getDesignation_new();
+	            }
+	        }
+	        
+	        if(!StringUtils.isEmpty(searchParameter)) {
+	            String like = "%" + searchParameter.toLowerCase() + "%";
+	            pValues[i++] = like;
+	            pValues[i++] = like;
+	            pValues[i++] = like;
+	            pValues[i++] = like;
+	            pValues[i++] = like;
+	            pValues[i++] = like;
+	        }
+	        
+	        System.out.println("Executing Count Query: " + qry.toString());
+	        System.out.println("Parameters: " + Arrays.toString(pValues));
+	        
+	        totalRecords = jdbcTemplate.queryForObject(qry.toString(), pValues, Integer.class);
+	    } catch(Exception e){ 
+	        e.printStackTrace();
+	        throw new Exception(e);
+	    }
+	    return totalRecords;
 	}
 
 	public List<User> getUserList(User obj, int startIndex, int offset, String searchParameter) throws Exception {
@@ -494,50 +495,25 @@ public class UserDao {
 	        List<Object> paramList = new ArrayList<>();
 
 	        StringBuilder qry = new StringBuilder();
-	        qry.append("SELECT DISTINCT up.user_id, up.id, up.user_name, up.email_id, up.contact_number, ");
-	        qry.append("up3.user_name AS reporting_to, ua.status, up.reporting_to AS reporting_to_id, ");
-	        qry.append("FORMAT(up.created_date, 'dd-MMM-yy') AS created_date, up1.user_name AS created_by, ");
-	        qry.append("FORMAT(up.modified_date, 'dd-MMM-yy') AS modified_date, up2.user_name AS modified_by, ");
-	        qry.append("up.base_sbu, up.base_project AS project_code, up.base_role AS user_role, ");
-	        qry.append("up.base_department AS department_code, p.project_name AS base_project, ss.sbu_name, ");
-	        qry.append("dd.department_name AS base_department, up.base_role, ");
-
-	        qry.append("A.total_minutes / 60.0 AS minutes, ");
-	        qry.append("A.total_days AS days, ");
-	        qry.append("A.total_minutes / 60.0 AS hours, ");
-	        qry.append("A.active_users, A.inactive_users, ");
-	        qry.append("A.last_login ");
-
+	        qry.append("SELECT DISTINCT ");
+	        qry.append("up.id, ");
+	        qry.append("up.user_id, ");
+	        qry.append("up.user_name, ");
+	        qry.append("up.email_id, ");
+	        qry.append("up.contact_number, ");
+	        qry.append("up.base_role AS designation, ");  // Using base_role as designation
+	        qry.append("up.base_sbu, ");
+	        qry.append("up.base_project, ");
+	        qry.append("up.base_department, ");
+	        qry.append("up.status, ");
+	        qry.append("up.created_by, ");
+	        qry.append("FORMAT(up.created_date, 'dd-MMM-yyyy') AS created_date, ");
+	        qry.append("up.modified_by, ");
+	        qry.append("FORMAT(up.modified_date, 'dd-MMM-yyyy') AS modified_date ");
+	        // Removed reporting_to column
+	        
 	        qry.append("FROM user_profile up ");
-	        qry.append("LEFT JOIN user_accounts ua ON up.user_id = ua.user_id  ");
-	        qry.append("LEFT JOIN project p ON up.base_project = p.project_code ");
-	        qry.append("LEFT JOIN sbu ss ON up.base_sbu = ss.sbu_code ");
-	        qry.append("LEFT JOIN department dd ON up.base_department = dd.department_code ");
-	        qry.append("LEFT JOIN user_profile up1 ON up.created_by = up1.user_id ");
-	        qry.append("LEFT JOIN user_profile up3 ON up.reporting_to = up3.user_id ");
-	        qry.append("LEFT JOIN user_profile up2 ON up.modified_by = up2.user_id ");
-
-	        // Use APPLY to reduce subquery duplication
-	        qry.append("OUTER APPLY ( ");
-	        qry.append("    SELECT ");
-	        qry.append("        SUM(DATEDIFF(MINUTE, user_login_time, user_logout_time)) AS total_minutes, ");
-	        qry.append("        DATEDIFF(DAY, MIN(user_login_time), MAX(user_login_time)) AS total_days, ");
-	        qry.append("        (SELECT MAX(user_login_time) FROM user_audit_log WHERE user_id = up.user_id) AS last_login, ");
-	        qry.append("        (SELECT COUNT(*) FROM user_profile up1 INNER JOIN user_accounts ua1 ON up1.user_id = ua1.user_id ");
-	        qry.append("         WHERE up1.user_id <> '' AND ua1.status = 'Active') AS active_users, ");
-	        qry.append("        (SELECT COUNT(*) FROM user_profile up2 INNER JOIN user_accounts ua2 ON up2.user_id = ua2.user_id ");
-	        qry.append("         WHERE up2.user_id <> '' AND ua2.status <> 'Active') AS inactive_users ");
-	        qry.append("    FROM user_audit_log ual ");
-	        qry.append("    WHERE ual.user_id = up.user_id ");
-	        if (obj != null && obj.getTime_period() != 0 && obj.getTime_period() != 13) {
-	            qry.append(" AND ual.user_login_time >= DATEADD(DAY, ?, GETDATE()) ");
-	            paramList.add(obj.getTime_period());
-	        } else if (obj != null && obj.getTime_period() == 13) {
-	            qry.append(" AND ual.user_login_time IS NULL ");
-	        }
-	        qry.append(") A ");
-
-	        qry.append("WHERE up.user_id <> '' ");
+	        qry.append("WHERE up.user_id <> '' AND up.user_id IS NOT NULL ");
 
 	        if (obj != null) {
 	            if (!StringUtils.isEmpty(obj.getUser_id())) {
@@ -545,7 +521,7 @@ public class UserDao {
 	                paramList.add(obj.getUser_id());
 	            }
 	            if (!StringUtils.isEmpty(obj.getStatus())) {
-	                qry.append("AND ua.status = ? ");
+	                qry.append("AND up.status = ? ");
 	                paramList.add(obj.getStatus());
 	            }
 	            if (!StringUtils.isEmpty(obj.getProject())) {
@@ -560,15 +536,17 @@ public class UserDao {
 	                qry.append("AND up.base_sbu = ? ");
 	                paramList.add(obj.getSbu());
 	            }
+	            if (!StringUtils.isEmpty(obj.getDesignation())) {
+	                qry.append("AND up.base_role = ? ");  // Search in base_role for designation
+	                paramList.add(obj.getDesignation());
+	            }
 	        }
 
 	        if (!StringUtils.isEmpty(searchParameter)) {
-	            qry.append("AND (LOWER(up.user_id) LIKE ? OR LOWER(up.user_name) LIKE ? OR LOWER(up.base_role) LIKE ? ")
-	               .append("OR LOWER(up.email_id) LIKE ? OR LOWER(up.base_sbu) LIKE ? OR LOWER(up.base_project) LIKE ? ")
-	               .append("OR LOWER(up.base_department) LIKE ? OR LOWER(ua.status) LIKE ? OR LOWER(ss.sbu_name) LIKE ? ")
-	               .append("OR LOWER(p.project_name) LIKE ? OR LOWER(dd.department_name) LIKE ? OR CAST(up.id AS VARCHAR) LIKE ?) ");
+	            qry.append("AND (LOWER(up.user_id) LIKE ? OR LOWER(up.user_name) LIKE ? OR LOWER(up.email_id) LIKE ? ");
+	            qry.append("OR LOWER(up.contact_number) LIKE ? OR LOWER(up.base_role) LIKE ? OR LOWER(up.status) LIKE ?) ");
 	            String like = "%" + searchParameter.toLowerCase() + "%";
-	            for (int i = 0; i < 12; i++) {
+	            for (int i = 0; i < 6; i++) {
 	                paramList.add(like);
 	            }
 	        }
@@ -581,6 +559,9 @@ public class UserDao {
 	            paramList.add(offset);
 	        }
 
+	        System.out.println("Executing Pagination Query: " + qry.toString());
+	        System.out.println("Parameters: " + paramList);
+
 	        objsList = jdbcTemplate.query(qry.toString(), paramList.toArray(), new BeanPropertyRowMapper<>(User.class));
 	    } catch (Exception e) {
 	        e.printStackTrace();
@@ -590,29 +571,30 @@ public class UserDao {
 	}
 
 
-	private boolean updateUserAccounts(User userDetails) throws Exception {
-		boolean flag = false;
-		TransactionDefinition def = new DefaultTransactionDefinition();
-		TransactionStatus status = transactionManager.getTransaction(def);
-		try {
-			NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-			String insertQry = "if exists(SELECT * from user_accounts where user_id= :user_id )            "
-					+ "BEGIN            "
-					+ " update user_accounts set user_name= :email_id,status= :status  where user_id= :user_id  "
-					+ "End                    "
-					+ "else  "
-					+ "begin  "
-					+ "INSERT INTO user_accounts (user_id,user_name,status) values (:user_id,:email_id,:status)  "
-					+ "end ";
-			BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(userDetails);		 
-		    namedParamJdbcTemplate.update(insertQry, paramSource);
-			transactionManager.commit(status);
-		}catch (Exception e) {
-			transactionManager.rollback(status); 
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return flag;
+	public boolean updateUser(User obj) throws Exception {
+	    int count = 0;
+	    boolean flag = false;
+	    TransactionDefinition def = new DefaultTransactionDefinition();
+	    TransactionStatus status = transactionManager.getTransaction(def);
+	    try {
+	        NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+	        String updateQry = "UPDATE user_profile set user_name=:user_name,email_id=:email_id,contact_number=:contact_number,"
+	                + "base_sbu= :base_sbu,base_project= :base_project,base_department= :base_department,base_role= :base_role,"
+	                + "modified_by=:modified_by,modified_date= getdate()  "
+	                + "where user_id = :user_id ";
+	        BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);		 
+	        count = namedParamJdbcTemplate.update(updateQry, paramSource);
+	        
+	        if(count > 0) {
+	            flag = true;
+	        }
+	        transactionManager.commit(status);
+	    }catch (Exception e) {
+	        transactionManager.rollback(status);
+	        e.printStackTrace();
+	        throw new Exception(e);
+	    }
+	    return flag;
 	}
 	
 	public boolean deleteProject(User obj) throws Exception {
@@ -714,7 +696,7 @@ public class UserDao {
 		List<User> objsList = new ArrayList<User>();
 		try {
 			String qry = "SELECT up.user_id,up.user_name FROM user_profile up "
-					+ "left join user_accounts ua on up.user_id = ua.user_id where up.user_id <> '' ";
+					+ "left join user_profile ua on up.user_id = ua.user_id where up.user_id <> '' ";
 			int arrSize = 0;
 			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getUser_id())) {
 				qry = qry + " and up.user_id = ? ";
@@ -766,7 +748,7 @@ public class UserDao {
 		List<User> objsList = new ArrayList<User>();
 		try {
 			String qry = "SELECT ua.status FROM user_profile up "
-					+ "left join user_accounts ua on up.user_id = ua.user_id where up.user_id <> '' ";
+					+ "left join user_profile ua on up.user_id = ua.user_id where up.user_id <> '' ";
 			int arrSize = 0;
 			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getUser_id())) {
 				qry = qry + " and up.user_id = ? ";
@@ -846,7 +828,7 @@ public class UserDao {
 		List<User> objsList = new ArrayList<User>();
 		try {
 			String qry = "SELECT up.base_role FROM user_profile up "
-					+ "left join user_accounts ua on up.user_id = ua.user_id  "
+					+ "left join user_profile ua on up.user_id = ua.user_id  "
 					+ " where up.base_role <> '' and up.base_role is not null  ";
 			int arrSize = 0;
 			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getUser_id())) {
@@ -901,7 +883,7 @@ public class UserDao {
 		List<User> objsList = new ArrayList<User>();
 		try {
 			String qry = "SELECT s.sbu_code,sbu_name FROM user_profile up "
-					+ "left join user_accounts ua on up.user_id = ua.user_id  "
+					+ "left join user_profile ua on up.user_id = ua.user_id  "
 					+ "left join sbu s on up.base_sbu = s.sbu_code  "
 					+ " where up.base_sbu <> '' and up.base_sbu is not null ";
 			int arrSize = 0;
@@ -957,7 +939,7 @@ public class UserDao {
 		List<User> objsList = new ArrayList<User>();
 		try {
 			String qry = "SELECT p.project_code,project_name FROM user_profile up "
-					+ "left join user_accounts ua on up.user_id = ua.user_id  "
+					+ "left join user_profile ua on up.user_id = ua.user_id  "
 					+ "left join project p on p.project_code = up.base_project   "
 					+ " where up.base_project <> '' and up.base_project is not null ";
 			int arrSize = 0;
@@ -1038,37 +1020,36 @@ public class UserDao {
 		return objsList;
 	}
 
-	public boolean addUserSelf(User obj) throws Exception {
-		int count = 0;
-		boolean flag = false;
-		TransactionDefinition def = new DefaultTransactionDefinition();
-		TransactionStatus status = transactionManager.getTransaction(def);
-		try {
-			NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-			String updateQry = "UPDATE user_profile set contact_number=:contact_number,"
-					+ "base_sbu= :base_sbu,base_project= :base_project,base_department= :base_department,reporting_to= :reporting_to,"
-					+ "modified_by=:modified_by,modified_date= getdate()  "
-					+ "where user_id = :user_id ";
-			BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);		 
-		    count = namedParamJdbcTemplate.update(updateQry, paramSource);
-			if(count > 0) {
-				flag = true;
-				obj.setModule_type("Profile");
-				obj.setMessage("Profile Updated Successfully");
-				String logQry = "INSERT INTO user_audit_log "
-						+ "(module_type,message,user_id,create_date)"
-						+ " VALUES "
-						+ "(:module_type,:message,:modified_by,getdate())";
-				 paramSource = new BeanPropertySqlParameterSource(obj);		 
-			     count = namedParamJdbcTemplate.update(logQry, paramSource);
-			}
-			transactionManager.commit(status);
-		}catch (Exception e) {
-			transactionManager.rollback(status);
-			e.printStackTrace();
-			throw new Exception(e);
-		}
-		return flag;
+	public boolean addUser(User obj) throws Exception {
+	    int count = 0;
+	    boolean flag = false;
+	    TransactionDefinition def = new DefaultTransactionDefinition();
+	    TransactionStatus status = transactionManager.getTransaction(def);
+	    try {
+	        NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+	        if(!StringUtils.isEmpty(obj.getPassword())) {
+	            String encryptPwd = EncryptDecrypt.encrypt(obj.getPassword());	
+	            obj.setPassword(encryptPwd);
+	        }
+	        obj.setReward_points("100");
+	        String insertQry = "INSERT INTO user_profile "
+	                + "(user_id,user_name,email_id,contact_number,base_role,base_project,base_sbu,base_department,created_by,end_date,created_date,reward_points,password,status)"
+	                + " VALUES "
+	                + "(:user_id,:user_name,:email_id,:contact_number,:base_role,:base_project,:base_sbu,:base_department,:created_by,:end_date,getdate(),:reward_points,:password,'Active')";
+	        BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);		 
+	        count = namedParamJdbcTemplate.update(insertQry, paramSource);
+	        
+	        if(count > 0) {
+	            flag = true;
+	            // Send email logic here
+	        }
+	        transactionManager.commit(status);
+	    }catch (Exception e) {
+	        transactionManager.rollback(status);
+	        e.printStackTrace();
+	        throw new Exception(e);
+	    }
+	    return flag;
 	}
 
 	public List<User> getProjectListForUser(User obj) throws Exception {
