@@ -905,7 +905,9 @@
             <div class="modal-body">
                 <form id="userForm" onsubmit="saveUser(event)">
                     <div class="form-grid">
+                    
                         <!-- User ID -->
+                        
                         <div class="form-group">
                             <label for="user_id">User ID <span>*</span></label>
                             <input type="text" id="user_id" name="user_id" required 
@@ -1199,6 +1201,7 @@
                 '</div>'
             );
         }
+        
         
         // Populate table with data
         function populateTable() {
