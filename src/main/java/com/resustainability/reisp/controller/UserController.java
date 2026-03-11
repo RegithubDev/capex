@@ -48,12 +48,16 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.resustainability.reisp.common.DateForUser;
 import com.resustainability.reisp.constants.PageConstants;
+import com.resustainability.reisp.model.Department;
+import com.resustainability.reisp.model.Plant;
 import com.resustainability.reisp.model.Project;
 import com.resustainability.reisp.model.RoleMapping;
 import com.resustainability.reisp.model.SBU;
 import com.resustainability.reisp.model.User;
 import com.resustainability.reisp.model.UserPaginationObject;
+import com.resustainability.reisp.service.DepartmentService;
 import com.resustainability.reisp.service.LocationService;
+import com.resustainability.reisp.service.PlantService;
 import com.resustainability.reisp.service.ProjectService;
 import com.resustainability.reisp.service.RoleMappingService;
 import com.resustainability.reisp.service.UserService;
@@ -72,9 +76,10 @@ public class UserController {
 	@Autowired
 	LocationService service3;
 	
-	@Autowired
-	RoleMappingService service4;
-	
+	   @Autowired
+	    PlantService service4;
+	   @Autowired
+	    DepartmentService service_dept;
 	@Autowired
 	ProjectService service5;
 	
@@ -104,17 +109,15 @@ public class UserController {
 		ModelAndView model = new ModelAndView(PageConstants.user);
 		User obj = null;
 		try {
-			List<RoleMapping> projectsList = service4.getProjectsList(null);
+			List<Plant> projectsList = service4.getPlantsList(null);
 			model.addObject("projectsList", projectsList);
 			
-			List<RoleMapping> deptList = service.getDeptsList();
-			model.addObject("deptList", deptList);
+			  List<Department> departmentList= service_dept.getDepartmentsList(null);
+	            model.addObject("departmentList", departmentList);
 			 
 			List<Project> sbuList = service5.getSBUsList(null);
 			model.addObject("sbuList", sbuList);
-			
-			List<User> objList = service.getReportingTosList(obj);
-			model.addObject("objList", objList);
+		
 			
 			List<User>  usersList = service.getUsersList(obj);
 			model.addObject("usersList", usersList);
@@ -129,17 +132,15 @@ public class UserController {
 		ModelAndView model = new ModelAndView(PageConstants.updateSelfUser);
 		User obj = null;
 		try {
-			List<RoleMapping> projectsList = service4.getProjectsList(null);
+			List<Plant> projectsList = service4.getPlantsList(null);
 			model.addObject("projectsList", projectsList);
 			
-			List<RoleMapping> deptList = service.getDeptsList();
-			model.addObject("deptList", deptList);
+			  List<Department> departmentList= service_dept.getDepartmentsList(null);
+	            model.addObject("departmentList", departmentList);
 			
 			List<Project> sbuList = service5.getSBUsList(null);
 			model.addObject("sbuList", sbuList);
-			
-			List<User> objList = service.getReportingTosList(obj);
-			model.addObject("objList", objList);
+		
 		
 		} catch (Exception e) {
 			e.printStackTrace();

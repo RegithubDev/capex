@@ -658,8 +658,8 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>SBU</th>
-                        <th>Plant Code</th>
+                       <!--  <th>SBU</th>
+                        <th>Plant Code</th> -->
                         <th>Department Code</th>
                         <th>Department Name</th>
                         <th>Status</th>
@@ -695,12 +695,12 @@
             </div>
             <div class="modal-body">
                 <form id="departmentForm" onsubmit="saveDepartment(event)">
-                    <div class="form-grid">
+                   <!--  <div class="form-grid">
                         <div class="form-group">
                             <label for="sbu">SBU <span>*</span></label>
                             <select id="sbu" name="sbu" required>
                                 <option value="">Select SBU</option>
-                                <!-- SBU options will be populated dynamically -->
+                                SBU options will be populated dynamically
                             </select>
                         </div>
                         
@@ -709,15 +709,15 @@
                             <label for="plant_code">Plant Code <span>*</span></label>
                             <select id="plant_code" name="plant_code" required>
                                 <option value="">Select plant code</option>
-                                <!-- plant code options will be populated dynamically -->
+                                plant code options will be populated dynamically
                             </select>
                         </div>
-                       <!--  <div class="form-group">
+                        <div class="form-group">
                             <label for="plant_code">Plant Code <span>*</span></label>
                             <input type="text" id="plant_code" name="plant_code" required 
                                    placeholder="Enter plant code (e.g., PLANT-001)">
-                        </div> -->
-                    </div>
+                        </div>
+                    </div> -->
                     
                     <div class="form-grid">
                         <div class="form-group">
@@ -813,7 +813,7 @@
         });
     }
 
-    // Load SBU options for dropdown
+  /*   // Load SBU options for dropdown
     function loadSBUOptions() {
         console.log('Loading SBU options...');
         $.ajax({
@@ -839,7 +839,7 @@
             }
         });
     }
-
+ */
     // Populate table with data
     function populateTable(departments) {
         console.log('Populating table...');
@@ -878,8 +878,7 @@
                 
                 row.innerHTML = 
                     '<td>' + (dept.id || 'N/A') + '</td>' +
-                    '<td>' + (dept.sbu || 'N/A') + '</td>' +
-                    '<td>' + (dept.plant_code || 'N/A') + '</td>' +
+                   
                     '<td>' + (dept.department_code || 'N/A') + '</td>' +
                     '<td>' + (dept.department_name || 'N/A') + '</td>' +
                     '<td>' +
@@ -1036,8 +1035,7 @@
                 if (dept) {
                     document.getElementById('modalTitle').textContent = 'Edit Department';
                     document.getElementById('department_id').value = dept.id || '';
-                    document.getElementById('sbu').value = dept.sbu || '';
-                    document.getElementById('plant_code').value = dept.plant_code || '';
+                  
                     document.getElementById('department_code').value = dept.department_code || '';
                     document.getElementById('department_name').value = dept.department_name || '';
                     document.getElementById('status').value = dept.status || 'Active';
@@ -1070,8 +1068,7 @@
         
         const formData = {
             id: document.getElementById('department_id').value,
-            sbu: document.getElementById('sbu').value,
-            plant_code: document.getElementById('plant_code').value,
+         
             department_code: document.getElementById('department_code').value,
             department_name: document.getElementById('department_name').value,
             status: document.getElementById('status').value

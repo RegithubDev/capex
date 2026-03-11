@@ -563,7 +563,7 @@
                             <input 
                                 type="text" 
                                 id="username" 
-                                name="user_name" 
+                                name="user_id" 
                                 class="form-input" 
                                 placeholder=""
                                 required>
@@ -590,7 +590,13 @@
 					 <button class="login-button" tabindex="4"> <i class="material-icons">login</i>Sign in</button>
               
                 </form>
-
+<p style="text-align: center; margin-top: 24px; color: #718096; font-size: 14px;">
+    New user? 
+    <a href="<%=request.getContextPath() %>/add-new-user-form" 
+       style="color: #667eea; text-decoration: none; font-weight: 500;">
+        Sign up here
+    </a>
+</p>
                 <p class="copyright">
                     © <span id="currentYear"></span> Capex Financial System
                 </p>

@@ -20,9 +20,13 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.resustainability.reisp.constants.PageConstants;
+import com.resustainability.reisp.model.Location;
 import com.resustainability.reisp.model.Plant;
+import com.resustainability.reisp.model.SBU;
 import com.resustainability.reisp.model.User;
+import com.resustainability.reisp.service.LocationService;
 import com.resustainability.reisp.service.PlantService;
+import com.resustainability.reisp.service.SBUService;
 
 @Controller
 public class PlantController {
@@ -37,12 +41,25 @@ public class PlantController {
     @Autowired
     PlantService service;
     
+    @Autowired
+    LocationService serviceL;
+    
+    @Autowired
+    SBUService serviceS;
    
     @RequestMapping(value = "/plant", method = {RequestMethod.POST, RequestMethod.GET})
     public ModelAndView plant(@ModelAttribute User user, HttpSession session) {
         ModelAndView model = new ModelAndView(PageConstants.plant); // Make sure PageConstants has "plant"
         try {
-           
+        	
+        	 List<SBU> sbuList = null;
+             sbuList = serviceS.getSBUsList(null);
+             model.addObject("sbuList", sbuList);
+             
+             List<Location> locationList = null;
+             locationList = serviceL.getLocationsList(null);
+             model.addObject("locationList", locationList);
+             
         } catch (Exception e) { 
             logger.error("Error loading plant page: " + e.getMessage(), e);
             e.printStackTrace();

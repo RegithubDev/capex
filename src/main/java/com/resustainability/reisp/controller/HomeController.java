@@ -77,7 +77,7 @@ public class HomeController {
 			user.setUser_id(userId);
 			user.setRole(role);
 			
-			if(!StringUtils.isEmpty(role) &&  role.equals("Admin")) {
+			if(!StringUtils.isEmpty(role) ) {
 				 model = new ModelAndView(PageConstants.welcome);
 			}
 			

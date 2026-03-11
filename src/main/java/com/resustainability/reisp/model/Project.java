@@ -2,8 +2,16 @@ package com.resustainability.reisp.model;
 
 public class Project {
 
-	private String id,	company_code,company_name,	sbu_code,sbu_name,	project_code,	project_name,	status,	created_date,	created_by,	modified_date,
+	private String id,	company_code,company_name,sbu,	sbu_code,sbu_name,	project_code,	project_name,	status,	created_date,	created_by,	modified_date,
 	modified_by,all_projects,active_projects,inActive_projects;;
+
+	public String getSbu() {
+		return sbu;
+	}
+
+	public void setSbu(String sbu) {
+		this.sbu = sbu;
+	}
 
 	public String getAll_projects() {
 		return all_projects;

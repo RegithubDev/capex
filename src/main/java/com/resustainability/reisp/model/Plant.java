@@ -1,7 +1,23 @@
 package com.resustainability.reisp.model;
 public class Plant {
-    private String id,location,sbu,plant_code,plant_name,status;
+    private String id,location,locationid,sbu,plant_code,plant_name,status,total_available_budget_fy;
     
+
+	public String getLocationid() {
+		return locationid;
+	}
+
+	public void setLocationid(String locationid) {
+		this.locationid = locationid;
+	}
+
+	public String getTotal_available_budget_fy() {
+		return total_available_budget_fy;
+	}
+
+	public void setTotal_available_budget_fy(String total_available_budget_fy) {
+		this.total_available_budget_fy = total_available_budget_fy;
+	}
 
 	public String getId() {
 		return id;

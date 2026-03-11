@@ -58,26 +58,6 @@ public class UserService {
 		
 	}
 
-	public List<User> getMenuList() throws Exception  {
-		return dao.getMenuList();
-	}
-
-	public List<User> getUserFilterList(User obj) throws Exception {
-		return dao.getUserFilterList(obj);
-	}
-
-	public List<User> getStatusFilterListFromUser(User obj) throws Exception  {
-		return dao.getStatusFilterListFromUser(obj);
-	}
-
-	public List<User> getReportingTosList(User obj) throws SQLException {
-		return dao.getReportingTosList(obj);
-	}
-
-	public int checkUserLoginDetails(User user) throws Exception {
-		return dao.checkUserLoginDetails(user);
-		
-	}
 
 	public User getAllPermissions(String base_role) throws SQLException {
 		return dao.getAllPermissions(base_role);

@@ -1,24 +1,24 @@
 package com.resustainability.reisp.model;
 
-import java.math.BigDecimal;
-import java.util.Date;
+import java.sql.Timestamp;
 
 public class CapexProposal {
 
-    private Long id;
-
-    private String capex_title;
-    private String capex_number;
-    private String department;
-    private String business_unit;
+    private int id;
+    private Long idVal;
+    private String capex_title,department_name;
+    private String capex_number,role_type;
+    private String department,project_manager_fullname;
+    private String business_unit,current_pending_at,total_available_budget_fy;
     private String plant_code;
-    private String location;
+    private String plant_name;
+    private String location,pendingAt;
     private String asset_description;
 
-    private BigDecimal basic_cost;
-    private BigDecimal gst_rate;
-    private BigDecimal gst_amount;
-    private BigDecimal total_cost;
+    private String basic_cost;
+    private String gst_rate;
+    private String gst_amount;
+    private String total_cost;
 
     // ROI
     private String roi_text;
@@ -38,100 +38,360 @@ public class CapexProposal {
     // Prepared By
     private String prepared_by_name;
     private String prepared_by_designation;
-    private Date prepared_by_date;
+    private Timestamp   prepared_by_date;
     private String prepared_by_signature_path;
 
     // Project Manager
     private String project_manager_name;
     private String project_manager_designation;
-    private Date project_manager_date;
+    private Timestamp   project_manager_date;
     private String project_manager_signature_path;
 
     // Requested By
     private String requested_by_name;
     private String requested_by_designation;
-    private Date requested_by_date;
+    private Timestamp   requested_by_date;
     private String requested_by_signature_path;
 
     // Head of Plant
     private String head_of_plant_name;
     private String head_of_plant_designation;
-    private Date head_of_plant_date;
+    private Timestamp   head_of_plant_date;
     private String head_of_plant_signature_path;
 
     // Finance
     private String finance_department;
     private String finance_category;
-    private BigDecimal total_budget;
-    private BigDecimal proposed_price;
-    private BigDecimal available_balance;
+    private String total_budget;
+    private String proposed_price;
+    private String available_balance;
     private String finance_status;
     private String finance_name;
     private String finance_designation;
-    private Date finance_date;
+    private Timestamp   finance_date;
     private String finance_comments;
 
     // Head Projects
     private String head_projects_name;
     private String head_projects_designation;
-    private Date head_projects_date;
+    private Timestamp   head_projects_date;
     private String head_projects_comment;
     private String head_projects_signature_path;
 
     // Business Head
     private String business_head_name;
     private String business_head_designation;
-    private Date business_head_date;
+    private Timestamp   business_head_date;
     private String business_head_comment;
     private String business_head_signature_path;
 
     // CFO
     private String cfo_name;
     private String cfo_designation;
-    private Date cfo_date;
+    private Timestamp   cfo_date;
     private String cfo_comment;
     private String cfo_signature_path;
 
     // CEO
-    private String ceo_name;
+    private String ceo_name,remarks;
     private String ceo_designation;
-    private Date ceo_date;
+    private Timestamp   ceo_date;
     private String ceo_comment;
     private String ceo_signature_path;
 
-    private String status;
-    private String created_by;
-    private Date created_at;
-    private Date updated_at;
-    
-    private int phase_one;
-    private int phase_two;
-    private int phase_three;
-    
-    
+    private String status,regional_director_date,role,regional_director_comment;
+    private String created_by,user_name;
+    private Timestamp created_at;
+    private Timestamp updated_at;
 
-	public int getPhase_one() {
-		return phase_one;
+    private int phase_one = 1;
+    private int phase_two = 0;
+    private int phase_three = 0;
+    private int phase_four = 0;
+    
+    
+    
+public String getRemarks() {
+		return remarks;
 	}
-	public void setPhase_one(int phase_one) {
-		this.phase_one = phase_one;
+	public void setRemarks(String remarks) {
+		this.remarks = remarks;
 	}
-	public int getPhase_two() {
-		return phase_two;
+public String getProject_manager_fullname() {
+		return project_manager_fullname;
 	}
-	public void setPhase_two(int phase_two) {
-		this.phase_two = phase_two;
+	public void setProject_manager_fullname(String project_manager_fullname) {
+		this.project_manager_fullname = project_manager_fullname;
 	}
-	public int getPhase_three() {
-		return phase_three;
+	public String getTotal_available_budget_fy() {
+		return total_available_budget_fy;
 	}
-	public void setPhase_three(int phase_three) {
-		this.phase_three = phase_three;
+	public void setTotal_available_budget_fy(String total_available_budget_fy) {
+		this.total_available_budget_fy = total_available_budget_fy;
 	}
-	public Long getId() {
+public String getRole_type() {
+		return role_type;
+	}
+	public void setRole_type(String role_type) {
+		this.role_type = role_type;
+	}
+public String getDepartment_name() {
+		return department_name;
+	}
+	public void setDepartment_name(String department_name) {
+		this.department_name = department_name;
+	}
+public String getRegional_director_comment() {
+		return regional_director_comment;
+	}
+	public void setRegional_director_comment(String regional_director_comment) {
+		this.regional_director_comment = regional_director_comment;
+	}
+public String getRole() {
+		return role;
+	}
+	public void setRole(String role) {
+		this.role = role;
+	}
+public String getPendingAt() {
+		return pendingAt;
+	}
+	public void setPendingAt(String pendingAt) {
+		this.pendingAt = pendingAt;
+	}
+public String getRegional_director_date() {
+		return regional_director_date;
+	}
+	public void setRegional_director_date(String regional_director_date) {
+		this.regional_director_date = regional_director_date;
+	}
+public String getBasic_cost() {
+		return basic_cost;
+	}
+	public void setBasic_cost(String basic_cost) {
+		this.basic_cost = basic_cost;
+	}
+	public String getGst_rate() {
+		return gst_rate;
+	}
+	public void setGst_rate(String gst_rate) {
+		this.gst_rate = gst_rate;
+	}
+	public String getGst_amount() {
+		return gst_amount;
+	}
+	public void setGst_amount(String gst_amount) {
+		this.gst_amount = gst_amount;
+	}
+	public String getTotal_cost() {
+		return total_cost;
+	}
+	public void setTotal_cost(String total_cost) {
+		this.total_cost = total_cost;
+	}
+private String site_head_name
+,site_head_employee_id
+,site_head_email
+,site_finance_head_name
+,site_finance_head_designation
+,site_finance_head_employee_id
+,site_finance_head_email,finance_controller_comment
+,finance_controller_name,finance_controller_date
+,finance_controller_employee_id
+,finance_controller_email
+,regional_director_name
+,regional_director_employee_id
+,regional_director_email
+,bu_head_name
+,bu_head_employee_id
+,bu_head_email
+,project_head_name
+,project_head_employee_id
+,project_head_email
+,cfo_employee_id
+,cfo_email
+,ceo_employee_id
+,ceo_email;
+    
+    public String getFinance_controller_comment() {
+	return finance_controller_comment;
+}
+public void setFinance_controller_comment(String finance_controller_comment) {
+	this.finance_controller_comment = finance_controller_comment;
+}
+	public String getFinance_controller_date() {
+	return finance_controller_date;
+}
+public void setFinance_controller_date(String finance_controller_date) {
+	this.finance_controller_date = finance_controller_date;
+}
+	public String getSite_head_name() {
+	return site_head_name;
+}
+public void setSite_head_name(String site_head_name) {
+	this.site_head_name = site_head_name;
+}
+public String getSite_head_employee_id() {
+	return site_head_employee_id;
+}
+public void setSite_head_employee_id(String site_head_employee_id) {
+	this.site_head_employee_id = site_head_employee_id;
+}
+public String getSite_head_email() {
+	return site_head_email;
+}
+public void setSite_head_email(String site_head_email) {
+	this.site_head_email = site_head_email;
+}
+public String getSite_finance_head_name() {
+	return site_finance_head_name;
+}
+public void setSite_finance_head_name(String site_finance_head_name) {
+	this.site_finance_head_name = site_finance_head_name;
+}
+public String getSite_finance_head_designation() {
+	return site_finance_head_designation;
+}
+public void setSite_finance_head_designation(String site_finance_head_designation) {
+	this.site_finance_head_designation = site_finance_head_designation;
+}
+public String getSite_finance_head_employee_id() {
+	return site_finance_head_employee_id;
+}
+public void setSite_finance_head_employee_id(String site_finance_head_employee_id) {
+	this.site_finance_head_employee_id = site_finance_head_employee_id;
+}
+public String getSite_finance_head_email() {
+	return site_finance_head_email;
+}
+public void setSite_finance_head_email(String site_finance_head_email) {
+	this.site_finance_head_email = site_finance_head_email;
+}
+public String getFinance_controller_name() {
+	return finance_controller_name;
+}
+public void setFinance_controller_name(String finance_controller_name) {
+	this.finance_controller_name = finance_controller_name;
+}
+public String getFinance_controller_employee_id() {
+	return finance_controller_employee_id;
+}
+public void setFinance_controller_employee_id(String finance_controller_employee_id) {
+	this.finance_controller_employee_id = finance_controller_employee_id;
+}
+public String getFinance_controller_email() {
+	return finance_controller_email;
+}
+public void setFinance_controller_email(String finance_controller_email) {
+	this.finance_controller_email = finance_controller_email;
+}
+public String getRegional_director_name() {
+	return regional_director_name;
+}
+public void setRegional_director_name(String regional_director_name) {
+	this.regional_director_name = regional_director_name;
+}
+public String getRegional_director_employee_id() {
+	return regional_director_employee_id;
+}
+public void setRegional_director_employee_id(String regional_director_employee_id) {
+	this.regional_director_employee_id = regional_director_employee_id;
+}
+public String getRegional_director_email() {
+	return regional_director_email;
+}
+public void setRegional_director_email(String regional_director_email) {
+	this.regional_director_email = regional_director_email;
+}
+public String getBu_head_name() {
+	return bu_head_name;
+}
+public void setBu_head_name(String bu_head_name) {
+	this.bu_head_name = bu_head_name;
+}
+public String getBu_head_employee_id() {
+	return bu_head_employee_id;
+}
+public void setBu_head_employee_id(String bu_head_employee_id) {
+	this.bu_head_employee_id = bu_head_employee_id;
+}
+public String getBu_head_email() {
+	return bu_head_email;
+}
+public void setBu_head_email(String bu_head_email) {
+	this.bu_head_email = bu_head_email;
+}
+public String getProject_head_name() {
+	return project_head_name;
+}
+public void setProject_head_name(String project_head_name) {
+	this.project_head_name = project_head_name;
+}
+public String getProject_head_employee_id() {
+	return project_head_employee_id;
+}
+public void setProject_head_employee_id(String project_head_employee_id) {
+	this.project_head_employee_id = project_head_employee_id;
+}
+public String getProject_head_email() {
+	return project_head_email;
+}
+public void setProject_head_email(String project_head_email) {
+	this.project_head_email = project_head_email;
+}
+public String getCfo_employee_id() {
+	return cfo_employee_id;
+}
+public void setCfo_employee_id(String cfo_employee_id) {
+	this.cfo_employee_id = cfo_employee_id;
+}
+public String getCfo_email() {
+	return cfo_email;
+}
+public void setCfo_email(String cfo_email) {
+	this.cfo_email = cfo_email;
+}
+public String getCeo_employee_id() {
+	return ceo_employee_id;
+}
+public void setCeo_employee_id(String ceo_employee_id) {
+	this.ceo_employee_id = ceo_employee_id;
+}
+public String getCeo_email() {
+	return ceo_email;
+}
+public void setCeo_email(String ceo_email) {
+	this.ceo_email = ceo_email;
+}
+	public int getPhase_four() {
+		return phase_four;
+	}
+	public void setPhase_four(int phase_four) {
+		this.phase_four = phase_four;
+	}
+	public String getCurrent_pending_at() {
+		return current_pending_at;
+	}
+	public void setCurrent_pending_at(String current_pending_at) {
+		this.current_pending_at = current_pending_at;
+	}
+	public Long getIdVal() {
+		return idVal;
+	}
+	public void setIdVal(Long idVal) {
+		this.idVal = idVal;
+	}
+	public String getUser_name() {
+		return user_name;
+	}
+	public void setUser_name(String user_name) {
+		this.user_name = user_name;
+	}
+
+	public int getId() {
 		return id;
 	}
-	public void setId(Long id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 	public String getCapex_title() {
@@ -164,6 +424,12 @@ public class CapexProposal {
 	public void setPlant_code(String plant_code) {
 		this.plant_code = plant_code;
 	}
+	public String getPlant_name() {
+		return plant_name;
+	}
+	public void setPlant_name(String plant_name) {
+		this.plant_name = plant_name;
+	}
 	public String getLocation() {
 		return location;
 	}
@@ -176,30 +442,7 @@ public class CapexProposal {
 	public void setAsset_description(String asset_description) {
 		this.asset_description = asset_description;
 	}
-	public BigDecimal getBasic_cost() {
-		return basic_cost;
-	}
-	public void setBasic_cost(BigDecimal basic_cost) {
-		this.basic_cost = basic_cost;
-	}
-	public BigDecimal getGst_rate() {
-		return gst_rate;
-	}
-	public void setGst_rate(BigDecimal gst_rate) {
-		this.gst_rate = gst_rate;
-	}
-	public BigDecimal getGst_amount() {
-		return gst_amount;
-	}
-	public void setGst_amount(BigDecimal gst_amount) {
-		this.gst_amount = gst_amount;
-	}
-	public BigDecimal getTotal_cost() {
-		return total_cost;
-	}
-	public void setTotal_cost(BigDecimal total_cost) {
-		this.total_cost = total_cost;
-	}
+	
 	public String getRoi_text() {
 		return roi_text;
 	}
@@ -266,10 +509,10 @@ public class CapexProposal {
 	public void setPrepared_by_designation(String prepared_by_designation) {
 		this.prepared_by_designation = prepared_by_designation;
 	}
-	public Date getPrepared_by_date() {
+	public Timestamp   getPrepared_by_date() {
 		return prepared_by_date;
 	}
-	public void setPrepared_by_date(Date prepared_by_date) {
+	public void setPrepared_by_date(Timestamp   prepared_by_date) {
 		this.prepared_by_date = prepared_by_date;
 	}
 	public String getPrepared_by_signature_path() {
@@ -290,10 +533,10 @@ public class CapexProposal {
 	public void setProject_manager_designation(String project_manager_designation) {
 		this.project_manager_designation = project_manager_designation;
 	}
-	public Date getProject_manager_date() {
+	public Timestamp   getProject_manager_date() {
 		return project_manager_date;
 	}
-	public void setProject_manager_date(Date project_manager_date) {
+	public void setProject_manager_date(Timestamp   project_manager_date) {
 		this.project_manager_date = project_manager_date;
 	}
 	public String getProject_manager_signature_path() {
@@ -314,10 +557,10 @@ public class CapexProposal {
 	public void setRequested_by_designation(String requested_by_designation) {
 		this.requested_by_designation = requested_by_designation;
 	}
-	public Date getRequested_by_date() {
+	public Timestamp   getRequested_by_date() {
 		return requested_by_date;
 	}
-	public void setRequested_by_date(Date requested_by_date) {
+	public void setRequested_by_date(Timestamp   requested_by_date) {
 		this.requested_by_date = requested_by_date;
 	}
 	public String getRequested_by_signature_path() {
@@ -338,10 +581,10 @@ public class CapexProposal {
 	public void setHead_of_plant_designation(String head_of_plant_designation) {
 		this.head_of_plant_designation = head_of_plant_designation;
 	}
-	public Date getHead_of_plant_date() {
+	public Timestamp   getHead_of_plant_date() {
 		return head_of_plant_date;
 	}
-	public void setHead_of_plant_date(Date head_of_plant_date) {
+	public void setHead_of_plant_date(Timestamp   head_of_plant_date) {
 		this.head_of_plant_date = head_of_plant_date;
 	}
 	public String getHead_of_plant_signature_path() {
@@ -362,22 +605,22 @@ public class CapexProposal {
 	public void setFinance_category(String finance_category) {
 		this.finance_category = finance_category;
 	}
-	public BigDecimal getTotal_budget() {
+	public String getTotal_budget() {
 		return total_budget;
 	}
-	public void setTotal_budget(BigDecimal total_budget) {
+	public void setTotal_budget(String total_budget) {
 		this.total_budget = total_budget;
 	}
-	public BigDecimal getProposed_price() {
+	public String getProposed_price() {
 		return proposed_price;
 	}
-	public void setProposed_price(BigDecimal proposed_price) {
+	public void setProposed_price(String proposed_price) {
 		this.proposed_price = proposed_price;
 	}
-	public BigDecimal getAvailable_balance() {
+	public String getAvailable_balance() {
 		return available_balance;
 	}
-	public void setAvailable_balance(BigDecimal available_balance) {
+	public void setAvailable_balance(String available_balance) {
 		this.available_balance = available_balance;
 	}
 	public String getFinance_status() {
@@ -398,10 +641,10 @@ public class CapexProposal {
 	public void setFinance_designation(String finance_designation) {
 		this.finance_designation = finance_designation;
 	}
-	public Date getFinance_date() {
+	public Timestamp   getFinance_date() {
 		return finance_date;
 	}
-	public void setFinance_date(Date finance_date) {
+	public void setFinance_date(Timestamp   finance_date) {
 		this.finance_date = finance_date;
 	}
 	public String getFinance_comments() {
@@ -422,10 +665,10 @@ public class CapexProposal {
 	public void setHead_projects_designation(String head_projects_designation) {
 		this.head_projects_designation = head_projects_designation;
 	}
-	public Date getHead_projects_date() {
+	public Timestamp   getHead_projects_date() {
 		return head_projects_date;
 	}
-	public void setHead_projects_date(Date head_projects_date) {
+	public void setHead_projects_date(Timestamp   head_projects_date) {
 		this.head_projects_date = head_projects_date;
 	}
 	public String getHead_projects_comment() {
@@ -452,10 +695,10 @@ public class CapexProposal {
 	public void setBusiness_head_designation(String business_head_designation) {
 		this.business_head_designation = business_head_designation;
 	}
-	public Date getBusiness_head_date() {
+	public Timestamp   getBusiness_head_date() {
 		return business_head_date;
 	}
-	public void setBusiness_head_date(Date business_head_date) {
+	public void setBusiness_head_date(Timestamp   business_head_date) {
 		this.business_head_date = business_head_date;
 	}
 	public String getBusiness_head_comment() {
@@ -482,10 +725,10 @@ public class CapexProposal {
 	public void setCfo_designation(String cfo_designation) {
 		this.cfo_designation = cfo_designation;
 	}
-	public Date getCfo_date() {
+	public Timestamp   getCfo_date() {
 		return cfo_date;
 	}
-	public void setCfo_date(Date cfo_date) {
+	public void setCfo_date(Timestamp   cfo_date) {
 		this.cfo_date = cfo_date;
 	}
 	public String getCfo_comment() {
@@ -512,10 +755,10 @@ public class CapexProposal {
 	public void setCeo_designation(String ceo_designation) {
 		this.ceo_designation = ceo_designation;
 	}
-	public Date getCeo_date() {
+	public Timestamp   getCeo_date() {
 		return ceo_date;
 	}
-	public void setCeo_date(Date ceo_date) {
+	public void setCeo_date(Timestamp   ceo_date) {
 		this.ceo_date = ceo_date;
 	}
 	public String getCeo_comment() {
@@ -542,19 +785,36 @@ public class CapexProposal {
 	public void setCreated_by(String created_by) {
 		this.created_by = created_by;
 	}
-	public Date getCreated_at() {
+	public Timestamp getCreated_at() {
 		return created_at;
 	}
-	public void setCreated_at(Date created_at) {
+	public void setCreated_at(Timestamp created_at) {
 		this.created_at = created_at;
 	}
-	public Date getUpdated_at() {
+	public Timestamp getUpdated_at() {
 		return updated_at;
 	}
-	public void setUpdated_at(Date updated_at) {
+	public void setUpdated_at(Timestamp updated_at) {
 		this.updated_at = updated_at;
 	}
+	public int getPhase_one() {
+		return phase_one;
+	}
+	public void setPhase_one(int phase_one) {
+		this.phase_one = phase_one;
+	}
+	public int getPhase_two() {
+		return phase_two;
+	}
+	public void setPhase_two(int phase_two) {
+		this.phase_two = phase_two;
+	}
+	public int getPhase_three() {
+		return phase_three;
+	}
+	public void setPhase_three(int phase_three) {
+		this.phase_three = phase_three;
+	}
 
-
+    // ... include all getters/setters for every field
 }
-

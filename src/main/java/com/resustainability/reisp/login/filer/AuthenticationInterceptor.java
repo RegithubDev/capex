@@ -48,6 +48,10 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter{
 			requestURI = request.getRequestURI();
 			UrlGenerator ugObj = new UrlGenerator();
 			context_path = ugObj.getContextPath();
+			if(requestURI.equals("/"+context_path+"/add-new-user-form") &&  !requestURI.equals("/"+context_path+"/login")) {
+				
+				 return true;
+			}
 			if(requestURI.equals("/"+context_path+"/add-new-user") &&  !requestURI.equals("/"+context_path+"/login")) {
 				
 				 return true;

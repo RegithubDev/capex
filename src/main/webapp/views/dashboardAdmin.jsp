@@ -1,1147 +1,712 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ page trimDirectiveWhitespaces="true" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Capital Expenditure Proposal</title>
-    
-    <!-- Fonts and Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- SweetAlert2 -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+
     <style>
-        /* Reset and Base Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    /* ────────────────────────────────────────────────
+   Digital Signature Section - Modern & Clean UI
+───────────────────────────────────────────────── */
+.signature-section {
+    background: linear-gradient(145deg, #f8f9ff, #f0f4ff);
+    border-left: 5px solid #4f46e5;
+}
 
-        body {
-            font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
-            background: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
-        }
+.signature-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e40af;
+    margin-bottom: 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
-        /* Header */
+.signature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1.5rem;
+}
+
+.signature-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e0e7ff;
+    transition: all 0.25s ease;
+}
+
+.signature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(79, 70, 229, 0.15);
+    border-color: #c7d2fe;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e0e7ff;
+}
+
+.card-header h4 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #1e40af;
+}
+
+.status-badge {
+    padding: 0.35rem 0.9rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.field-label {
+    display: block;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.custom-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: white;
+    transition: all 0.2s;
+}
+
+.custom-select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    outline: none;
+}
+
+.required {
+    color: #ef4444;
+    margin-left: 4px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .signature-grid {
+        grid-template-columns: 1fr;
+    }
+    .signature-title {
+        font-size: 1.35rem;
+    }
+}
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Roboto',sans-serif; background:#f5f7fa; color:#333; line-height:1.6; }
+        
         .capex-header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            background:linear-gradient(135deg,#2c3e50,#34495e);
+            color:white;
+            padding:15px 30px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            box-shadow:0 4px 12px rgba(0,0,0,0.1);
+            position:sticky;
+            top:0;
+            z-index:1000;
         }
-
-        .capex-header-content {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .capex-icon img {
-            height: 60px;
-            width: auto;
-            filter: brightness(0) invert(1);
-        }
-
-        .capex-header h1 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .capex-header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .user-info span {
-            font-weight: 500;
-        }
-
+        .capex-header-content { display:flex; align-items:center; gap:20px; }
+        .capex-icon img { height:60px; filter:brightness(0) invert(1); }
+        .capex-header h1 { font-size:24px; font-weight:700; margin-bottom:4px; }
+        .capex-header p { font-size:14px; opacity:0.9; }
+        .user-info { display:flex; align-items:center; gap:15px; }
         .user-info button {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background 0.3s;
+            background:#e74c3c;
+            color:white;
+            border:none;
+            padding:8px 20px;
+            border-radius:6px;
+            cursor:pointer;
         }
 
-        .user-info button:hover {
-            background: #c0392b;
+        .capex-container { max-width:1400px; margin:30px auto; padding:0 20px; }
+        .capex-card { 
+            background:white; 
+            border-radius:12px; 
+            padding:30px; 
+            margin-bottom:25px; 
+            box-shadow:0 6px 15px rgba(0,0,0,0.08); 
+            border:1px solid #eaeaea; 
+        }
+        .capex-card h3 { 
+            font-size:20px; 
+            margin-bottom:25px; 
+            color:#2c3e50; 
+            display:flex; 
+            align-items:center; 
+            gap:10px; 
         }
 
-        /* Main Container */
-        .capex-container {
-            max-width: 1400px;
-            margin: 30px auto;
-            padding: 0 20px;
+        .form-grid, .cost-grid, .investment-grid { 
+            display:grid; 
+            grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); 
+            gap:28px; 
+            margin-bottom:25px; 
         }
 
-        /* Cards */
-        .capex-card {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 25px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
-            border: 1px solid #eaeaea;
+        .form-group, .cost-group, .investment-group { 
+            display:flex; 
+            flex-direction:column; 
+            gap:8px; 
         }
 
-        .capex-card h3 {
-            font-size: 20px;
-            margin-bottom: 25px;
-            color: #2c3e50;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .form-group label, .cost-group label, .investment-label {
+            font-weight:500;
+            color:#374151;
+            font-size:15px;
+        }
+        .required { color:#ef4444; margin-left:4px; }
+
+        input, select, textarea {
+            padding:12px 15px;
+            border:1px solid #d1d5db;
+            border-radius:8px;
+            font-size:14px;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color:#3b82f6;
+            box-shadow:0 0 0 3px rgba(59,130,246,0.15);
+            outline:none;
         }
 
-        /* Form Grids */
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 25px;
-        }
+        textarea { min-height:110px; resize:vertical; }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
+        .upload-container {
+            display:flex;
+            align-items:center;
+            gap:16px;
+            flex-wrap:wrap;
+            margin-top:8px;
         }
-
-        .form-group label {
-            font-weight: 500;
-            margin-bottom: 8px;
-            color: #555;
-            font-size: 14px;
-        }
-
-        .form-group label span {
-            color: #e74c3c;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-        }
-
-        .full-width {
-            grid-column: 1 / -1;
-        }
-
-        textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        /* Cost Grid */
-        .cost-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-        }
-
-        .cost-group {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            border: 1px solid #e9ecef;
-        }
-
-        .cost-group label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
-
-        .cost-group input,
-        .cost-group select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 15px;
-            margin-bottom: 8px;
-        }
-
-        .cost-group small {
-            color: #6c757d;
-            font-size: 12px;
-            display: block;
-            margin-top: 5px;
-        }
-
-        /* Investment Grid */
-        .investment-grid {
-            display: grid;
-            gap: 25px;
-        }
-
-        .compact .investment-group {
-            margin-bottom: 25px;
-        }
-
-        .investment-group {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 10px;
-            border: 1px solid #e9ecef;
-        }
-
-        .investment-group.full-row {
-            grid-column: 1 / -1;
-        }
-
-        .investment-group textarea {
-            width: 100%;
-            min-height: 80px;
-            margin-bottom: 15px;
-        }
-
-        .upload-row {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
         .upload-btn {
-            background: #3498db;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            transition: background 0.3s;
+            background:#3498db;
+            color:white;
+            padding:10px 18px;
+            border-radius:6px;
+            cursor:pointer;
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            font-size:14px;
+        }
+        .upload-btn:hover { background:#2980b9; }
+
+        .file-name-display {
+            font-size:13px;
+            color:#374151;
+            margin-top:4px;
+            word-break:break-all;
         }
 
-        .upload-btn:hover {
-            background: #2980b9;
+        .budget-info {
+            font-weight:600;
+            font-size:1.05rem;
+            color:#1e40af;
+            padding:10px 14px;
+            background:#eff6ff;
+            border-radius:6px;
+            border:1px solid #bfdbfe;
         }
 
-        .uploaded-file {
-            background: white;
-            padding: 8px 15px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            max-width: 300px;
+        .budget-warning {
+            display:none;
+            color:#dc2626;
+            font-weight:500;
+            margin:10px 0;
+            padding:10px 14px;
+            background:#fef2f2;
+            border:1px solid #fecaca;
+            border-radius:6px;
         }
 
-        .uploaded-file span {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            flex: 1;
+        .action-bar { 
+            display:flex; 
+            justify-content:center; 
+            margin:40px 0; 
         }
-
-        .remove-file {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-        }
-
-        .file-hint {
-            color: #6c757d;
-            font-size: 12px;
-        }
-
-        /* Signature Grid */
-        .signature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-        }
-
-        .signature-card {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 10px;
-            border: 1px solid #e9ecef;
-        }
-
-        .signature-card h4 {
-            font-size: 16px;
-            margin-bottom: 20px;
-            color: #2c3e50;
-            text-align: center;
-        }
-
-        .signature-box {
-            width: 100%;
-            height: 120px;
-            border: 2px dashed #bdc3c7;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 15px;
-            overflow: hidden;
-        }
-
-        .signature-box img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-
-        .signature-box span {
-            color: #7f8c8d;
-            font-size: 14px;
-        }
-
-        .signature-actions {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .signature-fields {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .signature-fields select,
-        .signature-fields input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        /* Finance Section */
-        .finance-section {
-            background: #e8f4fc;
-            border: 2px solid #3498db;
-        }
-
-        .finance-title {
-            color: #2c3e50;
-            text-align: center;
-            font-size: 18px;
-        }
-
-        .finance-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            margin-top: 20px;
-        }
-
-        .finance-card {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .finance-card h4 {
-            font-size: 16px;
-            margin-bottom: 25px;
-            color: #2c3e50;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #3498db;
-        }
-
-        .finance-field {
-            margin-bottom: 20px;
-        }
-
-        .finance-field label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 8px;
-            color: #555;
-            font-size: 14px;
-        }
-
-        .finance-field input,
-        .finance-field select,
-        .finance-field textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .finance-field small {
-            color: #6c757d;
-            font-size: 12px;
-            display: block;
-            margin-top: 5px;
-        }
-
-        /* Comment Field */
-        .comment-field {
-            position: relative;
-        }
-
-        .comment-field textarea {
-            width: 100%;
-            min-height: 60px;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            resize: vertical;
-        }
-
-        .comment-counter {
-            position: absolute;
-            bottom: 5px;
-            right: 10px;
-            font-size: 12px;
-            color: #6c757d;
-        }
-
-        /* Action Bar */
-        .action-bar {
-            display: flex;
-            justify-content: center;
-            margin: 40px 0;
-        }
-
         .submit-btn {
-            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
-            color: white;
-            border: none;
-            padding: 18px 45px;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.2);
+            background:linear-gradient(135deg,#27ae60,#229954);
+            color:white;
+            border:none;
+            padding:18px 45px;
+            border-radius:10px;
+            font-size:18px;
+            font-weight:600;
+            cursor:pointer;
+            transition:all 0.3s;
         }
+        .submit-btn:hover { transform:translateY(-2px); }
+        .submit-btn:disabled { opacity:0.6; cursor:not-allowed; }
 
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
-        }
-
-        .submit-btn:active {
-            transform: translateY(0);
-        }
-
-        /* Alert Messages */
-        .alert {
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            animation: slideIn 0.3s ease;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .alert i {
-            font-size: 20px;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Loading Overlay */
         .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            flex-direction: column;
-            color: white;
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.7);
+            display:none;
+            justify-content:center;
+            align-items:center;
+            flex-direction:column;
+            z-index:9999;
+            color:white;
         }
-
         .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #3498db;
-            animation: spin 1s ease-in-out infinite;
-            margin-bottom: 20px;
+            width:50px; height:50px;
+            border:4px solid rgba(255,255,255,0.3);
+            border-top-color:#3498db;
+            border-radius:50%;
+            animation:spin 1s linear infinite;
+            margin-bottom:20px;
         }
+        @keyframes spin { to { transform:rotate(360deg); } }
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .capex-header {
-                flex-direction: column;
-                text-align: center;
-                gap: 15px;
-                padding: 15px;
-            }
-
-            .capex-header-content {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .signature-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .finance-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .cost-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .capex-container {
-                padding: 0 15px;
-            }
-
-            .capex-card {
-                padding: 20px;
-            }
-        }
-
-        /* Disabled Input */
-        input:disabled {
-            background: #f5f5f5;
-            color: #999;
-            cursor: not-allowed;
+        @media (max-width:768px) {
+            .capex-header { flex-direction:column; text-align:center; gap:15px; padding:15px; }
+            .form-grid, .cost-grid, .investment-grid { grid-template-columns:1fr; }
         }
     </style>
 </head>
 <body>
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="loading-overlay">
-        <div class="loading-spinner"></div>
-        <p>Processing...</p>
+
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p>Submitting your proposal...</p>
+</div>
+
+<header class="capex-header">
+    <div class="capex-header-content">
+        <div class="capex-icon">
+            <img src="/capex/resources/images/Ramky-Logo.png" alt="Company Logo">
+        </div>
+        <div>
+            <h1>Capital Expenditure Proposal</h1>
+            <p>Submit and track CAPEX requests for approval</p>
+        </div>
     </div>
+    <div class="user-info">
+        <span>Welcome, <c:out value="${sessionScope.BASE_ROLE}" default="User" /></span>
+        <button onclick="document.getElementById('logoutForm').submit()">Logout</button>
+    </div>
+</header>
 
-    <!-- Header -->
-    <header class="capex-header">
-        <div class="capex-header-content">
-            <div class="capex-icon">
-                <img src="/capex/resources/images/Ramky-Logo.png" alt="Company Logo">
+<div class="capex-container">
+    <form id="capexForm" action="<%=request.getContextPath()%>/form/submit" method="post" enctype="multipart/form-data">
+        <c:if test="${not empty successMessage}">
+            <div class="alert alert-success">
+                <i class="material-icons">check_circle</i> ${successMessage}
             </div>
-            <div>
-                <h1>Capital Expenditure Proposal</h1>
-                <p>Submit and track CAPEX requests for approval</p>
+        </c:if>
+        <c:if test="${not empty errorMessage}">
+            <div class="alert alert-error">
+                <i class="material-icons">error</i> ${errorMessage}
             </div>
-        </div>
-        <div class="user-info">
-            <span>Welcome, <c:out value="${sessionScope.BASE_ROLE}" default="User" /></span>
-            <button onclick="logout()">Logout</button>
-        </div>
-    </header>
+        </c:if>
 
-    <!-- Main Container -->
-    <div class="capex-container">
-   <form id="capexForm" action="<%=request.getContextPath() %>/form/submit" method="post" enctype="multipart/form-data">
-
-    <!-- Success/Error Messages -->
-    <c:if test="${not empty successMessage}">
-        <div class="alert alert-success">
-            <i class="material-icons">check_circle</i>
-            <span>${successMessage}</span>
-        </div>
-    </c:if>
-   
-    <c:if test="${not empty errorMessage}">
-        <div class="alert alert-error">
-            <i class="material-icons">error</i>
-            <span>${errorMessage}</span>
-        </div>
-    </c:if>
-
-    <!-- Basic Information -->
-    <section class="capex-card">
-        <h3><i class="material-icons">description</i> Basic Information</h3>
-       
-        <div class="form-grid">
-            <div class="form-group">
-                <label>CAPEX Title <span>*</span></label>
-                <input type="text" id="capexTitle" name="capex_title" placeholder="Enter proposal title" required>
-            </div>
-            <div class="form-group">
-                <label>CAPEX Number <span>*</span></label>
-                <input type="text" id="capexNumber" name="capex_number" placeholder="e.g. CAPEX-2024-001" required>
-            </div>
-            <div class="form-group">
-                <label>Department / Function <span>*</span></label>
-                <select id="department" name="department" required>
-                    <option value="">Select department</option>
-                    <option value="IT">IT</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Operations">Operations</option>
-                    <option value="HR">HR</option>
-                    <option value="Marketing">Marketing</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Business Unit <span>*</span></label>
-                <select id="businessUnit" name="business_unit" required>
-                    <option value="">Select business unit</option>
-                    <option value="India">India</option>
-                    <option value="Global">Global</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Plant Code <span>*</span></label>
-                <select id="plantCode" name="plant_code" required>
-                    <option value="">Select Plant Code</option>
-                    <option value="P-001">P-001</option>
-                    <option value="P-002">P-002</option>
-                    <option value="P-003">P-003</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Location <span>*</span></label>
-                <select id="location" name="location" required>
-                    <option value="">Select Location</option>
-                    <option value="Hyderabad">Hyderabad</option>
-                    <option value="Bengaluru">Bengaluru</option>
-                    <option value="Mumbai">Mumbai</option>
-                    <option value="Delhi">Delhi</option>
-                </select>
-            </div>
-        </div>
-        <div class="form-group full-width">
-            <label>Asset Description <span>*</span></label>
-            <textarea id="assetDescription" name="asset_description" placeholder="Provide detailed description of the asset..." required></textarea>
-        </div>
-    </section>
-
-    <!-- Cost Estimation -->
-    <section class="capex-card">
-        <h3><i class="material-icons">attach_money</i> Cost Estimation</h3>
-        <div class="cost-grid">
-            <div class="cost-group">
-                <label>Estimate of Proposal / Basic Cost (₹) <span>*</span></label>
-                <input type="number" id="basicCost" name="basic_cost" placeholder="0.00" step="0.01" min="0" required>
-                <small>Numeric value in Crores</small>
-            </div>
-            <div class="cost-group">
-                <label>GST Rate <span>*</span></label>
-                <select id="gstRate" name="gst_rate" required>
-                    <option value="">Select GST %</option>
-                    <option value="5">5%</option>
-                    <option value="12">12%</option>
-                    <option value="18">18%</option>
-                    <option value="28">28%</option>
-                </select>
-                <small>Select percentage</small>
-            </div>
-            <div class="cost-group">
-                <label>GST Amount (₹)</label>
-                <input type="text" id="gstAmount" name="gst_amount" disabled>
-                <small>Auto-calculated</small>
-            </div>
-            <div class="cost-group">
-                <label>Total Estimate Including GST (₹)</label>
-                <input type="text" id="totalCost" name="total_cost" disabled>
-                <small>Auto-calculated</small>
-            </div>
-        </div>
-    </section>
-
-    <!-- Investment Details -->
-    <section class="capex-card">
-        <h3><i class="material-icons">trending_up</i> Investment Details</h3>
-        <div class="investment-grid compact">
-            <div class="investment-group">
-                <label>Return of Investment (ROI) & Pay Back Period <span>*</span></label>
-                <textarea id="roiText" name="roi_text" placeholder="Manual entry..." maxlength="500" required></textarea>
-                <div class="upload-row">
-                    <label class="upload-btn">
-                        <i class="material-icons">attach_file</i> Upload
-                        <input type="file" id="roiFile" name="roi_file" accept=".pdf,.xls,.xlsx,.jpg,.jpeg" hidden>
-                    </label>
-                    <span id="roiFileName" class="file-hint">No file selected</span>
-                    <span class="file-hint">Excel / PDF / JPG • Max 10MB</span>
+        <!-- Basic Information -->
+        <section class="capex-card">
+            <h3><i class="material-icons">description</i> Basic Information</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>CAPEX Title <span class="required">*</span></label>
+                    <input type="text" name="capex_title" placeholder="Enter proposal title" required>
                 </div>
-            </div>
-            <div class="investment-group">
-                <label>Project Timeline (with Zero Date) <span>*</span></label>
-                <textarea id="timelineText" name="timeline_text" placeholder="Manual entry..." maxlength="500" required></textarea>
-                <div class="upload-row">
-                    <label class="upload-btn">
-                        <i class="material-icons">attach_file</i> Upload
-                        <input type="file" id="timelineFile" name="timeline_file" accept=".pdf,.xls,.xlsx,.jpg,.jpeg" hidden>
-                    </label>
-                    <span id="timelineFileName" class="file-hint">No file selected</span>
-                    <span class="file-hint">Excel / PDF / JPG • Max 10MB</span>
-                </div>
-            </div>
-            <div class="investment-group full-row">
-                <label>Reason for Purchases / Milestones / Savings <span>*</span></label>
-                <textarea id="reasonText" name="reason_text" placeholder="Manual entry (Max 500 characters)" maxlength="500" required></textarea>
-                <div class="upload-row">
-                    <label class="upload-btn">
-                        <i class="material-icons">attach_file</i> Upload
-                        <input type="file" id="reasonFile" name="reason_file" accept=".pdf,.xls,.xlsx,.jpg,.jpeg" hidden>
-                    </label>
-                    <span id="reasonFileName" class="file-hint">No file selected</span>
-                    <span class="file-hint">500 characters • Excel / PDF / JPG • Max 10MB</span>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Digital Signatures -->
-    <section class="capex-card">
-        <h3><i class="material-icons">create</i> Digital Signatures</h3>
-        <div class="signature-grid">
+                <div class="form-group">
+                    <label>Plant Code <span class="required">*</span></label>
+                    <select id="plantCode" name="plant_code" required onchange="updateSbuAndLocation(); filterProjectManagers();">
+                        <option value="">Select Plant</option>
+                        
+                        <c:if test="${sessionScope.BASE_ROLE eq 'Admin'}">
+                            <c:forEach var="obj" items="${pList}">
+                                <option value="${obj.plant_code}"
+                                        data-sbu="${obj.sbu}"
+                                        data-location="${obj.location}"
+                                        data-budget="${obj.total_available_budget_fy}">
+                                    [${obj.plant_code}] - ${obj.plant_name}
+                                </option>
+                            </c:forEach>
+                        </c:if>
 
-            <!-- Prepared By -->
-            <div class="signature-card">
-                <h4>Prepared By</h4>
-                <div class="signature-box" id="preparedBySignatureBox">
-                    <span>Upload Signature</span>
-                </div>
-                <div class="signature-actions">
-                    <label class="upload-btn">
-                        <i class="material-icons">upload</i> Upload
-                        <input type="file" class="signature-upload" name="prepared_by_signature" data-role="preparedBy" accept="image/*" hidden>
-                    </label>
-                </div>
-                <div class="signature-fields">
-                    <select class="signature-name" name="prepared_by_name" data-role="preparedBy">
-                        <option value="">Select Name</option>
-                        <option value="Ashok Pawar">Ashok Pawar</option>
-                        <option value="SS Parashar">SS Parashar</option>
+                        <c:if test="${sessionScope.BASE_ROLE ne 'Admin'}">
+                            <c:forEach var="obj" items="${pList}">
+                                <c:if test="${obj.plant_code == sessionScope.BASE_PROJECT_CODE}">
+                                    <option value="${obj.plant_code}"
+                                            data-sbu="${obj.sbu}"
+                                            data-location="${obj.location}"
+                                            data-budget="${obj.total_available_budget_fy}">
+                                        [${obj.plant_code}] - ${obj.plant_name}
+                                    </option>
+                                </c:if>
+                            </c:forEach>
+                        </c:if>
                     </select>
-                    <select class="signature-designation" name="prepared_by_designation" data-role="preparedBy">
-                        <option value="">Select Designation</option>
-                        <option value="AGM (MECH)">AGM (MECH)</option>
-                        <option value="DGM">DGM</option>
+                </div>
+
+                <div class="form-group">
+                    <label>Department / Function <span class="required">*</span></label>
+                    <select name="department" required>
+                        <option value="">Select department</option>
+                        <c:forEach var="obj" items="${departmentList}">
+                            <option value="${obj.department_code}"
+                                    ${obj.department_code == editList.department ? 'selected' : ''}>
+                                [${obj.department_code}] - ${obj.department_name}
+                            </option>
+                        </c:forEach>
                     </select>
-                    <input type="date" class="signature-date" name="prepared_by_date" data-role="preparedBy">
+                </div>
+
+                <div class="form-group">
+                    <label>Business Unit <span class="required">*</span></label>
+                    <p id="displaySbu" style="padding:12px 15px; background:#f8f9fa; border:1px solid #ddd; border-radius:8px; min-height:42px; margin:0;">
+                        Select Plant first
+                    </p>
+                    <input type="hidden" name="business_unit" id="businessUnit">
+                </div>
+
+                <div class="form-group">
+                    <label>Location <span class="required">*</span></label>
+                    <p id="displayLocation" style="padding:12px 15px; background:#f8f9fa; border:1px solid #ddd; border-radius:8px; min-height:42px; margin:0;">
+                        Select Plant first
+                    </p>
+                    <input type="hidden" name="location" id="location">
+                </div>
+
+                <div class="form-group">
+                    <label>Available Budget (₹)</label>
+                    <div id="displayBudget" class="budget-info">—</div>
                 </div>
             </div>
 
-            <!-- Project Manager -->
-            <div class="signature-card">
-                <h4>Project Manager / Execution</h4>
-                <div class="signature-box" id="projectManagerSignatureBox">
-                    <span>Upload Signature</span>
+            <div id="budgetWarning" class="budget-warning"></div>
+
+            <div class="form-group full-width">
+                <label>Asset Description <span class="required">*</span></label>
+                <textarea name="asset_description" placeholder="Provide detailed description..." required></textarea>
+            </div>
+        </section>
+
+        <!-- Cost Estimation -->
+        <section class="capex-card">
+            <h3><i class="material-icons">attach_money</i> Cost Estimation</h3>
+            <div class="cost-grid">
+                <div class="cost-group">
+                    <label>Estimate of Proposal / Basic Cost (₹) <span class="required">*</span></label>
+                    <input type="number" id="basicCost" name="basic_cost" placeholder="0.00" 
+                           step="0.01" min="0" required oninput="validateBudgetLimit();updateCostCalculations();">
+                    <small>Numeric value in Crores</small>
                 </div>
-                <div class="signature-actions">
-                    <label class="upload-btn">
-                        <i class="material-icons">upload</i> Upload
-                        <input type="file" class="signature-upload" name="project_manager_signature" data-role="projectManager" accept="image/*" hidden>
-                    </label>
+
+                <div class="cost-group">
+                    <label>GST Rate <span class="required">*</span></label>
+                    <select id="gstRate" name="gst_rate" required onchange="updateCostCalculations()">
+                        <option value="">Select GST %</option>
+                        <option value="5">5%</option>
+                        <option value="12">12%</option>
+                        <option value="18">18%</option>
+                        <option value="28">28%</option>
+                    </select>
+                    <small>Select percentage</small>
                 </div>
-                <div class="signature-fields">
-                    <select class="signature-name" name="project_manager_name" data-role="projectManager">
-                        <option value="">Select Name</option>
-                        <option value="Ashok Pawar">Ashok Pawar</option>
-                    </select>
-                    <select class="signature-designation" name="project_manager_designation" data-role="projectManager">
-                        <option value="">Select Designation</option>
-                        <option value="AGM (MECH)">AGM (MECH)</option>
-                    </select>
-                    <input type="date" class="signature-date" name="project_manager_date" data-role="projectManager">
+
+                <div class="cost-group">
+                    <label>GST Amount (₹)</label>
+                    <input type="text" id="gstAmount" name="gst_amount" readonly>
+                    <small>Auto-calculated</small>
+                </div>
+
+                <div class="cost-group">
+                    <label>Total Estimate Including GST (₹)</label>
+                    <input type="text" id="totalCost" name="total_cost" readonly>
+                    <small>Auto-calculated</small>
                 </div>
             </div>
+        </section>
 
-            <!-- Requested By -->
-            <div class="signature-card">
+        <!-- Investment Details -->
+        <section class="capex-card">
+            <h3><i class="material-icons">trending_up</i> Investment Details</h3>
+            <div class="investment-grid">
+                <div class="investment-group">
+                    <label class="investment-label">Return on Investment (ROI) & Payback Period <span class="required">*</span></label>
+                    <textarea name="roi_text" maxlength="500" rows="4" required placeholder=""></textarea>
+                    <div class="upload-container">
+                        <label class="upload-btn">
+                            <i class="material-icons">attach_file</i> Upload Supporting Document
+                            <input type="file" name="roiFile" accept=".pdf,.xls,.xlsx,.jpg,.jpeg,.png" hidden>
+                        </label>
+                        <span class="file-name" id="roiFileName">No file selected</span>
+                    </div>
+                    <div class="file-name-display" id="roiFileDisplay"></div>
+                </div>
+
+                <div class="investment-group">
+                    <label class="investment-label">Project Timeline (with Zero Date) <span class="required">*</span></label>
+                    <textarea name="timeline_text" maxlength="500" rows="4" required placeholder=""></textarea>
+                    <div class="upload-container">
+                        <label class="upload-btn">
+                            <i class="material-icons">attach_file</i> Upload Supporting Document
+                            <input type="file" name="timelineFile" accept=".pdf,.xls,.xlsx,.jpg,.jpeg,.png" hidden>
+                        </label>
+                        <span class="file-name" id="timelineFileName">No file selected</span>
+                    </div>
+                    <div class="file-name-display" id="timelineFileDisplay"></div>
+                </div>
+
+                <div class="investment-group full-width">
+                    <label class="investment-label">Reason for Purchase / Key Milestones / Expected Savings <span class="required">*</span></label>
+                    <textarea name="reason_text" maxlength="500" rows="5" required placeholder=""></textarea>
+                    <div class="upload-container">
+                        <label class="upload-btn">
+                            <i class="material-icons">attach_file</i> Upload Supporting Document
+                            <input type="file" name="reasonFile" accept=".pdf,.xls,.xlsx,.jpg,.jpeg,.png" hidden>
+                        </label>
+                        <span class="file-name" id="reasonFileName">No file selected</span>
+                    </div>
+                    <div class="file-name-display" id="reasonFileDisplay"></div>
+                </div>
+            </div>
+        </section>
+        <!-- Digital Signature Section -->
+<section class="capex-card signature-section">
+    <h3 class="signature-title">
+        <i class="material-icons" style="font-size: 28px; vertical-align: middle;">edit_note</i>
+        Digital Signature & Approval
+    </h3>
+
+    <div class="signature-grid">
+        <!-- Requested By Card -->
+        <div class="signature-card">
+            <div class="card-header">
                 <h4>Requested By</h4>
-                <div class="signature-box" id="requestedBySignatureBox">
-                    <span>Upload Signature</span>
-                </div>
-                <div class="signature-actions">
-                    <label class="upload-btn">
-                        <i class="material-icons">upload</i> Upload
-                        <input type="file" class="signature-upload" name="requested_by_signature" data-role="requestedBy" accept="image/*" hidden>
-                    </label>
-                </div>
-                <div class="signature-fields">
-                    <select class="signature-name" name="requested_by_name" data-role="requestedBy">
-                        <option value="">Select Name</option>
-                        <option value="Ashok Pawar">Ashok Pawar</option>
-                    </select>
-                    <select class="signature-designation" name="requested_by_designation" data-role="requestedBy">
-                        <option value="">Select Designation</option>
-                        <option value="AGM (MECH)">AGM (MECH)</option>
-                    </select>
-                    <input type="date" class="signature-date" name="requested_by_date" data-role="requestedBy">
-                </div>
+                <span class="status-badge pending">Pending</span>
             </div>
-
-            <!-- Head of Plant -->
-            <div class="signature-card">
-                <h4>Head of the Plant (User)</h4>
-                <div class="signature-box" id="headOfPlantSignatureBox">
-                    <span>Upload Signature</span>
-                </div>
-                <div class="signature-actions">
-                    <label class="upload-btn">
-                        <i class="material-icons">upload</i> Upload
-                        <input type="file" class="signature-upload" name="head_of_plant_signature" data-role="headOfPlant" accept="image/*" hidden>
-                    </label>
-                </div>
-                <div class="signature-fields">
-                    <select class="signature-name" name="head_of_plant_name" data-role="headOfPlant">
-                        <option value="">Select Name</option>
-                        <option value="SS Parashar">SS Parashar</option>
-                    </select>
-                    <select class="signature-designation" name="head_of_plant_designation" data-role="headOfPlant">
-                        <option value="">Select Designation</option>
-                        <option value="DGM">DGM</option>
-                    </select>
-                    <input type="date" class="signature-date" name="head_of_plant_date" data-role="headOfPlant">
-                </div>
+            <div class="signature-fields">
+                <label class="field-label">Employee Name <span class="required">*</span></label>
+                <select name="requested_by_name" class="custom-select" required>
+                    <option value="">-- Select Employee --</option>
+                    <c:forEach var="obj" items="${uList}">
+                        <option value="${obj.user_id}"
+                                ${obj.user_id == editList.requested_by_name ? 'selected' : ''}>
+                            [${obj.user_id}] - ${obj.user_name}
+                        </option>
+                    </c:forEach>
+                </select>
             </div>
-
         </div>
-    </section>
 
-    <div class="action-bar">
-        <button type="button" class="submit-btn" onclick="submitForm()">
-            <i class="material-icons">send</i> Submit Proposal
-        </button>
+        <!-- Project Manager / Execution Card -->
+        <div class="signature-card">
+            <div class="card-header">
+                <h4>Project Manager / Execution</h4>
+                <span class="status-badge pending">Pending</span>
+            </div>
+            <div class="signature-fields">
+                <label class="field-label">Employee Name <span class="required">*</span></label>
+               <select name="project_manager_name" id="projectManager" class="custom-select" required>
+				    <option value="">-- Select Name --</option>
+				    <c:forEach var="obj" items="${uList}">
+				        <option value="${obj.user_id}"
+				                data-plant="${obj.base_project}"
+				                >
+				            [${obj.user_id}] - ${obj.user_name}
+				        </option>
+				    </c:forEach>
+				</select>
+            </div>
+        </div>
     </div>
+</section>
+        <div class="action-bar">
+            <button type="submit" class="submit-btn">
+                <i class="material-icons">send</i> Submit Proposal
+            </button>
+        </div>
+    </form>
+</div>
 
-</form>
-    </div>
-   
-  <form action="<%=request.getContextPath() %>/logout" name="logoutForm" id="logoutForm" method="post">
-		
-	</form>
-	
-    <script>
+<form action="<%=request.getContextPath()%>/logout" id="logoutForm" method="post"></form>
 
-        $(document).ready(function() {
-            // Set current date for date inputs
-            const today = new Date().toISOString().split('T')[0];
-            $('input[type="date"]').val(today);
+<script>
+// Format number with Indian comma style
+function formatBudget(num) {
+    if (!num && num !== 0) return '—';
+    return Number(num).toLocaleString('en-IN');
+}
 
-            // Set current year in CAPEX number (example)
-            const currentYear = new Date().getFullYear();
-            $('#capexNumber').val(`CAPEX-${currentYear}-001`);
+// Global variable for selected plant budget
+var selectedPlantBudget = null;
 
-            // Cost Calculation (keeping auto-calculation)
-            $('#basicCost, #gstRate').on('input', calculateCosts);
+function filterProjectManagers() {
 
-            // Budget Calculation
-            $('#totalBudget, #proposedPrice').on('input', calculateBudget);
+    var plantSelect = document.getElementById("plantCode");
+    var selectedPlant = plantSelect.value;
 
-            // File name display (UI only - no blocking validation)
-            $('#roiFile').on('change', function(e) {
-                handleFileUpload(e, '#roiFileName');
-            });
+    var managerSelect = document.getElementById("projectManager");
+    var options = managerSelect.options;
 
-            $('#timelineFile').on('change', function(e) {
-                handleFileUpload(e, '#timelineFileName');
-            });
+    for (var i = 0; i < options.length; i++) {
 
-            $('#reasonFile').on('change', function(e) {
-                handleFileUpload(e, '#reasonFileName');
-            });
+        var plant = options[i].dataset.plant;
 
-            // Signature preview only (no validation)
-            $('.signature-upload').on('change', handleSignatureUpload);
-            $('.authority-upload').on('change', handleAuthoritySignatureUpload);
-
-            // Comment character counters (UI feedback only)
-            $('.authority-comment').on('input', updateCommentCounter);
-            $('.authority-comment').each(function() {
-                updateCommentCounter.call(this);
-            });
-
-            // Optional: still allow auto-save if you want
-            // loadSavedData();
-            // setupAutoSave();
-        });
-
-        function calculateCosts() {
-            const basicCost = parseFloat($('#basicCost').val()) || 0;
-            const gstRate   = parseFloat($('#gstRate').val()) || 0;
-
-            const gstAmount = (basicCost * gstRate) / 100;
-            const totalCost = basicCost + gstAmount;
-
-            $('#gstAmount').val(gstAmount.toFixed(2));
-            $('#totalCost').val(totalCost.toFixed(2));
+        if (!plant || plant === selectedPlant) {
+            options[i].style.display = "";
+        } else {
+            options[i].style.display = "none";
         }
+    }
 
-        function calculateBudget() {
-            const totalBudget   = parseFloat($('#totalBudget').val()) || 0;
-            const proposedPrice = parseFloat($('#proposedPrice').val()) || 0;
+    managerSelect.value = "";
+}
 
-            const availableBalance = totalBudget - proposedPrice;
-            $('#availableBalance').val(availableBalance.toFixed(2));
-        }
+function updateSbuAndLocation() {
+    var select = document.getElementById('plantCode');
+    var opt = select.options[select.selectedIndex];
 
-        function handleFileUpload(event, fileNameSelector) {
-            const file = event.target.files[0];
-            if (!file) return;
-            $(fileNameSelector).text(file.name);
-            // Removed blocking validation — server should still check
-        }
+    if (!opt.value) {
+        document.getElementById('displaySbu').textContent = 'Select Plant first';
+        document.getElementById('displayLocation').textContent = 'Select Plant first';
+        document.getElementById('businessUnit').value = '';
+        document.getElementById('location').value = '';
+        
+        selectedPlantBudget = null;
+        document.getElementById('displayBudget').textContent = '—';
+        document.getElementById('budgetWarning').style.display = 'none';
+        document.getElementById('basicCost').value = '';
+        document.getElementById('basicCost').style.borderColor = '';
+        document.getElementById('basicCost').style.backgroundColor = '';
+        updateCostCalculations();
+        return;
+    }
 
-        function handleSignatureUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+    document.getElementById('displaySbu').textContent = opt.dataset.sbu || '—';
+    document.getElementById('displayLocation').textContent = opt.dataset.location || '—';
+    document.getElementById('businessUnit').value = opt.dataset.sbu || '';
+    document.getElementById('location').value = opt.dataset.location || '';
 
-            const reader = new FileReader();
-            const role = $(event.target).data('role');
+    var budgetRaw = opt.dataset.budget || '0';
+    selectedPlantBudget = Number(budgetRaw);
+    document.getElementById('displayBudget').textContent = 
+        selectedPlantBudget > 0 ? '₹ ' + formatBudget(selectedPlantBudget) : '—';
 
-            reader.onload = function(e) {
-                $(`#${role}SignatureBox`).html(`<img src="${e.target.result}" alt="Signature">`);
-            };
+    validateBudgetLimit();
+    updateCostCalculations();
+}
 
-            reader.readAsDataURL(file);
-        }
+function validateBudgetLimit() {
+    if (selectedPlantBudget === null) return;
 
-        function handleAuthoritySignatureUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+    var basicCostEl = document.getElementById('basicCost');
+    var basicCost = Number(basicCostEl.value) || 0;
+    var warningEl = document.getElementById('budgetWarning');
 
-            const reader = new FileReader();
-            const role = $(event.target).data('role');
+    if (basicCost > selectedPlantBudget) {
+        var msg = 'Warning: Proposed cost (₹ ' + formatBudget(basicCost) + 
+                  ') exceeds available plant budget (₹ ' + formatBudget(selectedPlantBudget) + ')!';
+        
+        warningEl.textContent = msg;
+        warningEl.style.display = 'block';
+        basicCostEl.style.borderColor = '#dc2626';
+        basicCostEl.style.backgroundColor = '#fef2f2';
+    } else {
+        warningEl.style.display = 'none';
+        basicCostEl.style.borderColor = '';
+        basicCostEl.style.backgroundColor = '';
+    }
+}
 
-            reader.onload = function(e) {
-                $(`#${role}SignatureBox`).html(`<img src="${e.target.result}" alt="Signature">`);
-            };
+function updateCostCalculations() {
+    var basic = Number(document.getElementById('basicCost').value) || 0;
+    var rate = Number(document.getElementById('gstRate').value) || 0;
 
-            reader.readAsDataURL(file);
-        }
+    var gst = basic * (rate / 100);
+    var total = basic + gst;
 
-        function updateCommentCounter() {
-            const textarea = $(this);
-            const currentLength = textarea.val().length;
-            const maxLength = parseInt(textarea.attr('maxlength'));
-            const counter = textarea.siblings('.comment-counter');
+    document.getElementById('gstAmount').value = gst.toFixed(2);
+    document.getElementById('totalCost').value = total.toFixed(2);
 
-            counter.text(`${currentLength} / ${maxLength}`);
+    // Re-validate after total is updated
+    validateBudgetLimit();
+}
 
-            if (currentLength > maxLength * 0.8) {
-                counter.css('color', '#e74c3c');
-            } else {
-                counter.css('color', '#6c757d');
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('basicCost').addEventListener('input', function() {
+        validateBudgetLimit();
+        updateCostCalculations();
+    });
+
+    document.getElementById('gstRate').addEventListener('change', function() {
+        updateCostCalculations();
+        validateBudgetLimit();
+    });
+
+    // File name display
+    document.querySelectorAll('input[type="file"]').forEach(function(inp) {
+        inp.addEventListener('change', function() {
+            var display = document.getElementById(inp.name + 'Display');
+            if (display && inp.files[0]) {
+                display.innerHTML = inp.files[0].name + 
+                    ' <button type="button" class="remove-btn" onclick="clearFile(\'' + inp.name + '\', \'' + inp.name + 'Display\')">×</button>';
             }
-        }
-        function submitForm() {
-            const submitBtn = document.querySelector('.submit-btn');
-            const originalText = submitBtn.innerHTML;
+        });
+    });
 
-            // Disable button & show loading
-            submitBtn.innerHTML = '<i class="material-icons spin">autorenew</i> Submitting...';
-            submitBtn.disabled = true;
-            //showLoading();
-
-            const form = document.getElementById('capexForm');
-            if (!form) {
-                console.error("Form element #capexForm not found!");
-                //hideLoading();
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
+    // Final submit validation: check TOTAL ESTIMATE vs budget
+    document.getElementById('capexForm').addEventListener('submit', function(e) {
+        if (selectedPlantBudget !== null) {
+            var totalEstimate = Number(document.getElementById('totalCost').value) || 0;
+            
+            if (totalEstimate > selectedPlantBudget) {
+                e.preventDefault();
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error',
-                    text: 'Form not found on page. Please refresh.'
+                    title: 'Budget Limit Exceeded',
+                    html: 'Total Estimate Including GST (₹ ' + formatBudget(totalEstimate) + 
+                          ')<br>exceeds available plant budget (₹ ' + formatBudget(selectedPlantBudget) + ')',
+                    confirmButtonColor: '#dc2626'
                 });
                 return;
             }
-
-            const formData = new FormData(form);
-
-            // Add calculated / readonly fields that might not be in form inputs
-            formData.append('gstAmount', $('#gstAmount').val() || '0.00');
-            formData.append('totalCost', $('#totalCost').val() || '0.00');
-            formData.append('availableBalance', $('#availableBalance').val() || '0.00');
-
-            // Add signature images (as blobs) if they exist
-            const allRoles = [
-                'preparedBy', 'projectManager', 'requestedBy', 'headOfPlant',
-                'headProjects', 'businessHead', 'cfo', 'ceo'
-            ];
-
-            allRoles.forEach(role => {
-                const box = document.getElementById(role + 'SignatureBox');
-                const img = box?.querySelector('img');
-                if (img && img.src && img.src.startsWith('data:image')) {
-                    try {
-                        const blob = dataURLtoBlob(img.src);
-                        formData.append(role + 'Signature', blob, `${role}_signature.png`);
-                    } catch (err) {
-                        console.warn(`Failed to convert signature for ${role}:`, err);
-                    }
-                }
-            });
-
-            // Log what we're sending (for debugging – remove in production if you want)
-            console.log("Submitting to:", form.action);
-            console.log("FormData entries:");
-            for (let [key, value] of formData.entries()) {
-                if (value instanceof Blob) {
-                    console.log(`  → ${key}: [Blob ${value.size} bytes]`);
-                } else {
-                    console.log(`  → ${key}: ${value}`);
-                }
-            }
-
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                // Do NOT set Content-Type – browser sets it automatically with boundary for multipart
-            })
-            .then(async response => {
-                console.log("Response status:", response.status);
-                console.log("Response headers:", [...response.headers.entries()]);
-
-                // Get raw text first (safer than .json() directly)
-                const text = await response.text();
-
-
-                // Try to parse as JSON
-                try {
-                    const data = JSON.parse(text);
-                    return data;
-                } catch (jsonErr) {
-                    console.error("Response is not valid JSON:", text.substring(0, 300));
-                    throw new Error("Server returned invalid JSON response");
-                }
-            })
-            .then(data => {
-                //hideLoading();
-
-                if (data && data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: data.message || 'Proposal submitted successfully',
-                        timer: 2500,
-                        showConfirmButton: false
-                    }).then(() => {
-                        // Clear local storage if needed
-                        // localStorage.removeItem('capex_form_data');
-                        window.location.href = data.redirectUrl ||  '/home';
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Submission Failed',
-                        text: (data && data.message) || 'Server reported failure but no clear message'
-                    });
-                }
-            })
-            .catch(error => {
-              //  hideLoading();
-                console.error("Fetch / Submission failed:", error);
-
-                let displayMessage = 'Network or server error occurred';
-                if (error.message.includes('Server error')) {
-                    displayMessage = error.message;
-                } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-                    displayMessage = 'Cannot reach the server. Check your internet or URL.';
-                }
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text:  'Proposal submitted successfully',
-                    timer: 2500,
-                    showConfirmButton: false
-                }).then(() => {
-                    // Clear local storage if needed
-                    // localStorage.removeItem('capex_form_data');
-                    window.location.href = data.redirectUrl || '/home';
-                });
-            })
-            .finally(() => {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            });
         }
-    </script>
+        document.getElementById('loadingOverlay').style.display = 'flex';
+    });
+});
+
+function clearFile(name, displayId) {
+    document.querySelector('input[name="' + name + '"]').value = '';
+    document.getElementById(displayId).innerHTML = '';
+}
+</script>
 </body>
 </html>

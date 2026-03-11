@@ -41,34 +41,39 @@ public class PlantDao {
             List<Object> params = new ArrayList<>();
             
             // Build query with optional filters
-            query.append("SELECT id, location, sbu, plant_code, plant_name, status FROM plant WHERE 1=1 ");
+            query.append("SELECT p.id, l.location, l.id as locationid, p.sbu,s.sbu_name, p.plant_code,p.total_available_budget_fy, p.plant_name, p.status FROM plant p "
+            		+ " left join sbu s on p.sbu = s.sbu "
+            		+ " left join location l on l.id = p.location "
+            		+ "WHERE 1=1 ");
             
             if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation())) {
-                query.append(" AND location LIKE ? ");
+                query.append(" AND p.location LIKE ? ");
                 params.add("%" + obj.getLocation() + "%");
             }
-            
+           
             if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
-                query.append(" AND sbu LIKE ? ");
+                query.append(" AND p.sbu LIKE ? ");
                 params.add("%" + obj.getSbu() + "%");
             }
             
             if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getPlant_code())) {
-                query.append(" AND plant_code LIKE ? ");
+                query.append(" AND p.plant_code LIKE ? ");
                 params.add("%" + obj.getPlant_code() + "%");
             }
             
             if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getPlant_name())) {
-                query.append(" AND plant_name LIKE ? ");
+                query.append(" AND p.plant_name LIKE ? ");
                 params.add("%" + obj.getPlant_name() + "%");
             }
             
             if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-                query.append(" AND status = ? ");
+                query.append(" AND p.status = ? ");
                 params.add(obj.getStatus());
             }
-            
-            query.append(" ORDER BY plant_code ASC");
+            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getTotal_available_budget_fy())) {
+                query.append(" AND p.total_available_budget_fy is not null and p.total_available_budget_fy <> '' ");
+            }
+            query.append(" ORDER BY p.plant_code ASC");
             
             plantList = jdbcTemplate.query(
                 query.toString(), 
@@ -89,7 +94,7 @@ public class PlantDao {
     public Plant getPlantById(String id) throws Exception {
         Plant plant = null;
         try {
-            String query = "SELECT id, location, sbu, plant_code, plant_name, status FROM plant WHERE id = ?";
+            String query = "SELECT id, location, sbu, plant_code, plant_name,total_available_budget_fy, status FROM plant WHERE id = ?";
             List<Plant> result = jdbcTemplate.query(
                 query, 
                 new Object[]{id}, 
@@ -126,8 +131,8 @@ public class PlantDao {
             }
             
             NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-            String insertQuery = "INSERT INTO plant (location, sbu, plant_code, plant_name, status) " +
-                               "VALUES (:location, :sbu, :plant_code, :plant_name, :status)";
+            String insertQuery = "INSERT INTO plant (location, sbu, plant_code, plant_name,total_available_budget_fy, status) " +
+                               "VALUES (:location, :sbu, :plant_code, :plant_name, :total_available_budget_fy, :status)";
             
             BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);
             count = namedParamJdbcTemplate.update(insertQuery, paramSource);
@@ -170,7 +175,7 @@ public class PlantDao {
             }
             
             NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-            String updateQuery = "UPDATE plant SET location = :location, sbu = :sbu, " +
+            String updateQuery = "UPDATE plant SET location = :location, sbu = :sbu,total_available_budget_fy = :total_available_budget_fy, " +
                                "plant_code = :plant_code, plant_name = :plant_name, status = :status " +
                                "WHERE id = :id";
             
@@ -224,7 +229,7 @@ public class PlantDao {
     public List<Plant> getActivePlants() throws Exception {
         List<Plant> plantList = new ArrayList<>();
         try {
-            String query = "SELECT id, location, sbu, plant_code, plant_name, status " +
+            String query = "SELECT id, location, sbu, plant_code, plant_name,total_available_budget_fy, status " +
                           "FROM plant WHERE status = 'Active' ORDER BY plant_code ASC";
             plantList = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Plant.class));
             

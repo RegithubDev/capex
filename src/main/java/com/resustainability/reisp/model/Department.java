@@ -2,7 +2,15 @@ package com.resustainability.reisp.model;
 
 public class Department {
     
-    private String id, sbu, plant_code,department_code, department_name,status;
+    private String id, sbu,department, plant_code,department_code, department_name,status;
+
+	public String getDepartment() {
+		return department;
+	}
+
+	public void setDepartment(String department) {
+		this.department = department;
+	}
 
 	public String getId() {
 		return id;

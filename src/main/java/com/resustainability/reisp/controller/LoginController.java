@@ -2,8 +2,11 @@ package com.resustainability.reisp.controller;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,7 +16,10 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
@@ -24,14 +30,19 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.resustainability.reisp.common.CommonMethods;
 import com.resustainability.reisp.common.DateForUser;
 import com.resustainability.reisp.constants.PageConstants;
+import com.resustainability.reisp.model.Department;
+import com.resustainability.reisp.model.Plant;
 import com.resustainability.reisp.model.Project;
 import com.resustainability.reisp.model.ProjectLocation;
 import com.resustainability.reisp.model.RoleMapping;
 import com.resustainability.reisp.model.User;
+import com.resustainability.reisp.service.DepartmentService;
 import com.resustainability.reisp.service.LocationService;
+import com.resustainability.reisp.service.PlantService;
 import com.resustainability.reisp.service.ProjectService;
 import com.resustainability.reisp.service.RoleMappingService;
 import com.resustainability.reisp.service.UserService;
@@ -52,10 +63,11 @@ public class LoginController {
 	 
 	@Autowired
 	LocationService service3;
-	
-	@Autowired
-	RoleMappingService service4;
-	
+
+	   @Autowired
+	    PlantService service4;
+	   @Autowired
+	    DepartmentService service_dept;
 	@Autowired
 	ProjectService service5;
 	
@@ -96,57 +108,10 @@ public class LoginController {
 		ModelAndView model = new ModelAndView(PageConstants.login);
 		User userDetails = null;
 		try {
-			if(!StringUtils.isEmpty(user) && !StringUtils.isEmpty(user.getUser_name()) && !StringUtils.isEmpty(user.getPassword())){
+		
+			if(!StringUtils.isEmpty(user) && !StringUtils.isEmpty(user.getUser_id()) && !StringUtils.isEmpty(user.getPassword())){
 				userDetails = service.validateUser(user);
 				if(!StringUtils.isEmpty(userDetails)) {
-						model.setViewName("redirect:/home");
-						/// USER BASIC SESSION DATA
-						session.setAttribute("user", userDetails);
-						session.setAttribute("ID", userDetails.getId());
-						session.setAttribute("USER_ID", userDetails.getUser_id());
-						session.setAttribute("USER_NAME", userDetails.getUser_name());
-						session.setAttribute("NUMBER", userDetails.getContact_number());
-						session.setAttribute("USER_EMAIL", userDetails.getEmail_id());
-						session.setAttribute("BASE_ROLE", userDetails.getBase_role());
-						session.setAttribute("BASE_SBU", userDetails.getBase_sbu());
-						session.setAttribute("BASE_PROJECT", userDetails.getProject_name());
-						session.setAttribute("BASE_DEPARTMENT", userDetails.getBase_department());
-						session.setAttribute("BASE_PROJECT_CODE", userDetails.getBase_project());
-						attributes.addFlashAttribute("welcome", "welcome "+userDetails.getUser_name());
-					
-				}else{
-					model.addObject("invalidEmail",invalidUserName);
-					model.setViewName(PageConstants.login);
-					
-				}
-			}else {
-				model.addObject("message", "");
-				model.setViewName(PageConstants.login);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return model; 
-	}
-	
-	@RequestMapping(value = "/login/{email_id}", method = {RequestMethod.POST, RequestMethod.GET})
-	public ModelAndView loginWithEmail(@ModelAttribute User user, @PathVariable("email_id") String email_id,HttpSession session,HttpServletRequest request,RedirectAttributes attributes) {
-		ModelAndView model = new ModelAndView(PageConstants.login);
-		User userDetails = null;
-		try {
-			if(StringUtils.isEmpty(user.getEmail_id())) {
-				user.setEmail_id(email_id);
-				session.setAttribute("USER_EMAIL", email_id);
-			}
-			if(!(user.getEmail_id().contains(".com"))) {
-				user.setEmail_id(email_id+".com");
-			}
-			if(!StringUtils.isEmpty(user) && !StringUtils.isEmpty(user.getEmail_id())){
-				user.setUser_session_id(user.getUser_session_id());
-				userDetails = service.validateUser(user);
-				if(!StringUtils.isEmpty(userDetails)) {
-					//if((userDetails.getSession_count()) == 0) {
-						model.setViewName("redirect:/home");
 						
 						/// USER BASIC SESSION DATA
 						session.setAttribute("user", userDetails);
@@ -156,40 +121,29 @@ public class LoginController {
 						session.setAttribute("NUMBER", userDetails.getContact_number());
 						session.setAttribute("USER_EMAIL", userDetails.getEmail_id());
 						session.setAttribute("BASE_ROLE", userDetails.getBase_role());
-						session.setAttribute("USER_IMAGE", user.getProfileImg());
-						session.setAttribute("REPORTING_TO", userDetails.getReporting_to());
 						session.setAttribute("BASE_SBU", userDetails.getBase_sbu());
 						session.setAttribute("BASE_PROJECT", userDetails.getProject_name());
 						session.setAttribute("BASE_DEPARTMENT", userDetails.getBase_department());
-						session.setAttribute("REWARDS", userDetails.getReward_points());
 						session.setAttribute("BASE_PROJECT_CODE", userDetails.getBase_project());
-						session.setAttribute("CURRENT_PROJECT", user.getCurrent_project());
-						session.setAttribute("SESSION_ID", user.getUser_session_id());
-						List<User> menuList = service.getMenuList();
-						session.setAttribute("menuList", menuList);
 						attributes.addFlashAttribute("welcome", "welcome "+userDetails.getUser_name());
-					//}else {
-						//session.invalidate();
-						//model.addObject("multipleLoginFound","Multiple Login found! You have been Logged out from all Devices");
-						//model.setViewName(PageConstants.login); 
-					//}
+						if("Admin".equals(userDetails.getBase_role())) {
+							model.setViewName("redirect:/home");
+						}else {
+							model.setViewName("redirect:/form/capex");
+						}
+						
 				}else{
 					model.addObject("invalidEmail",invalidUserName);
 					model.setViewName(PageConstants.newUserLogin);
-					List<RoleMapping> projectsList = service4.getProjectsList(null);
+					List<Plant> projectsList = service4.getPlantsList(null);
 					model.addObject("projectsList", projectsList);
-					
-					List<RoleMapping> deptList = service.getDeptsList();
-					model.addObject("deptList", deptList);
-					
+					List<User> usersList = service2.getUsersList(null);
+					model.addObject("usersList", usersList);
+					  List<Department> departmentList= service_dept.getDepartmentsList(null);
+			            model.addObject("departmentList", departmentList);
+			            
 					List<Project> sbuList = service5.getSBUsList(null);
 					model.addObject("sbuList", sbuList);
-					
-					List<User> userList = service.getUserFilterList(null);
-					model.addObject("userList", userList);
-					
-					model.addObject("email", user.getEmail_id());
-					model.addObject("name", user.getUser_name());
 				}
 			}else {
 				model.addObject("message", "");
@@ -201,6 +155,7 @@ public class LoginController {
 		return model; 
 	}
 	
+	
 	@RequestMapping(value = "/add-new-user-form", method = {RequestMethod.GET,RequestMethod.POST})
 	public ModelAndView addUserForm(@ModelAttribute User obj,RedirectAttributes attributes,HttpSession session) {
 		boolean flag = false;
@@ -209,17 +164,32 @@ public class LoginController {
 		ModelAndView model = new ModelAndView();
 		try {
 			model.setViewName(PageConstants.newUserLogin);
-			List<RoleMapping> projectsList = service4.getProjectsList(null);
+			List<Plant> projectsList = service4.getPlantsList(null);
 			model.addObject("projectsList", projectsList);
+			List<User> usersList = service2.getUsersList(null);
+			model.addObject("usersList", usersList);
+			List<Map<String, String>> simpleUsers = new ArrayList<>();
+
+			for (User u : usersList) {
+
+			    Map<String, String> map = new HashMap<>();
+
+			    map.put("user_id", u.getUser_id());      // make sure getter exists
+			    map.put("email_id", u.getEmail_id());    // make sure getter exists
+
+			    simpleUsers.add(map);
+			}
+
+			ObjectMapper mapper = new ObjectMapper();
+			String usersJson = mapper.writeValueAsString(simpleUsers);
+
+			model.addObject("usersJson", usersJson);   // if using ModelAndView
 			
-			List<RoleMapping> deptList = service.getDeptsList();
-			model.addObject("deptList", deptList);
-			
+			  List<Department> departmentList= service_dept.getDepartmentsList(null);
+	            model.addObject("departmentList", departmentList);
+	            
 			List<Project> sbuList = service5.getSBUsList(null);
 			model.addObject("sbuList", sbuList);
-			
-			List<User> userList = service.getUserFilterList(null);
-			model.addObject("userList", userList);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -254,32 +224,18 @@ public class LoginController {
 				if(!StringUtils.isEmpty(userDetails)) {
 					//if((userDetails.getSession_count()) == 0) {
 						model.setViewName("redirect:/home");
-						User permisions = service.getAllPermissions(userDetails.getBase_role());
-						/// USER PERMISISONS
-						session.setAttribute("R_ADD", permisions.getP_add());
-						session.setAttribute("R_EDIT", permisions.getP_edit());
-						session.setAttribute("R_VIEW", permisions.getP_view());
-						session.setAttribute("R_APPROVALS", permisions.getP_approvals());
-						session.setAttribute("R_REPORTS", permisions.getP_reports());
-						session.setAttribute("R_DASHBOARD", permisions.getP_dashboards());
-						session.setAttribute("R_AUTO_EMAIL", permisions.getP_auto_email());
-						/// USER BASIC SESSION DATA
+											/// USER BASIC SESSION DATA
 						session.setAttribute("user", userDetails);
 						session.setAttribute("ID", userDetails.getId());
 						session.setAttribute("USER_ID", userDetails.getUser_id());
 						session.setAttribute("USER_NAME", userDetails.getUser_name());
 						session.setAttribute("USER_EMAIL", userDetails.getEmail_id());
 						session.setAttribute("BASE_ROLE", userDetails.getBase_role());
-						session.setAttribute("USER_IMAGE", obj.getProfileImg());
-						session.setAttribute("REPORTING_TO", obj.getReporting_to());
 						session.setAttribute("BASE_SBU", userDetails.getBase_sbu());
 						session.setAttribute("BASE_PROJECT", userDetails.getProject_name());
 						session.setAttribute("BASE_DEPARTMENT", userDetails.getBase_department());
 						session.setAttribute("BASE_PROJECT_CODE", userDetails.getBase_project());
-						session.setAttribute("CURRENT_PROJECT", obj.getCurrent_project());
 						session.setAttribute("SESSION_ID", obj.getUser_session_id());
-						List<User> menuList = service.getMenuList();
-						session.setAttribute("menuList", menuList);
 						attributes.addFlashAttribute("welcome", "welcome "+userDetails.getUser_name());
 						attributes.addFlashAttribute("NewUser", "welcome "+userDetails.getUser_name());
 					//}else {
@@ -290,19 +246,15 @@ public class LoginController {
 				}else{
 					model.addObject("invalidEmail",invalidUserName);
 					model.setViewName(PageConstants.newUserLogin);
-					List<RoleMapping> projectsList = service4.getProjectsList(null);
+					List<Plant> projectsList = service4.getPlantsList(null);
 					model.addObject("projectsList", projectsList);
-					
-					List<RoleMapping> deptList = service.getDeptsList();
-					model.addObject("deptList", deptList);
-					
+					List<User> usersList = service2.getUsersList(null);
+					model.addObject("usersList", usersList);
+					  List<Department> departmentList= service_dept.getDepartmentsList(null);
+			            model.addObject("departmentList", departmentList);
+			            
 					List<Project> sbuList = service5.getSBUsList(null);
 					model.addObject("sbuList", sbuList);
-					
-					List<User> userList = service.getUserFilterList(null);
-					model.addObject("userList", userList);
-					
-					model.addObject("email", obj.getEmail_id());
 				}
 				
 			}
@@ -315,6 +267,21 @@ public class LoginController {
 		}
 		return model;
 	}
+	
+	
+	private void prepareFormModel(Model model, String email) throws Exception {
+	    model.addAttribute("email", email);
+
+	    List<Plant> projectsList = service4.getPlantsList(null);
+	    model.addAttribute("projectsList", projectsList);
+
+	    List<Department> departmentList = service_dept.getDepartmentsList(null);
+	    model.addAttribute("departmentList", departmentList);
+
+	    List<Project> sbuList = service5.getSBUsList(null);
+	    model.addAttribute("sbuList", sbuList);
+	}
+	
 	
 	@RequestMapping(value = "/logout", method = {RequestMethod.GET,RequestMethod.POST})
 	public ModelAndView logout(HttpSession session,HttpServletRequest request,HttpServletResponse response,RedirectAttributes attributes){

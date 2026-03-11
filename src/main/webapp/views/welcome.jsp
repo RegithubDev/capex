@@ -426,13 +426,14 @@
                 
                 <div class="dropdown-menu">
                  <!-- Department -->
-                    <div class="dropdown-item" data-url="/department">
+                    <div class="dropdown-item" data-url="/form/capex">
                         <i class="fas fa-building"></i>
                         <div class="item-content">
                             <div class="item-title">Capex Proposal</div>
                             <div class="item-desc">Capex Proposal Submission</div>
                         </div>
                     </div>
+                 <c:if test ="${sessionScope.BASE_ROLE eq 'Admin' }">
                     <!-- Department -->
                     <div class="dropdown-item" data-url="/department">
                         <i class="fas fa-building"></i>
@@ -477,6 +478,7 @@
                             <div class="item-desc">Manage user accounts and permissions</div>
                         </div>
                     </div>
+                  </c:if>
                 </div>
             </div>
         </div>
@@ -495,39 +497,7 @@
                Track, approve, and monitor all capital expenditure requests in one place.</p>
         </div>
         
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <h3>Budget Tracking</h3>
-                <p>Monitor and track capital expenditure budgets across departments and projects.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-file-invoice-dollar"></i>
-                </div>
-                <h3>Expense Management</h3>
-                <p>Create, submit, and approve capital expenditure requests with automated workflows.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-tasks"></i>
-                </div>
-                <h3>Project Management</h3>
-                <p>Manage capital projects from initiation to completion with detailed tracking.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-chart-pie"></i>
-                </div>
-                <h3>Reporting & Analytics</h3>
-                <p>Generate detailed reports and gain insights into capital expenditure patterns.</p>
-            </div>
-        </div>
+        
     </div>
 
     <!-- Debug Button (Optional) -->

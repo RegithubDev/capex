@@ -953,6 +953,128 @@
     </section>
 
     <!-- Appropriate Authority -->
+    <section class="capex-card">
+        <h3 class="finance-title">TO BE COMPLETED BY APPROPRIATE AUTHORITY</h3>
+        <div class="signature-grid">
+
+            <!-- Head Projects -->
+            <div class="signature-card">
+                <h4>Head Projects (HO)</h4>
+                <div class="signature-box" id="headProjectsSignatureBox">
+                    <span>Upload Signature</span>
+                </div>
+                <div class="signature-actions">
+                    <label class="upload-btn">
+                        <i class="material-icons">upload</i> Upload
+                        <input type="file" class="authority-upload" name="head_projects_signature" data-role="headProjects" accept="image/*" hidden>
+                    </label>
+                </div>
+                <div class="signature-fields">
+                    <select class="authority-name" name="head_projects_name" data-role="headProjects">
+                        <option value="">Select Name</option>
+                        <option value="Ashok Pawar">Ashok Pawar</option>
+                    </select>
+                    <select class="authority-designation" name="head_projects_designation" data-role="headProjects">
+                        <option value="">Select Designation</option>
+                        <option value="Head Projects (HO)">Head Projects (HO)</option>
+                    </select>
+                    <input type="date" class="authority-date" name="head_projects_date" data-role="headProjects">
+                    <div class="comment-field">
+                        <textarea class="authority-comment" name="head_projects_comment" data-role="headProjects" maxlength="200" placeholder="Enter comments (max 200 characters)"></textarea>
+                        <span class="comment-counter">0 / 200</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Head -->
+            <div class="signature-card">
+                <h4>Business Head</h4>
+                <div class="signature-box" id="businessHeadSignatureBox">
+                    <span>Upload Signature</span>
+                </div>
+                <div class="signature-actions">
+                    <label class="upload-btn">
+                        <i class="material-icons">upload</i> Upload
+                        <input type="file" class="authority-upload" name="business_head_signature" data-role="businessHead" accept="image/*" hidden>
+                    </label>
+                </div>
+                <div class="signature-fields">
+                    <select class="authority-name" name="business_head_name" data-role="businessHead">
+                        <option value="">Select Name</option>
+                        <option value="Business Head">Business Head</option>
+                    </select>
+                    <select class="authority-designation" name="business_head_designation" data-role="businessHead">
+                        <option value="">Select Designation</option>
+                        <option value="Business Head">Business Head</option>
+                    </select>
+                    <input type="date" class="authority-date" name="business_head_date" data-role="businessHead">
+                    <div class="comment-field">
+                        <textarea class="authority-comment" name="business_head_comment" data-role="businessHead" maxlength="200" placeholder="Enter comments (max 200 characters)"></textarea>
+                        <span class="comment-counter">0 / 200</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CFO -->
+            <div class="signature-card">
+                <h4>CFO</h4>
+                <div class="signature-box" id="cfoSignatureBox">
+                    <span>Upload Signature</span>
+                </div>
+                <div class="signature-actions">
+                    <label class="upload-btn">
+                        <i class="material-icons">upload</i> Upload
+                        <input type="file" class="authority-upload" name="cfo_signature" data-role="cfo" accept="image/*" hidden>
+                    </label>
+                </div>
+                <div class="signature-fields">
+                    <select class="authority-name" name="cfo_name" data-role="cfo">
+                        <option value="">Select Name</option>
+                        <option value="CFO">CFO</option>
+                    </select>
+                    <select class="authority-designation" name="cfo_designation" data-role="cfo">
+                        <option value="">Select Designation</option>
+                        <option value="CFO">CFO</option>
+                    </select>
+                    <input type="date" class="authority-date" name="cfo_date" data-role="cfo">
+                    <div class="comment-field">
+                        <textarea class="authority-comment" name="cfo_comment" data-role="cfo" maxlength="200" placeholder="Enter comments (max 200 characters)"></textarea>
+                        <span class="comment-counter">0 / 200</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CEO & MD -->
+            <div class="signature-card">
+                <h4>CEO & MD</h4>
+                <div class="signature-box" id="ceoSignatureBox">
+                    <span>Upload Signature</span>
+                </div>
+                <div class="signature-actions">
+                    <label class="upload-btn">
+                        <i class="material-icons">upload</i> Upload
+                        <input type="file" class="authority-upload" name="ceo_signature" data-role="ceo" accept="image/*" hidden>
+                    </label>
+                </div>
+                <div class="signature-fields">
+                    <select class="authority-name" name="ceo_name" data-role="ceo">
+                        <option value="">Select Name</option>
+                        <option value="CEO & MD">CEO & MD</option>
+                    </select>
+                    <select class="authority-designation" name="ceo_designation" data-role="ceo">
+                        <option value="">Select Designation</option>
+                        <option value="CEO & MD">CEO & MD</option>
+                    </select>
+                    <input type="date" class="authority-date" name="ceo_date" data-role="ceo">
+                    <div class="comment-field">
+                        <textarea class="authority-comment" name="ceo_comment" data-role="ceo" maxlength="200" placeholder="Enter comments (max 200 characters)"></textarea>
+                        <span class="comment-counter">0 / 200</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
 
     <!-- Action Bar -->
     <div class="action-bar">
