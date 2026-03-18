@@ -635,6 +635,10 @@
                         <th>ID</th>
                         <th>SBU Code</th>
                         <th>SBU Name</th>
+                        <th>Created By</th>
+                        <th>Created Date</th>
+                        <th>Updated By</th>
+                        <th>Updated Date</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -642,7 +646,7 @@
                 <tbody id="tableBody">
                     <!-- Data will be populated by JavaScript -->
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 40px;">
+                        <td colspan="9" style="text-align: center; padding: 40px;">
                             <div style="color: #999; font-size: 16px;">
                                 <i class="fas fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 15px;"></i>
                                 <p>Loading SBUs...</p>
@@ -738,26 +742,83 @@
         });
     }
 
-    // Load SBUs from server - FIXED ENDPOINT
+    // Load SBUs from server
     function loadSBUs() {
         console.log('Loading SBUs...');
         showLoading();
         
         $.ajax({
-            url: baseUrl + '/ajax/getSBUList', // FIXED: Changed from '/sbu/ajax/getList'
+            url: baseUrl + '/ajax/getSBUList',
             type: 'GET',
             dataType: 'json',
-            success: function(data) {
-                console.log('SBUs loaded:', data);
-                sbus = data || [];
+            success: function(response) {
+                console.log('SBUs loaded:', response);
+                // Check if response is an error object
+                if (response && response.message && response.status) {
+                    showAlert(response.message, 'error');
+                    sbus = [];
+                } else {
+                    sbus = response || [];
+                }
                 populateTable(sbus);
             },
             error: function(xhr, status, error) {
                 console.error('Error loading SBUs:', error);
-                showAlert('Error loading SBUs. Please try again.', 'error');
+                console.error('Response:', xhr.responseText);
+                
+                let errorMsg = 'Error loading SBUs. ';
+                if (xhr.responseText) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.message) {
+                            errorMsg = response.message;
+                        } else {
+                            errorMsg += 'Please try again.';
+                        }
+                    } catch (e) {
+                        errorMsg += xhr.responseText;
+                    }
+                } else {
+                    errorMsg += 'Please try again.';
+                }
+                
+                showAlert(errorMsg, 'error');
                 showNoData();
             }
         });
+    }
+
+    // Format date function
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString;
+            
+            // Format: DD-MMM-YYYY HH:MM
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = date.toLocaleString('default', { month: 'short' });
+            const year = date.getFullYear();
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            
+            return day + '-' + month + '-' + year + ' ' + hours + ':' + minutes;
+        } catch (e) {
+            console.error('Error formatting date:', e);
+            return dateString;
+        }
+    }
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(unsafe) {
+        if (!unsafe) return unsafe;
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
     // Populate table with data
@@ -772,7 +833,9 @@
             filteredSBUs = sbus.filter(function(sbu) {
                 return (sbu.sbu && sbu.sbu.toLowerCase().includes(searchTerm)) ||
                        (sbu.sbu_name && sbu.sbu_name.toLowerCase().includes(searchTerm)) ||
-                       (sbu.status && sbu.status.toLowerCase().includes(searchTerm));
+                       (sbu.status && sbu.status.toLowerCase().includes(searchTerm)) ||
+                       (sbu.created_by && sbu.created_by.toLowerCase().includes(searchTerm)) ||
+                       (sbu.updated_by && sbu.updated_by.toLowerCase().includes(searchTerm));
             });
         }
         
@@ -788,7 +851,7 @@
         if (pageSBUs.length === 0) {
             showNoData(searchTerm);
         } else {
-            // Add rows
+            // Add rows with formatted dates
             pageSBUs.forEach(function(sbu) {
                 const row = document.createElement('tr');
                 
@@ -796,12 +859,20 @@
                 const statusClass = (sbu.status === 'Active') ? 'status-active' : 'status-inactive';
                 const statusText = sbu.status || 'Inactive';
                 
+                // Format dates
+                const createdDate = formatDate(sbu.created_date);
+                const updatedDate = formatDate(sbu.updated_at);
+                
                 row.innerHTML = 
-                    '<td>' + (sbu.id || 'N/A') + '</td>' +
-                    '<td>' + (sbu.sbu || 'N/A') + '</td>' +
-                    '<td>' + (sbu.sbu_name || 'N/A') + '</td>' +
+                    '<td>' + escapeHtml(sbu.id || 'N/A') + '</td>' +
+                    '<td>' + escapeHtml(sbu.sbu || 'N/A') + '</td>' +
+                    '<td>' + escapeHtml(sbu.sbu_name || 'N/A') + '</td>' +
+                    '<td>' + escapeHtml(sbu.created_by || 'N/A') + '</td>' +
+                    '<td>' + createdDate + '</td>' +
+                    '<td>' + escapeHtml(sbu.updated_by || 'N/A') + '</td>' +
+                    '<td>' + updatedDate + '</td>' +
                     '<td>' +
-                        '<span class="' + statusClass + '">' + statusText + '</span>' +
+                        '<span class="' + statusClass + '">' + escapeHtml(statusText) + '</span>' +
                     '</td>' +
                     '<td>' +
                         '<div class="action-icons">' +
@@ -826,7 +897,7 @@
         const tableBody = document.getElementById('tableBody');
         tableBody.innerHTML = 
             '<tr>' +
-                '<td colspan="5" style="text-align: center; padding: 40px;">' +
+                '<td colspan="9" style="text-align: center; padding: 40px;">' +
                     '<div style="color: #999; font-size: 16px;">' +
                         '<i class="fas fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 15px;"></i>' +
                         '<p>Loading SBUs...</p>' +
@@ -845,10 +916,10 @@
         
         tableBody.innerHTML = 
             '<tr>' +
-                '<td colspan="5" style="text-align: center; padding: 40px;">' +
+                '<td colspan="9" style="text-align: center; padding: 40px;">' +
                     '<div style="color: #999; font-size: 16px;">' +
                         '<i class="fas fa-' + icon + '" style="font-size: 48px; margin-bottom: 15px;"></i>' +
-                        '<p>' + message + '</p>' +
+                        '<p>' + escapeHtml(message) + '</p>' +
                     '</div>' +
                 '</td>' +
             '</tr>';
@@ -859,7 +930,7 @@
         const pagination = document.getElementById('pagination');
         pagination.innerHTML = '';
         
-        if (totalPages <= 1) return;
+        if (totalPages <= 1 && totalItems <= itemsPerPage) return;
         
         // Previous button
         const prevBtn = document.createElement('button');
@@ -908,12 +979,14 @@
         pagination.appendChild(nextBtn);
         
         // Page info
-        const pageInfo = document.createElement('span');
-        pageInfo.className = 'page-info';
-        const start = ((currentPage - 1) * itemsPerPage) + 1;
-        const end = Math.min(currentPage * itemsPerPage, totalItems);
-        pageInfo.textContent = 'Showing ' + start + ' to ' + end + ' of ' + totalItems + ' SBUs';
-        pagination.appendChild(pageInfo);
+        if (totalItems > 0) {
+            const pageInfo = document.createElement('span');
+            pageInfo.className = 'page-info';
+            const start = ((currentPage - 1) * itemsPerPage) + 1;
+            const end = Math.min(currentPage * itemsPerPage, totalItems);
+            pageInfo.textContent = 'Showing ' + start + ' to ' + end + ' of ' + totalItems + ' SBUs';
+            pagination.appendChild(pageInfo);
+        }
     }
 
     // Search SBUs
@@ -939,37 +1012,75 @@
         modal.classList.add('active');
         modal.style.display = 'flex';
         
+        // Focus on first input
+        setTimeout(function() {
+            document.getElementById('sbu_code').focus();
+        }, 100);
+        
         console.log('Modal should be visible now');
     }
 
-    // Open modal for editing SBU - FIXED ENDPOINT
+    // Open modal for editing SBU - UPDATED
     function editSBU(id) {
         console.log('Editing SBU with ID:', id);
         
+        // Show loading indicator
+        showAlert('Loading SBU details...', 'info');
+        
         $.ajax({
-            url: baseUrl + '/ajax/getSBUById/' + id, // FIXED: Changed from '/sbu/ajax/getById'
+            url: baseUrl + '/ajax/getSBUById/' + id,
             type: 'GET',
             dataType: 'json',
-            success: function(sbu) {
-                if (sbu) {
-                    console.log('SBU data received:', sbu);
+            success: function(response) {
+                console.log('SBU data received:', response);
+                
+                // Check if response is an error object
+                if (response && response.message && response.status) {
+                    showAlert(response.message, 'error');
+                    return;
+                }
+                
+                if (response) {
                     document.getElementById('modalTitle').textContent = 'Edit SBU';
-                    document.getElementById('sbu_id').value = sbu.id || '';
-                    document.getElementById('sbu_code').value = sbu.sbu || '';
-                    document.getElementById('sbu_name').value = sbu.sbu_name || '';
-                    document.getElementById('status').value = sbu.status || 'Active';
+                    document.getElementById('sbu_id').value = response.id || '';
+                    document.getElementById('sbu_code').value = response.sbu || '';
+                    document.getElementById('sbu_name').value = response.sbu_name || '';
+                    document.getElementById('status').value = response.status || 'Active';
                     
                     // Show modal
                     const modal = document.getElementById('sbuModal');
                     modal.classList.add('active');
                     modal.style.display = 'flex';
+                    
+                    // Focus on first input
+                    setTimeout(function() {
+                        document.getElementById('sbu_code').focus();
+                    }, 100);
                 } else {
                     showAlert('SBU not found', 'error');
                 }
             },
             error: function(xhr, status, error) {
                 console.error('Error loading SBU details:', error);
-                showAlert('Error loading SBU details', 'error');
+                console.error('Response:', xhr.responseText);
+                
+                let errorMsg = 'Error loading SBU details. ';
+                if (xhr.responseText) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.message) {
+                            errorMsg = response.message;
+                        } else {
+                            errorMsg += 'Please try again.';
+                        }
+                    } catch (e) {
+                        errorMsg += xhr.responseText;
+                    }
+                } else {
+                    errorMsg += 'Please try again.';
+                }
+                
+                showAlert(errorMsg, 'error');
             }
         });
     }
@@ -983,7 +1094,7 @@
         document.getElementById('sbuForm').reset();
     }
 
-    // Save SBU (Add/Edit) - FIXED ENDPOINTS
+    // Save SBU (Add/Edit) - UPDATED
     function saveSBU(event) {
         event.preventDefault();
         console.log('Saving SBU...');
@@ -998,29 +1109,63 @@
         
         console.log('Form data to save:', formData);
         
-        // Determine URL based on add/edit
-        let url, method;
-        if (formData.id) {
-            url = baseUrl + '/sbu/update'; // FIXED: Changed from '/sbu/update'
-            method = 'POST';
-        } else {
-            url = baseUrl + '/sbu/add'; // FIXED: Changed from '/sbu/add'
-            method = 'POST';
+        // Validate form data
+        if (!formData.sbu || !formData.sbu.trim()) {
+            showAlert('SBU Code is required', 'error');
+            document.getElementById('sbu_code').focus();
+            return;
         }
         
-        console.log('Sending to:', url, 'with method:', method);
+        if (!formData.sbu_name || !formData.sbu_name.trim()) {
+            showAlert('SBU Name is required', 'error');
+            document.getElementById('sbu_name').focus();
+            return;
+        }
+        
+        if (!formData.status || !formData.status.trim()) {
+            showAlert('Status is required', 'error');
+            document.getElementById('status').focus();
+            return;
+        }
+        
+        // Determine URL based on add/edit
+        let url;
+        if (formData.id) {
+            url = baseUrl + '/sbu/update/ajax';
+        } else {
+            url = baseUrl + '/sbu/add/ajax';
+        }
+        
+        console.log('Sending to:', url);
+        
+        // Show loading state on button
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        submitBtn.disabled = true;
         
         // Send AJAX request
         $.ajax({
             url: url,
-            type: method,
+            type: 'POST',
             data: formData,
+            dataType: 'json',
             success: function(response) {
                 console.log('Save successful:', response);
-                showAlert(formData.id ? 'SBU updated successfully!' : 'SBU added successfully!', 'success');
+                
+                let message = '';
+                if (response && response.message) {
+                    message = response.message;
+                } else if (typeof response === 'string') {
+                    message = response;
+                } else {
+                    message = formData.id ? 'SBU updated successfully!' : 'SBU added successfully!';
+                }
+                
+                showAlert(message, 'success');
                 closeSBUModal();
                 
-                // Reload data after a short delay to ensure server processed
+                // Reload data after a short delay
                 setTimeout(function() {
                     loadSBUs();
                 }, 500);
@@ -1028,22 +1173,65 @@
             error: function(xhr, status, error) {
                 console.error('Error saving SBU:', error);
                 console.error('Response text:', xhr.responseText);
-                showAlert('Error saving SBU. Please check all fields and try again.', 'error');
+                
+                let errorMsg = 'Error saving SBU. ';
+                
+                // Try to parse error response
+                if (xhr.responseText) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response && response.message) {
+                            errorMsg = response.message;
+                        } else if (typeof response === 'string') {
+                            errorMsg += response;
+                        } else {
+                            errorMsg += 'Please try again.';
+                        }
+                    } catch (e) {
+                        errorMsg += xhr.responseText;
+                    }
+                } else {
+                    errorMsg += 'Please check all fields and try again.';
+                }
+                
+                showAlert(errorMsg, 'error');
+            },
+            complete: function() {
+                // Restore button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
             }
         });
     }
 
-    // Delete SBU - FIXED ENDPOINT
+    // Delete SBU - UPDATED
     function deleteSBU(id) {
         if (confirm('Are you sure you want to delete this SBU?')) {
             console.log('Deleting SBU with ID:', id);
             
+            // Get the delete button that was clicked
+            const deleteBtn = event.currentTarget;
+            const originalHtml = deleteBtn.innerHTML;
+            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            deleteBtn.disabled = true;
+            
             $.ajax({
-                url: baseUrl + '/sbu/delete/' + id, // FIXED: Changed from '/sbu/delete'
+                url: baseUrl + '/sbu/delete/ajax/' + id,
                 type: 'POST',
+                dataType: 'json',
                 success: function(response) {
                     console.log('Delete successful:', response);
-                    showAlert('SBU deleted successfully!', 'success');
+                    
+                    let message = '';
+                    if (response && response.message) {
+                        message = response.message;
+                    } else if (typeof response === 'string') {
+                        message = response;
+                    } else {
+                        message = 'SBU deleted successfully!';
+                    }
+                    
+                    showAlert(message, 'success');
                     
                     // Reload data
                     setTimeout(function() {
@@ -1052,13 +1240,34 @@
                 },
                 error: function(xhr, status, error) {
                     console.error('Error deleting SBU:', error);
-                    showAlert('Error deleting SBU', 'error');
+                    
+                    let errorMsg = 'Error deleting SBU. ';
+                    if (xhr.responseText) {
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            if (response && response.message) {
+                                errorMsg = response.message;
+                            } else if (typeof response === 'string') {
+                                errorMsg += response;
+                            }
+                        } catch (e) {
+                            errorMsg += xhr.responseText;
+                        }
+                    } else {
+                        errorMsg += 'Please try again.';
+                    }
+                    
+                    showAlert(errorMsg, 'error');
+                },
+                complete: function() {
+                    deleteBtn.innerHTML = originalHtml;
+                    deleteBtn.disabled = false;
                 }
             });
         }
     }
 
-    // Show alert message
+    // Show alert message - UPDATED with more types
     function showAlert(message, type) {
         const alertContainer = document.getElementById('alertContainer');
         
@@ -1067,17 +1276,25 @@
         
         const alert = document.createElement('div');
         alert.className = 'alert alert-' + type;
+        
+        let icon = 'info-circle';
+        if (type === 'success') icon = 'check-circle';
+        if (type === 'error') icon = 'exclamation-circle';
+        if (type === 'warning') icon = 'exclamation-triangle';
+        if (type === 'info') icon = 'info-circle';
+        
         alert.innerHTML = 
-            '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + '"></i>' +
-            '<span>' + message + '</span>';
+            '<i class="fas fa-' + icon + '"></i>' +
+            '<span>' + escapeHtml(message) + '</span>';
         alertContainer.appendChild(alert);
         
-        // Remove alert after 5 seconds
+        // Remove alert after 5 seconds (except for errors which stay longer)
+        const timeout = type === 'error' ? 8000 : 5000;
         setTimeout(function() {
             if (alert.parentNode === alertContainer) {
                 alert.remove();
             }
-        }, 5000);
+        }, timeout);
     }
 
     // Refresh data
@@ -1098,7 +1315,7 @@
         console.log('==================');
     }
 
-    // Add debug button (remove in production)
+    // Add debug button temporarily (remove in production)
     document.addEventListener('DOMContentLoaded', function() {
         // Add debug button temporarily
         const debugBtn = document.createElement('button');
@@ -1115,9 +1332,16 @@
         debugBtn.style.cursor = 'pointer';
         debugBtn.onclick = debugState;
         document.body.appendChild(debugBtn);
+        
+        // Remove debug button after 5 minutes (optional)
+        setTimeout(function() {
+            if (debugBtn.parentNode) {
+                debugBtn.remove();
+            }
+        }, 300000);
     });
 
-    // Navigation function
+    // Navigation functions
     function goBackToDashboard() {
         window.location.href = baseUrl + '/home';
     }
@@ -1138,13 +1362,22 @@
         
         // Escape to close modal
         if (e.key === 'Escape') {
-            closeSBUModal();
+            const modal = document.getElementById('sbuModal');
+            if (modal.classList.contains('active')) {
+                closeSBUModal();
+            }
         }
         
         // Ctrl + N for new SBU
         if (e.ctrlKey && e.key === 'n') {
             e.preventDefault();
             openAddSBUModal();
+        }
+        
+        // Ctrl + R for refresh
+        if (e.ctrlKey && e.key === 'r') {
+            e.preventDefault();
+            refreshData();
         }
     });
 </script>

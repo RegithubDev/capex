@@ -187,6 +187,15 @@ public class DepartmentController {
         ModelAndView model = new ModelAndView();
         try {
             model.setViewName("redirect:/department");
+            
+            // ==========================================
+            // FIX: Set created_by and created_date here
+            // ==========================================
+            String userId = (String) session.getAttribute("USER_ID");
+            obj.setCreated_by(userId);
+            DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            obj.setCreated_date(formatter.format(new Date()));
+            
             boolean flag = service.addDepartment(obj);
             
             if (flag) {
@@ -208,6 +217,15 @@ public class DepartmentController {
         ModelAndView model = new ModelAndView();
         try {
             model.setViewName("redirect:/department");
+            
+            // ==========================================
+            // FIX: Set modified_by and modified_date here
+            // ==========================================
+            String userId = (String) session.getAttribute("USER_ID");
+            obj.setModified_by(userId);
+            DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            obj.setModified_date(formatter.format(new Date()));
+            
             boolean flag = service.updateDepartment(obj);
             
             if (flag) {

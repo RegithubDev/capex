@@ -40,8 +40,8 @@ public class LocationDao {
             StringBuilder query = new StringBuilder();
             List<Object> params = new ArrayList<>();
             
-            // Build query with optional filters
-            query.append("SELECT id, location, status FROM location WHERE 1=1 ");
+            // FIXED: Added created_date, created_by, modified_date, modified_by to SELECT
+            query.append("SELECT id, location, status, created_date, created_by, modified_date, modified_by FROM location WHERE 1=1 ");
             
             if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation())) {
                 query.append(" AND location LIKE ? ");
@@ -53,7 +53,7 @@ public class LocationDao {
                 params.add(obj.getStatus());
             }
             
-            query.append(" ORDER BY location ASC"); // Changed to order by location name
+            query.append(" ORDER BY location ASC");
             
             locationList = jdbcTemplate.query(
                 query.toString(), 
@@ -74,7 +74,7 @@ public class LocationDao {
     public Location getLocationById(String id) throws Exception {
         Location location = null;
         try {
-            String query = "SELECT id, location, status FROM location WHERE id = ?";
+            String query = "SELECT id, location, created_date, created_by, modified_date, modified_by, status FROM location WHERE id = ?";
             List<Location> result = jdbcTemplate.query(
                 query, 
                 new Object[]{id}, 
@@ -111,8 +111,14 @@ public class LocationDao {
             }
             
             NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-            String insertQuery = "INSERT INTO location (location, status) " +
-                               "VALUES (:location, :status)";
+            
+            // FIXED: Explicitly set modified fields to null for new records
+            obj.setModified_by(null);
+            obj.setModified_date(null);
+            
+            // FIXED: Corrected SQL syntax (added commas, matched columns to values)
+            String insertQuery = "INSERT INTO location (location, created_date, created_by, modified_date, modified_by, status) " +
+                               "VALUES (:location, :created_date, :created_by, NULL, NULL, :status)";
             
             BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);
             count = namedParamJdbcTemplate.update(insertQuery, paramSource);
@@ -155,7 +161,9 @@ public class LocationDao {
             }
             
             NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-            String updateQuery = "UPDATE location SET location = :location, status = :status " +
+            
+            // Query is correct, it will update location, modified_date, modified_by, and status
+            String updateQuery = "UPDATE location SET location = :location, modified_date = :modified_date, modified_by = :modified_by, status = :status " +
                                "WHERE id = :id";
             
             BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);
@@ -216,7 +224,8 @@ public class LocationDao {
     public List<Location> getActiveLocations() throws Exception {
         List<Location> locationList = new ArrayList<>();
         try {
-            String query = "SELECT id, location, status " +
+            // FIXED: Added created_date, created_by, modified_date, modified_by to SELECT
+            String query = "SELECT id, location, status, created_date, created_by, modified_date, modified_by " +
                           "FROM location WHERE status = 'Active' ORDER BY location ASC";
             locationList = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Location.class));
             
@@ -277,7 +286,8 @@ public class LocationDao {
             StringBuilder query = new StringBuilder();
             List<Object> params = new ArrayList<>();
             
-            query.append("SELECT id, location, status FROM location WHERE 1=1 ");
+            // FIXED: Added created_date, created_by, modified_date, modified_by to SELECT
+            query.append("SELECT id, location, status, created_date, created_by, modified_date, modified_by FROM location WHERE 1=1 ");
             
             if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation())) {
                 query.append(" AND location LIKE ? ");
@@ -352,11 +362,6 @@ public class LocationDao {
             
             if (result != null && !result.isEmpty()) {
                 stats = result.get(0);
-                // Map the result to the location object
-                // Note: You need to add these fields to your Location model if not present
-                // stats.setTotalLocations(String.valueOf(total));
-                // stats.setActiveLocations(String.valueOf(active));
-                // stats.setInactiveLocations(String.valueOf(inactive));
             }
             
         } catch (Exception e) {
@@ -398,7 +403,8 @@ public class LocationDao {
     public List<Location> getLocationsByStatus(String status) throws Exception {
         List<Location> locationList = new ArrayList<>();
         try {
-            String query = "SELECT id, location, status " +
+            // FIXED: Added created_date, created_by, modified_date, modified_by to SELECT
+            String query = "SELECT id, location, status, created_date, created_by, modified_date, modified_by " +
                           "FROM location WHERE status = ? ORDER BY location ASC";
             locationList = jdbcTemplate.query(query, new Object[]{status}, new BeanPropertyRowMapper<>(Location.class));
             

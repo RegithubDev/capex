@@ -1,5 +1,6 @@
 package com.resustainability.reisp.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,6 @@ public class DepartmentService {
         return dao.checkUniqueIfForDept(obj);
     }
 
-    // Get distinct SBU list
     public List<Department> getSBUList() throws Exception {
         return dao.getSBUList();
     }

@@ -1,7 +1,39 @@
 package com.resustainability.reisp.model;
 public class Plant {
-    private String id,location,locationid,sbu,plant_code,plant_name,status,total_available_budget_fy;
+    private String id,location,locationid,sbu,plant_code,plant_name,created_date, created_by, modified_date,modified_by,status,total_available_budget_fy;
     
+
+	public String getCreated_date() {
+		return created_date;
+	}
+
+	public void setCreated_date(String created_date) {
+		this.created_date = created_date;
+	}
+
+	public String getCreated_by() {
+		return created_by;
+	}
+
+	public void setCreated_by(String created_by) {
+		this.created_by = created_by;
+	}
+
+	public String getModified_date() {
+		return modified_date;
+	}
+
+	public void setModified_date(String modified_date) {
+		this.modified_date = modified_date;
+	}
+
+	public String getModified_by() {
+		return modified_by;
+	}
+
+	public void setModified_by(String modified_by) {
+		this.modified_by = modified_by;
+	}
 
 	public String getLocationid() {
 		return locationid;

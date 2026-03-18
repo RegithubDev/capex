@@ -662,6 +662,10 @@
                         <th>Plant Code</th> -->
                         <th>Department Code</th>
                         <th>Department Name</th>
+                        <th>created_date</th>
+                        <th>created_by</th>
+                        <th>modified_date</th>
+                        <th>modified_by</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -881,6 +885,10 @@
                    
                     '<td>' + (dept.department_code || 'N/A') + '</td>' +
                     '<td>' + (dept.department_name || 'N/A') + '</td>' +
+                    '<td>' + (dept.created_date || 'N/A') + '</td>' +
+                    '<td>' + (dept.created_by || 'N/A') + '</td>' +
+                    '<td>' + (dept.modified_date || 'N/A') + '</td>' +
+                    '<td>' + (dept.modified_by || 'N/A') + '</td>' +
                     '<td>' +
                         '<span class="' + statusClass + '">' +
                             (dept.status || 'Inactive') +

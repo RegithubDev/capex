@@ -39,8 +39,10 @@ public class DepartmentDao {
             StringBuilder qry = new StringBuilder();
             List<Object> params = new ArrayList<>();
             
+            // FIXED: Added created_date, created_by, modified_date, modified_by
             qry.append("SELECT TOP (1000) [id], [sbu], [plant_code], ");
-            qry.append("[department_code], [department_name], [status] ");
+            qry.append("[department_code], [department_name], [status], ");
+            qry.append("[created_date], [created_by], [modified_date], [modified_by] ");
             qry.append("FROM [capexDB].[dbo].[department] ");
             qry.append("WHERE 1=1 ");
             
@@ -95,9 +97,15 @@ public class DepartmentDao {
         
         try {
             NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+            
+            // FIXED: Explicitly set modified fields to null for new records
+            obj.setModified_by(null);
+            obj.setModified_date(null);
+            
+            // FIXED: Added created_date, created_by, modified_date, modified_by to INSERT query
             String insertQry = "INSERT INTO [capexDB].[dbo].[department] " +
-                               "([sbu], [plant_code], [department_code], [department_name], [status]) " +
-                               "VALUES (:sbu, :plant_code, :department_code, :department_name, :status)";
+                               "([sbu], [plant_code], [department_code], [department_name], [status], [created_date], [created_by], [modified_date], [modified_by]) " +
+                               "VALUES (:sbu, :plant_code, :department_code, :department_name, :status, :created_date, :created_by, NULL, NULL)";
             
             BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);         
             count = namedParamJdbcTemplate.update(insertQry, paramSource);
@@ -124,12 +132,16 @@ public class DepartmentDao {
         
         try {
             NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+            
+            // FIXED: Added modified_date and modified_by to UPDATE query
             String updateQry = "UPDATE [capexDB].[dbo].[department] " +
                                "SET [sbu] = :sbu, " +
                                "[plant_code] = :plant_code, " +
                                "[department_code] = :department_code, " +
                                "[department_name] = :department_name, " +
-                               "[status] = :status " +
+                               "[status] = :status, " +
+                               "[modified_date] = :modified_date, " +
+                               "[modified_by] = :modified_by " +
                                "WHERE [id] = :id";
             
             BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);         
@@ -196,8 +208,10 @@ public class DepartmentDao {
     public Department getDepartmentById(String id) throws Exception {
         Department department = null;
         try {
+            // FIXED: Added created_date, created_by, modified_date, modified_by
             String qry = "SELECT TOP (1) [id], [sbu], [plant_code], " +
-                         "[department_code], [department_name], [status] " +
+                         "[department_code], [department_name], [status], " +
+                         "[created_date], [created_by], [modified_date], [modified_by] " +
                          "FROM [capexDB].[dbo].[department] " +
                          "WHERE [id] = ?";
             

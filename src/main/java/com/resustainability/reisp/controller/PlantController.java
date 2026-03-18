@@ -1,5 +1,8 @@
 package com.resustainability.reisp.controller;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpSession;
@@ -307,6 +310,14 @@ public class PlantController {
                 return model;
             }
             
+            // ==========================================
+            // FIX: Set created_by and created_date here
+            // ==========================================
+            obj.setCreated_by(userId);
+            DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String dt = formatter.format(new Date());
+            obj.setCreated_date(dt);
+            
             boolean flag = service.addPlant(obj);
             if (flag) {
                 attributes.addFlashAttribute("success", "Plant added successfully.");
@@ -377,6 +388,12 @@ public class PlantController {
                 attributes.addFlashAttribute("error", "Plant Code already exists for another record.");
                 return model;
             }
+            
+            // ==========================================
+            // FIX: Set modified_by here
+            // (modified_date is handled by GETDATE() in DAO)
+            // ==========================================
+            obj.setModified_by(userId);
             
             boolean flag = service.updatePlant(obj);
             if (flag) {

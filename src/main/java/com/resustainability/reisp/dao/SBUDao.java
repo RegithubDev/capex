@@ -42,7 +42,7 @@ public class SBUDao {
             List<Object> params = new ArrayList<>();
             
             // Build query with optional filters
-            query.append("SELECT id, sbu, sbu_name, status FROM sbu WHERE 1=1 ");
+            query.append("SELECT id, sbu, sbu_name, created_date, created_by, updated_at, updated_by, status FROM sbu WHERE 1=1 ");
             
             if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
                 query.append(" AND sbu LIKE ? ");
@@ -80,7 +80,7 @@ public class SBUDao {
     public SBU getSBUById(String id) throws Exception {
         SBU sbu = null;
         try {
-            String query = "SELECT id, sbu, sbu_name, status FROM sbu WHERE id = ?";
+            String query = "SELECT id, sbu, sbu_name, created_date, created_by, updated_by, updated_at, status FROM sbu WHERE id = ?";
             List<SBU> result = jdbcTemplate.query(
                 query, 
                 new Object[]{id}, 
@@ -99,7 +99,8 @@ public class SBUDao {
     }
 
     /**
-     * Add new SBU
+     * Add new SBU - FIXED: Explicitly inserts NULL for updated_by and updated_at
+     * to override any SQL Server default constraints.
      */
     public boolean addSBU(SBU obj) throws Exception {
         int count = 0;
@@ -117,7 +118,13 @@ public class SBUDao {
             }
             
             NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-            String insertQuery = "INSERT INTO sbu (sbu, sbu_name, status) VALUES (:sbu, :sbu_name, :status)";
+            
+            obj.setUpdated_by(null);
+            obj.setUpdated_at(null);
+            
+            // Explicitly insert NULL for updated_by and updated_at to prevent DB defaults from firing
+            String insertQuery = "INSERT INTO sbu (sbu, sbu_name, created_by, created_date, updated_by, updated_at, status) " +
+                                "VALUES (:sbu, :sbu_name, :created_by, :created_date, NULL, NULL, :status)";
             
             BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);
             count = namedParamJdbcTemplate.update(insertQuery, paramSource);
@@ -160,7 +167,69 @@ public class SBUDao {
             }
             
             NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-            String updateQuery = "UPDATE sbu SET sbu = :sbu, sbu_name = :sbu_name, status = :status WHERE id = :id";
+            
+            // Only update sbu, sbu_name, updated_by, updated_at, status
+            String updateQuery = "UPDATE sbu SET sbu = :sbu, sbu_name = :sbu_name, " +
+                                "updated_by = :updated_by, updated_at = GETDATE(), " +
+                                "status = :status WHERE id = :id";
+            
+            BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);
+            count = namedParamJdbcTemplate.update(updateQuery, paramSource);
+            
+            if (count > 0) {
+                flag = true;
+            }
+            
+            transactionManager.commit(status);
+            
+        } catch (Exception e) {
+            transactionManager.rollback(status);
+            e.printStackTrace();
+            throw new Exception("Error updating SBU: " + e.getMessage(), e);
+        }
+        return flag;
+    }
+
+    /**
+     * Alternative update method that first fetches the existing record
+     * to ensure created fields are preserved
+     */
+    public boolean updateSBUSafe(SBU obj) throws Exception {
+        int count = 0;
+        boolean flag = false;
+        TransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        
+        try {
+            // First get the existing record
+            SBU existingSBU = getSBUById(obj.getId());
+            if (existingSBU == null) {
+                throw new Exception("SBU not found with ID: " + obj.getId());
+            }
+            
+            // Check if SBU code exists for another record (excluding current one)
+            String checkQuery = "SELECT COUNT(*) FROM sbu WHERE sbu = ? AND id != ?";
+            int existingCount = jdbcTemplate.queryForObject(
+                checkQuery, 
+                Integer.class, 
+                obj.getSbu(), 
+                obj.getId()
+            );
+            
+            if (existingCount > 0) {
+                throw new Exception("SBU code already exists for another record: " + obj.getSbu());
+            }
+            
+            NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+            
+            // Preserve created fields from existing record
+            obj.setCreated_by(existingSBU.getCreated_by());
+            obj.setCreated_date(existingSBU.getCreated_date());
+            
+            // Update only the allowed fields
+            String updateQuery = "UPDATE sbu SET sbu = :sbu, sbu_name = :sbu_name, " +
+                                "updated_by = :updated_by, updated_at = GETDATE(), " +
+                                "status = :status WHERE id = :id";
             
             BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);
             count = namedParamJdbcTemplate.update(updateQuery, paramSource);
@@ -296,7 +365,7 @@ public class SBUDao {
             StringBuilder query = new StringBuilder();
             List<Object> params = new ArrayList<>();
             
-            query.append("SELECT id, sbu, sbu_name, status FROM sbu WHERE 1=1 ");
+            query.append("SELECT id, sbu, sbu_name, created_by, created_date, updated_by, updated_at, status FROM sbu WHERE 1=1 ");
             
             if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
                 query.append(" AND sbu LIKE ? ");
@@ -315,7 +384,7 @@ public class SBUDao {
             
             query.append(" ORDER BY sbu ASC ");
             
-            // Add pagination
+            // Add pagination - SQL Server syntax
             query.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
             params.add((page - 1) * pageSize);
             params.add(pageSize);
@@ -364,5 +433,30 @@ public class SBUDao {
             e.printStackTrace();
             throw new Exception("Error counting SBUs: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Get recently added/modified SBUs
+     */
+    public List<SBU> getRecentSBUs(int limit) throws Exception {
+        List<SBU> sbuList = new ArrayList<>();
+        try {
+            String query = "SELECT TOP (?) id, sbu, sbu_name, created_by, created_date, updated_by, updated_at, status " +
+                          "FROM sbu ORDER BY created_date DESC, updated_at DESC";
+            sbuList = jdbcTemplate.query(query, new Object[]{limit}, new BeanPropertyRowMapper<>(SBU.class));
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error fetching recent SBUs: " + e.getMessage(), e);
+        }
+        return sbuList;
+    }
+
+    /**
+     * Reset updated fields to NULL for testing (use only if needed)
+     */
+    public int resetUpdatedFieldsForNewRecords() throws Exception {
+        String updateQuery = "UPDATE sbu SET updated_by = NULL, updated_at = NULL WHERE updated_at = created_date";
+        return jdbcTemplate.update(updateQuery);
     }
 }

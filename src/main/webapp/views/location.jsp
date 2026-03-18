@@ -628,6 +628,10 @@
                     <tr>
                         <th>#</th>
                         <th>Location Name</th>
+                         <th>Created_date</th>
+                          <th>Created_By</th> 
+                           <th>Modified_date</th>
+                            <th>Modified_By</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -792,6 +796,10 @@
                     row.innerHTML = 
                         '<td>' + rowNumber + '</td>' +
                         '<td>' + (loc.location || 'N/A') + '</td>' +
+                        '<td>' + (loc.created_date || 'N/A') + '</td>' +
+                        '<td>' + (loc.created_by || 'N/A') + '</td>' +
+                        '<td>' + (loc.modified_date || 'N/A') + '</td>' +
+                        '<td>' + (loc.modified_by || 'N/A') + '</td>' +
                         '<td>' +
                             '<span class="' + statusClass + '">' + statusText + '</span>' +
                         '</td>' +
@@ -973,58 +981,67 @@
         }
 
         // Save location (Add/Edit)
+   // Save location (Add/Edit)
         function saveLocation(event) {
             event.preventDefault();
             console.log('Saving location...');
             
-            // Get form data
             const formData = {
                 id: document.getElementById('location_id').value,
                 location: document.getElementById('location').value,
                 status: document.getElementById('status').value
             };
             
-            console.log('Form data to save:', formData);
-            
-            // Validate location name
             if (!formData.location || formData.location.trim() === '') {
                 showAlert('Location name is required', 'error');
                 return;
             }
             
-            // Determine URL based on add/edit
-            let url, method;
-            if (formData.id) {
-                url = baseUrl + '/location/update';
-                method = 'POST';
-            } else {
-                url = baseUrl + '/location/add';
-                method = 'POST';
-            }
+            let url = formData.id ? baseUrl + '/location/update' : baseUrl + '/location/add';
             
-            console.log('Sending to:', url, 'with method:', method);
-            
-            // Send AJAX request
             $.ajax({
                 url: url,
-                type: method,
+                type: 'POST',
                 data: formData,
+                dataType: 'json', // Tell jQuery to expect JSON back
                 success: function(response) {
-                    console.log('Save successful:', response);
-                    showAlert(formData.id ? 'Location updated successfully!' : 'Location added successfully!', 'success');
-                    closeLocationModal();
-                    
-                    // Reload data after a short delay
-                    setTimeout(function() {
-                        loadLocations();
-                    }, 500);
+                    // Check the JSON status returned from the Controller
+                    if (response && response.status === 'success') {
+                        showAlert(response.message, 'success');
+                        closeLocationModal();
+                        setTimeout(function() { loadLocations(); }, 500);
+                    } else {
+                        // If it failed, show the EXACT error message from the database!
+                        showAlert(response.message || 'Error saving location', 'error');
+                    }
                 },
                 error: function(xhr, status, error) {
-                    console.error('Error saving location:', error);
-                    console.error('Response text:', xhr.responseText);
-                    showAlert('Error saving location. Please check all fields and try again.', 'error');
+                    console.error('AJAX Error:', error);
+                    showAlert('Server error occurred while saving.', 'error');
                 }
             });
+        }
+
+        // Delete location
+        function deleteLocation(id) {
+            if (confirm('Are you sure you want to delete this location?')) {
+                $.ajax({
+                    url: baseUrl + '/location/delete/' + id,
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response && response.status === 'success') {
+                            showAlert(response.message, 'success');
+                            setTimeout(function() { loadLocations(); }, 300);
+                        } else {
+                            showAlert(response.message || 'Error deleting location', 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        showAlert('Server error occurred while deleting.', 'error');
+                    }
+                });
+            }
         }
 
         // Delete location

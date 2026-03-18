@@ -140,7 +140,14 @@
             color: var(--gray-500);
         }
 
-        table { width: 100%; border-collapse: collapse; }
+        /* Added table-responsive class to fix hidden columns */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 1200px; }
         th {
             background: var(--gray-800);
             color: white;
@@ -155,6 +162,7 @@
             border-bottom: 1px solid var(--gray-200);
             font-size: 0.95rem;
             vertical-align: middle;
+            white-space: nowrap;
         }
 
         .budget-cell {
@@ -330,21 +338,28 @@
             </div>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Location</th>
-                    <th>SBU</th>
-                    <th>Plant Code</th>
-                    <th>Plant Name</th>
-                    <th>Total Available Budget</th>
-                    <th>Status</th>
-                    <th style="text-align:right; width:110px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
+        <!-- Wrapped table in table-responsive to enable horizontal scrolling -->
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Location</th>
+                        <th>SBU</th>
+                        <th>Plant Code</th>
+                        <th>Plant Name</th>
+                        <th>Total Available Budget</th>
+                        <th>Created Date</th>
+                        <th>Created By</th>
+                        <th>Modified Date</th>
+                        <th>Modified By</th>
+                        <th>Status</th>
+                        <th style="text-align:right; width:110px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
     </div>
 
     <div class="pagination" id="pagination"></div>
@@ -467,7 +482,7 @@
         tbody.innerHTML = '';
 
         if (pageItems.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:60px 20px;">No matching plants found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:60px 20px;">No matching plants found</td></tr>';
             document.getElementById('pagination').innerHTML = '';
             return;
         }
@@ -477,13 +492,23 @@
             var budgetStr = formatBudget(p.total_available_budget_fy);
             var budgetCls = (p.total_available_budget_fy == null || p.total_available_budget_fy === 0) ? ' budget-zero' : '';
 
+            // Safely handle null/empty dates and users
+            var createdDate = (p.created_date && p.created_date.trim() !== '') ? p.created_date : 'N/A';
+            var createdBy = (p.created_by && p.created_by.trim() !== '') ? p.created_by : 'N/A';
+            var modifiedDate = (p.modified_date && p.modified_date.trim() !== '') ? p.modified_date : 'N/A';
+            var modifiedBy = (p.modified_by && p.modified_by.trim() !== '') ? p.modified_by : 'N/A';
+
             var row = '<tr>' +
                 '<td>' + (start + j + 1) + '</td>' +
-                '<td>' + (p.location || '—') + '</td>' +
-                '<td>' + (p.sbu || '—') + '</td>' +
-                '<td>' + (p.plant_code || '—') + '</td>' +
-                '<td>' + (p.plant_name || '—') + '</td>' +
+                '<td>' + (p.location || 'N/A') + '</td>' +
+                '<td>' + (p.sbu || 'N/A') + '</td>' +
+                '<td>' + (p.plant_code || 'N/A') + '</td>' +
+                '<td>' + (p.plant_name || 'N/A') + '</td>' +
                 '<td class="budget-cell' + budgetCls + '">' + budgetStr + '</td>' +
+                '<td>' + createdDate + '</td>' +
+                '<td>' + createdBy + '</td>' +
+                '<td>' + modifiedDate + '</td>' +
+                '<td>' + modifiedBy + '</td>' +
                 '<td><span class="' + (p.status === 'Active' ? 'status-active' : 'status-inactive') + '">' +
                     (p.status || 'Inactive') +
                 '</span></td>' +
@@ -521,7 +546,7 @@
             },
             error: function() {
                 document.getElementById('tableBody').innerHTML =
-                    '<tr><td colspan="8" style="text-align:center; color:#dc2626; padding:60px;">Error loading plants</td></tr>';
+                    '<tr><td colspan="12" style="text-align:center; color:#dc2626; padding:60px;">Error loading plants</td></tr>';
             }
         });
     }

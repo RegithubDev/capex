@@ -40,8 +40,8 @@ public class PlantDao {
             StringBuilder query = new StringBuilder();
             List<Object> params = new ArrayList<>();
             
-            // Build query with optional filters
-            query.append("SELECT p.id, l.location, l.id as locationid, p.sbu,s.sbu_name, p.plant_code,p.total_available_budget_fy, p.plant_name, p.status FROM plant p "
+            // FIXED: Added created_date, created_by, modified_date, modified_by to the SELECT query
+            query.append("SELECT p.id, l.location, l.id as locationid, p.sbu, s.sbu_name, p.plant_code, p.total_available_budget_fy, p.plant_name, p.status, p.created_date, p.created_by, p.modified_date, p.modified_by FROM plant p "
             		+ " left join sbu s on p.sbu = s.sbu "
             		+ " left join location l on l.id = p.location "
             		+ "WHERE 1=1 ");
@@ -94,7 +94,7 @@ public class PlantDao {
     public Plant getPlantById(String id) throws Exception {
         Plant plant = null;
         try {
-            String query = "SELECT id, location, sbu, plant_code, plant_name,total_available_budget_fy, status FROM plant WHERE id = ?";
+            String query = "SELECT id, location, sbu, plant_code, plant_name, total_available_budget_fy, created_date, created_by, modified_date, modified_by, status FROM plant WHERE id = ?";
             List<Plant> result = jdbcTemplate.query(
                 query, 
                 new Object[]{id}, 
@@ -131,8 +131,14 @@ public class PlantDao {
             }
             
             NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-            String insertQuery = "INSERT INTO plant (location, sbu, plant_code, plant_name,total_available_budget_fy, status) " +
-                               "VALUES (:location, :sbu, :plant_code, :plant_name, :total_available_budget_fy, :status)";
+            
+            // FIXED: Explicitly set modified fields to null so DB defaults don't trigger
+            obj.setModified_by(null);
+            obj.setModified_date(null);
+            
+            // FIXED: Matched column count with values count, and explicitly inserted NULL for modified fields
+            String insertQuery = "INSERT INTO plant (location, sbu, plant_code, plant_name, total_available_budget_fy, created_by, created_date, modified_by, modified_date, status) " +
+                               "VALUES (:location, :sbu, :plant_code, :plant_name, :total_available_budget_fy, :created_by, :created_date, NULL, NULL, :status)";
             
             BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);
             count = namedParamJdbcTemplate.update(insertQuery, paramSource);
@@ -175,8 +181,10 @@ public class PlantDao {
             }
             
             NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-            String updateQuery = "UPDATE plant SET location = :location, sbu = :sbu,total_available_budget_fy = :total_available_budget_fy, " +
-                               "plant_code = :plant_code, plant_name = :plant_name, status = :status " +
+            
+            // FIXED: Changed `:GETDATE()` to `GETDATE()` (Removed the colon to fix SQL syntax error)
+            String updateQuery = "UPDATE plant SET location = :location, sbu = :sbu, total_available_budget_fy = :total_available_budget_fy, " +
+                               "plant_code = :plant_code, plant_name = :plant_name, modified_date = GETDATE(), modified_by = :modified_by, status = :status " +
                                "WHERE id = :id";
             
             BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);
@@ -229,7 +237,8 @@ public class PlantDao {
     public List<Plant> getActivePlants() throws Exception {
         List<Plant> plantList = new ArrayList<>();
         try {
-            String query = "SELECT id, location, sbu, plant_code, plant_name,total_available_budget_fy, status " +
+            // FIXED: Typo in cretaed_date -> created_date
+            String query = "SELECT id, location, sbu, plant_code, plant_name, total_available_budget_fy, created_date, created_by, modified_date, modified_by, status " +
                           "FROM plant WHERE status = 'Active' ORDER BY plant_code ASC";
             plantList = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Plant.class));
             
@@ -246,7 +255,6 @@ public class PlantDao {
     public Plant getPlantStatistics() throws Exception {
         Plant stats = new Plant();
         try {
-            // Using count fields if they exist in Plant model, otherwise we'll add them
             String query = "SELECT " +
                           "(SELECT COUNT(*) FROM plant) AS all_plants, " +
                           "(SELECT COUNT(*) FROM plant WHERE status = 'Active') AS active_plants, " +
@@ -347,7 +355,8 @@ public class PlantDao {
             StringBuilder query = new StringBuilder();
             List<Object> params = new ArrayList<>();
             
-            query.append("SELECT id, location, sbu, plant_code, plant_name, status FROM plant WHERE 1=1 ");
+            // FIXED: Added created_date, created_by, modified_date, modified_by to the SELECT query
+            query.append("SELECT id, location, sbu, plant_code, plant_name, total_available_budget_fy, created_date, created_by, modified_date, modified_by, status FROM plant WHERE 1=1 ");
             
             if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation())) {
                 query.append(" AND location LIKE ? ");

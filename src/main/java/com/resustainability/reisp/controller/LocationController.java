@@ -1,6 +1,11 @@
 package com.resustainability.reisp.controller;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpSession;
 
@@ -17,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.resustainability.reisp.constants.PageConstants;
 import com.resustainability.reisp.model.Location;
@@ -44,7 +48,6 @@ public class LocationController {
     public ModelAndView location(@ModelAttribute User user, HttpSession session) {
         ModelAndView model = new ModelAndView(PageConstants.location);
         try {
-            // Check session
             String userId = (String) session.getAttribute("USER_ID");
             String userName = (String) session.getAttribute("USER_NAME");
             
@@ -53,272 +56,202 @@ public class LocationController {
                 return model;
             }
             
-            // Add user info to model
             model.addObject("userName", userName);
             model.addObject("userId", userId);
-            
-            logger.info("Location page loaded successfully for user: " + userName);
             
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("Error loading Location page: " + e.getMessage());
-            model.addObject("error", "Error loading page: " + e.getMessage());
         }
         return model;
     }
     
-    /**
-     * Get all locations list (AJAX)
-     */
-    @RequestMapping(value = "/ajax/getLocationList", method = {RequestMethod.GET, RequestMethod.POST}, 
-                   produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/ajax/getLocationList", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<Location> getLocationList(@ModelAttribute Location obj, HttpSession session) {
-        List<Location> locationList = null;
         try {
-            String userId = (String) session.getAttribute("USER_ID");
-            if (userId == null) {
-                return null;
-            }
-            
-            locationList = service.getLocationsList(obj);
+            if (session.getAttribute("USER_ID") == null) return null;
+            return service.getLocationsList(obj);
         } catch (Exception e) {
-            e.printStackTrace();
             logger.error("getLocationList : " + e.getMessage());
+            return null;
         }
-        return locationList;
     }
     
-    /**
-     * Get location by ID (AJAX)
-     */
-    @RequestMapping(value = "/ajax/getLocationById/{id}", method = {RequestMethod.GET}, 
-                   produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/ajax/getLocationById/{id}", method = {RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public Location getLocationById(@PathVariable("id") String id, HttpSession session) {
-        Location location = null;
         try {
-            String userId = (String) session.getAttribute("USER_ID");
-            if (userId == null) {
-                return null;
-            }
-            
-            location = service.getLocationById(id);
+            if (session.getAttribute("USER_ID") == null) return null;
+            return service.getLocationById(id);
         } catch (Exception e) {
-            e.printStackTrace();
             logger.error("getLocationById : " + e.getMessage());
+            return null;
         }
-        return location;
     }
     
-    /**
-     * Get active locations for dropdown (AJAX)
-     */
-    @RequestMapping(value = "/ajax/getActiveLocations", method = {RequestMethod.GET, RequestMethod.POST}, 
-                   produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/ajax/getActiveLocations", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<Location> getActiveLocations(HttpSession session) {
-        List<Location> locationList = null;
         try {
-            String userId = (String) session.getAttribute("USER_ID");
-            if (userId == null) {
-                return null;
-            }
-            
-            locationList = service.getActiveLocations();
+            if (session.getAttribute("USER_ID") == null) return null;
+            return service.getActiveLocations();
         } catch (Exception e) {
-            e.printStackTrace();
             logger.error("getActiveLocations : " + e.getMessage());
+            return null;
         }
-        return locationList;
     }
     
-    /**
-     * Check if location name is unique (AJAX)
-     */
-    @RequestMapping(value = "/ajax/checkUniqueLocation", method = {RequestMethod.GET, RequestMethod.POST}, 
-                   produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/ajax/checkUniqueLocation", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public boolean checkUniqueLocation(@ModelAttribute Location obj, HttpSession session) {
         try {
-            String userId = (String) session.getAttribute("USER_ID");
-            if (userId == null) {
-                return false;
-            }
-            
-            String excludeId = obj.getId();
-            return service.isLocationUnique(obj.getLocation(), excludeId);
+            if (session.getAttribute("USER_ID") == null) return false;
+            return service.isLocationUnique(obj.getLocation(), obj.getId());
         } catch (Exception e) {
-            e.printStackTrace();
             logger.error("checkUniqueLocation : " + e.getMessage());
             return false;
         }
     }
     
-    /**
-     * Get status filter list for location
-     */
-    @RequestMapping(value = "/ajax/getLocationStatusFilterList", method = {RequestMethod.GET, RequestMethod.POST}, 
-                   produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/ajax/getLocationStatusFilterList", method = {RequestMethod.GET, RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<String> getLocationStatusFilterList(HttpSession session) {
-        List<String> statusList = null;
         try {
-            String userId = (String) session.getAttribute("USER_ID");
-            if (userId == null) {
-                return null;
-            }
-            
-            statusList = service.getStatusFilterList();
+            if (session.getAttribute("USER_ID") == null) return null;
+            return service.getStatusFilterList();
         } catch (Exception e) {
-            e.printStackTrace();
             logger.error("getLocationStatusFilterList : " + e.getMessage());
+            return null;
         }
-        return statusList;
     }
     
     /**
-     * Add new location
+     * Add new location (Returns JSON)
      */
-    @RequestMapping(value = "/location/add", method = {RequestMethod.GET, RequestMethod.POST})
-    public ModelAndView addLocation(@ModelAttribute Location obj, RedirectAttributes attributes, HttpSession session) {
-        ModelAndView model = new ModelAndView();
+    @RequestMapping(value = "/location/add", method = {RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Map<String, String> addLocation(@ModelAttribute Location obj, HttpSession session) {
+        Map<String, String> response = new HashMap<>();
         try {
-            model.setViewName("redirect:/location");
-            
             String userId = (String) session.getAttribute("USER_ID");
             if (userId == null) {
-                attributes.addFlashAttribute("error", "Session expired. Please login again.");
-                model.setViewName("redirect:/login");
-                return model;
+                response.put("status", "error");
+                response.put("message", "Session expired. Please login again.");
+                return response;
             }
             
-            // Validate required fields
             if (obj.getLocation() == null || obj.getLocation().trim().isEmpty()) {
-                attributes.addFlashAttribute("error", "Location name is required.");
-                return model;
+                response.put("status", "error");
+                response.put("message", "Location name is required.");
+                return response;
             }
             
-            if (obj.getStatus() == null || obj.getStatus().trim().isEmpty()) {
-                attributes.addFlashAttribute("error", "Status is required.");
-                return model;
-            }
-            
-            // Check if location already exists
             boolean isUnique = service.isLocationUnique(obj.getLocation(), null);
             if (!isUnique) {
-                attributes.addFlashAttribute("error", "Location name already exists.");
-                return model;
+                response.put("status", "error");
+                response.put("message", "Location name already exists.");
+                return response;
             }
+            
+            // Set Created By and Date
+            obj.setCreated_by(userId);
+            DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            obj.setCreated_date(formatter.format(new Date()));
             
             boolean flag = service.addLocation(obj);
             if (flag) {
-                attributes.addFlashAttribute("success", "Location added successfully.");
-                logger.info("Location added successfully: " + obj.getLocation() + " by user: " + userId);
+                response.put("status", "success");
+                response.put("message", "Location added successfully.");
             } else {
-                attributes.addFlashAttribute("error", "Failed to add location. Please try again.");
-                logger.warn("Failed to add location: " + obj.getLocation());
+                response.put("status", "error");
+                response.put("message", "Failed to add location.");
             }
-            
         } catch (Exception e) {
-            attributes.addFlashAttribute("error", "Error adding location: " + e.getMessage());
-            e.printStackTrace();
-            logger.error("addLocation : " + e.getMessage());
+            response.put("status", "error");
+            response.put("message", "Database Error: " + e.getMessage());
+            logger.error("addLocation : " + e.getMessage(), e);
         }
-        return model;
+        return response;
     }
     
     /**
-     * Update existing location
+     * Update existing location (Returns JSON)
      */
-    @RequestMapping(value = "/location/update", method = {RequestMethod.GET, RequestMethod.POST})
-    public ModelAndView updateLocation(@ModelAttribute Location obj, RedirectAttributes attributes, HttpSession session) {
-        ModelAndView model = new ModelAndView();
+    @RequestMapping(value = "/location/update", method = {RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Map<String, String> updateLocation(@ModelAttribute Location obj, HttpSession session) {
+        Map<String, String> response = new HashMap<>();
         try {
-            model.setViewName("redirect:/location");
-            
             String userId = (String) session.getAttribute("USER_ID");
             if (userId == null) {
-                attributes.addFlashAttribute("error", "Session expired. Please login again.");
-                model.setViewName("redirect:/login");
-                return model;
+                response.put("status", "error");
+                response.put("message", "Session expired. Please login again.");
+                return response;
             }
             
-            // Validate required fields
             if (obj.getId() == null || obj.getId().trim().isEmpty()) {
-                attributes.addFlashAttribute("error", "Location ID is required for update.");
-                return model;
+                response.put("status", "error");
+                response.put("message", "Location ID is required for update.");
+                return response;
             }
             
-            if (obj.getLocation() == null || obj.getLocation().trim().isEmpty()) {
-                attributes.addFlashAttribute("error", "Location name is required.");
-                return model;
-            }
-            
-            if (obj.getStatus() == null || obj.getStatus().trim().isEmpty()) {
-                attributes.addFlashAttribute("error", "Status is required.");
-                return model;
-            }
-            
-            // Check if location already exists for another record
             boolean isUnique = service.isLocationUnique(obj.getLocation(), obj.getId());
             if (!isUnique) {
-                attributes.addFlashAttribute("error", "Location name already exists for another record.");
-                return model;
+                response.put("status", "error");
+                response.put("message", "Location name already exists for another record.");
+                return response;
             }
+            
+            // Set Modified By and Date
+            obj.setModified_by(userId);
+            DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            obj.setModified_date(formatter.format(new Date()));
             
             boolean flag = service.updateLocation(obj);
             if (flag) {
-                attributes.addFlashAttribute("success", "Location updated successfully.");
-                logger.info("Location updated successfully. ID: " + obj.getId() + " by user: " + userId);
+                response.put("status", "success");
+                response.put("message", "Location updated successfully.");
             } else {
-                attributes.addFlashAttribute("error", "Failed to update location. Please try again.");
-                logger.warn("Failed to update location. ID: " + obj.getId());
+                response.put("status", "error");
+                response.put("message", "Failed to update location.");
             }
-            
         } catch (Exception e) {
-            attributes.addFlashAttribute("error", "Error updating location: " + e.getMessage());
-            e.printStackTrace();
-            logger.error("updateLocation : " + e.getMessage());
+            response.put("status", "error");
+            response.put("message", "Database Error: " + e.getMessage());
+            logger.error("updateLocation : " + e.getMessage(), e);
         }
-        return model;
+        return response;
     }
     
     /**
-     * Delete location
+     * Delete location (Returns JSON)
      */
-    @RequestMapping(value = "/location/delete/{id}", method = {RequestMethod.GET, RequestMethod.POST})
-    public ModelAndView deleteLocation(@PathVariable("id") String id, RedirectAttributes attributes, HttpSession session) {
-        ModelAndView model = new ModelAndView();
+    @RequestMapping(value = "/location/delete/{id}", method = {RequestMethod.POST}, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Map<String, String> deleteLocation(@PathVariable("id") String id, HttpSession session) {
+        Map<String, String> response = new HashMap<>();
         try {
-            model.setViewName("redirect:/location");
-            
             String userId = (String) session.getAttribute("USER_ID");
             if (userId == null) {
-                attributes.addFlashAttribute("error", "Session expired. Please login again.");
-                model.setViewName("redirect:/login");
-                return model;
-            }
-            
-            if (id == null || id.trim().isEmpty()) {
-                attributes.addFlashAttribute("error", "Location ID is required for deletion.");
-                return model;
+                response.put("status", "error");
+                response.put("message", "Session expired.");
+                return response;
             }
             
             boolean flag = service.deleteLocation(id);
             if (flag) {
-                attributes.addFlashAttribute("success", "Location deleted successfully.");
-                logger.info("Location deleted successfully. ID: " + id + " by user: " + userId);
+                response.put("status", "success");
+                response.put("message", "Location deleted successfully.");
             } else {
-                attributes.addFlashAttribute("error", "Failed to delete location. Please try again.");
-                logger.warn("Failed to delete location. ID: " + id);
+                response.put("status", "error");
+                response.put("message", "Failed to delete location.");
             }
-            
         } catch (Exception e) {
-            attributes.addFlashAttribute("error", "Error deleting location: " + e.getMessage());
-            e.printStackTrace();
-            logger.error("deleteLocation : " + e.getMessage());
+            response.put("status", "error");
+            response.put("message", "Database Error: " + e.getMessage());
+            logger.error("deleteLocation : " + e.getMessage(), e);
         }
-        return model;
+        return response;
     }
 }
