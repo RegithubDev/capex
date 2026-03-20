@@ -374,34 +374,18 @@ public class UserController {
 		return objsList;
 	}
 
-	@RequestMapping(value = "/add-user", method = {RequestMethod.GET,RequestMethod.POST})
-	public ModelAndView addUser(@ModelAttribute User obj,RedirectAttributes attributes,HttpSession session) {
-		boolean flag = false;
-		String userId = null;
-		String userName = null;
-		ModelAndView model = new ModelAndView();
+	@RequestMapping(value = "/add-user", method = {RequestMethod.POST})
+	@ResponseBody
+	public String addUser(@ModelAttribute User obj, HttpSession session) {
 		try {
-			model.setViewName("redirect:/done-ua");
-			userId = (String) session.getAttribute("USER_ID");
-			userName = (String) session.getAttribute("USER_NAME");
-			DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); 
-		    String dt = formatter.format(new Date());
-			String endDate = DateForUser.date();
-			obj.setEnd_date(endDate);
+			String userId = (String) session.getAttribute("USER_ID");
 			obj.setCreated_by(userId);
-			obj.setCreated_date(dt);
-			flag = service.addUser(obj);
-			if(flag == true) {
-				attributes.addFlashAttribute("success", "User Added Succesfully.");
-			}
-			else {
-				attributes.addFlashAttribute("error","Adding User is failed. Try again.");
-			}
+			boolean flag = service.addUser(obj);
+			return flag ? "Success" : "Failed to add user.";
 		} catch (Exception e) {
-			attributes.addFlashAttribute("error","Adding User is failed. Try again.");
 			e.printStackTrace();
+			return "Error: " + e.getMessage();
 		}
-		return model;
 	}
 	
 	@RequestMapping(value = "/done-ua", method = {RequestMethod.POST, RequestMethod.GET})
@@ -416,32 +400,18 @@ public class UserController {
 		return model;
 	}
 	
-	@RequestMapping(value = "/update-user", method = {RequestMethod.GET,RequestMethod.POST})
-	public ModelAndView updateUser(@ModelAttribute User obj,RedirectAttributes attributes,HttpSession session) {
-		boolean flag = false;
-		String userId = null;
-		String userName = null;
-		ModelAndView model = new ModelAndView();
+	@RequestMapping(value = "/update-user", method = {RequestMethod.POST})
+	@ResponseBody
+	public String updateUser(@ModelAttribute User obj, HttpSession session) {
 		try {
-			model.setViewName("redirect:/done-ua");
-			userId = (String) session.getAttribute("USER_ID");
-			userName = (String) session.getAttribute("USER_NAME");
-			DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); 
-		    String dt = formatter.format(new Date());
+			String userId = (String) session.getAttribute("USER_ID");
 			obj.setModified_by(userId);
-			obj.setModified_date(dt);
-			flag = service.updateUser(obj);
-			if(flag == true) {
-				attributes.addFlashAttribute("success", "User Updated Succesfully.");
-			}
-			else {
-				attributes.addFlashAttribute("error","Updating User is failed. Try again.");
-			}
+			boolean flag = service.updateUser(obj);
+			return flag ? "Success" : "Failed to update user.";
 		} catch (Exception e) {
 			e.printStackTrace();
-			attributes.addFlashAttribute("error","Updating User is failed. Try again.");
+			return "Error: " + e.getMessage();
 		}
-		return model;
 	}
 	
 	@RequestMapping(value = "/export-user", method = {RequestMethod.GET,RequestMethod.POST})

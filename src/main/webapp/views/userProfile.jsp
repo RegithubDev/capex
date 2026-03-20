@@ -60,6 +60,8 @@
         .btn-primary  { background:#3498db; color:white; }
         .btn-secondary { background:#f8f9fa; color:#333; border:1px solid #ccc; }
         .btn-success  { background:#27ae60; color:white; }
+        
+        /* --- MODAL CSS --- */
         .modal-overlay {
             position:fixed; inset:0;
             background:rgba(0,0,0,0.5);
@@ -108,14 +110,34 @@
             border-radius:6px;
             font-size:14px;
         }
-        .table { width:100%; border-collapse:collapse; margin-top:15px; }
-        .table th {
-            background:#2c3e50;
-            color:white;
-            padding:12px;
-            text-align:left;
+
+        /* --- RESPONSIVE TABLE CSS --- */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto; /* Adds horizontal scrollbar when needed */
+            -webkit-overflow-scrolling: touch;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-top: 15px;
         }
-        .table td { padding:12px; border-bottom:1px solid #eee; }
+        .table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            white-space: nowrap; /* Prevents text from squishing and overlapping */
+        }
+        .table th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 500;
+        }
+        .table td { 
+            padding: 12px 16px; 
+            border-bottom: 1px solid #eee; 
+            vertical-align: middle;
+        }
         .status-active  { background:#d4edda; color:#155724; padding:4px 10px; border-radius:12px; }
         .status-inactive { background:#f8d7da; color:#721c24; padding:4px 10px; border-radius:12px; }
         .action-btn {
@@ -126,20 +148,6 @@
             padding:6px;
             margin:0 4px;
         }
-        .pagination {
-            display:flex;
-            justify-content:center;
-            gap:8px;
-            margin:30px 0;
-        }
-        .page-btn {
-            padding:8px 14px;
-            border:1px solid #ccc;
-            border-radius:6px;
-            background:white;
-            cursor:pointer;
-        }
-        .page-btn.active { background:#3498db; color:white; border-color:#3498db; }
     </style>
 </head>
 <body>
@@ -168,26 +176,31 @@
         </div>
     </div>
 
-    <div id="alertContainer"></div>
-
-    <table class="table" id="userTable">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>User ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Project</th>
-                <th>Role</th>
-                <th>Designation</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody">
-            <tr><td colspan="9" style="text-align:center;padding:60px;">Loading users...</td></tr>
-        </tbody>
-    </table>
+    <!-- WRAPPED TABLE IN RESPONSIVE DIV -->
+    <div class="table-responsive">
+        <table class="table" id="userTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>User ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Project</th>
+                    <th>Role</th>
+                    <th>Designation</th>
+                    <th>Created Date</th>
+                    <th>Created By</th>
+                    <th>Modified Date</th>
+                    <th>Modified By</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr><td colspan="13" style="text-align:center;padding:60px;">Loading users...</td></tr>
+            </tbody>
+        </table>
+    </div>
 
 </div>
 
@@ -214,7 +227,7 @@
 
                     <div class="form-group">
                         <label>Password <span id="passwordRequired" style="color:red">*</span></label>
-                        <input type="password" id="password" name="password" required>
+                        <input type="password" id="password" name="password" required placeholder="Leave blank to keep current">
                     </div>
 
                     <div class="form-group">
@@ -225,6 +238,16 @@
                     <div class="form-group">
                         <label>Email <span style="color:red">*</span></label>
                         <input type="email" id="email_id" name="email_id" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Base SBU</label>
+                        <select id="base_sbu" name="base_sbu" class="form-select">
+                            <option value="">— Select —</option>
+                            <c:forEach var="sbu" items="${sbuList}">
+                                <option value="${sbu.sbu_code}">${sbu.sbu_name}</option>
+                            </c:forEach>
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -241,10 +264,11 @@
                         <label>Role</label>
                         <select id="base_role" name="base_role" class="form-select">
                             <option value="">— Select —</option>
-                                <option value="Admin">Admin</option>
-                                 <option value="User">User</option>
+                            <option value="Admin">Admin</option>
+                            <option value="User">User</option>
                         </select>
                     </div>
+                    
                     <div class="form-group">
                         <label>Designation</label>
                         <select id="role_type" name="role_type" class="form-select">
@@ -264,8 +288,6 @@
                         <label>Department</label>
                         <select id="base_department" name="base_department" class="form-select">
                             <option value="">— Select —</option>
-                            
-                            
                             <c:forEach var="dept" items="${departmentList}">
                                 <option value="${dept.department_code}">${dept.department_name}</option>
                             </c:forEach>
@@ -307,14 +329,14 @@ function loadUsers(){
         users = data || [];
         renderTable();
     }).fail(function(){
-        $('#tableBody').html('<tr><td colspan="9" style="color:red;text-align:center">Failed to load users</td></tr>');
+        $('#tableBody').html('<tr><td colspan="13" style="color:red;text-align:center">Failed to load users</td></tr>');
     });
 }
 
 function renderTable(){
     const tbody = $('#tableBody').empty();
     if (!users.length) {
-        tbody.html('<tr><td colspan="9" style="text-align:center;padding:60px;">No users found</td></tr>');
+        tbody.html('<tr><td colspan="13" style="text-align:center;padding:60px;">No users found</td></tr>');
         return;
     }
 
@@ -329,6 +351,10 @@ function renderTable(){
                 '<td>' + (u.base_project || '-') + '</td>' +
                 '<td>' + (u.base_role || '-') + '</td>' +
                 '<td>' + (u.role_type || '-') + '</td>' +
+                '<td>' + (u.created_date || '-') + '</td>' +
+                '<td>' + (u.created_by || '-') + '</td>' +
+                '<td>' + (u.modified_date || '-') + '</td>' +
+                '<td>' + (u.modified_by || '-') + '</td>' +
                 '<td><span class="' + statusClass + '">' + (u.status || 'Inactive') + '</span></td>' +
                 '<td>' +
                     '<button class="action-btn" style="color:#3498db" onclick="editUser(\'' + u.user_id + '\')"><i class="fas fa-edit"></i></button>' +
@@ -343,6 +369,7 @@ function openAddUserModal(){
     $('#modalTitle').text('Add New User');
     $('#editMode').val('false');
     $('#userForm')[0].reset();
+    $('#user_id').prop('readonly', false); // Allow typing ID for new user
     $('#password').prop('required',true);
     $('#passwordRequired').show();
     $('#submitButton').text('Save');
@@ -357,20 +384,26 @@ function editUser(id){
 
     $('#modalTitle').text('Edit User');
     $('#editMode').val('true');
-    $('#user_id').val(user.user_id).prop('readonly',false);
+    
+    // CRITICAL FIX: Make user_id read-only so it doesn't break the update query
+    $('#user_id').val(user.user_id).prop('readonly', true);
     $('#original_user_id').val(user.user_id);
+    
     $('#user_name').val(user.user_name||'');
     $('#email_id').val(user.email_id||'');
     $('#contact_number').val(user.contact_number||'');
+    $('#base_sbu').val(user.base_sbu||'');
     $('#base_plant').val(user.base_project||'');
     $('#base_role').val(user.base_role||'');
     $('#role_type').val(user.role_type||'');
     $('#base_department').val(user.base_department||'');
     $('#status').val(user.status||'Active');
-    $('#password').val(user.password).prop('required',true);
+    
+    // CRITICAL FIX: Clear password field and make it optional
+    $('#password').val('').prop('required', false);
     $('#passwordRequired').hide();
+    
     $('#submitButton').text('Update');
-
     $('#userModal').addClass('active');
 
     setTimeout(initSelect2, 100);
@@ -402,10 +435,14 @@ function saveUser(e){
         data: fd,
         processData: false,
         contentType: false,
-        success: function(){
-            alert(isEdit ? 'User updated' : 'User created');
-            closeUserModal();
-            loadUsers();
+        success: function(response){
+            if(response === "Success") {
+                alert(isEdit ? 'User updated successfully' : 'User created successfully');
+                closeUserModal();
+                loadUsers();
+            } else {
+                alert('Error: ' + response);
+            }
         },
         error: function(xhr){
             alert('Error: ' + (xhr.responseText || 'Save failed'));
