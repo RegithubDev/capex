@@ -308,7 +308,7 @@ public class UserController {
 	public List<User> getUserFilterList(@ModelAttribute User obj,HttpSession session) {
 		List<User> objsList = null;
 		try {
-			objsList = service.getUserFilterList(obj);
+			objsList = service.getUsersList(obj);
 			
 		}catch (Exception e) {
 			e.printStackTrace();
@@ -413,6 +413,24 @@ public class UserController {
 			return "Error: " + e.getMessage();
 		}
 	}
+
+    // ====================================================================
+    // NEW DELETE ENDPOINT ADDED HERE
+    // ====================================================================
+	@RequestMapping(value = "/ajax/delete-user", method = {RequestMethod.POST, RequestMethod.GET})
+	@ResponseBody
+	public String deleteUserAjax(@ModelAttribute User obj, HttpSession session) {
+		try {
+			String userId = (String) session.getAttribute("USER_ID");
+			obj.setModified_by(userId); 
+			boolean flag = service.deleteUser(obj);
+			return flag ? "Success" : "Failed to delete user.";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "Error: " + e.getMessage();
+		}
+	}
+    // ====================================================================
 	
 	@RequestMapping(value = "/export-user", method = {RequestMethod.GET,RequestMethod.POST})
 	public void exportUser(HttpServletRequest request, HttpServletResponse response,HttpSession session,@ModelAttribute User obj,RedirectAttributes attributes){

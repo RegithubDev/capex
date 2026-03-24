@@ -108,4 +108,14 @@ public class UserService {
 		return dao.verifyOtp(irm);
 	}
 
+	public boolean deleteUser(User obj) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public List<User> getStatusFilterListFromUser(User obj) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

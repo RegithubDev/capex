@@ -43,7 +43,7 @@
             display:flex;
             justify-content:space-between;
             align-items:center;
-            margin-bottom:30px;
+            margin-bottom:20px;
             padding-bottom:15px;
             border-bottom:2px solid #eaeaea;
         }
@@ -111,20 +111,32 @@
             font-size:14px;
         }
 
-        /* --- RESPONSIVE TABLE CSS --- */
+        /* --- RESPONSIVE TABLE & PAGINATION CSS --- */
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .table-controls select {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin: 0 5px;
+        }
         .table-responsive {
             width: 100%;
-            overflow-x: auto; /* Adds horizontal scrollbar when needed */
+            overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             background: white;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-top: 15px;
         }
         .table { 
             width: 100%; 
             border-collapse: collapse; 
-            white-space: nowrap; /* Prevents text from squishing and overlapping */
+            white-space: nowrap; 
         }
         .table th {
             background: #2c3e50;
@@ -147,6 +159,36 @@
             cursor:pointer;
             padding:6px;
             margin:0 4px;
+        }
+        
+        /* Pagination Controls */
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .pagination {
+            display: flex;
+            gap: 5px;
+        }
+        .page-btn {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .page-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        .page-btn:disabled {
+            background: #f8f9fa;
+            color: #ccc;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -176,6 +218,22 @@
         </div>
     </div>
 
+    <!-- TABLE CONTROLS (Show Entries) -->
+    <div class="table-controls">
+        <div>
+            Show 
+            <select id="pageSize" onchange="changePageSize()">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="All">All</option>
+            </select> 
+            entries
+        </div>
+    </div>
+
     <!-- WRAPPED TABLE IN RESPONSIVE DIV -->
     <div class="table-responsive">
         <table class="table" id="userTable">
@@ -200,6 +258,12 @@
                 <tr><td colspan="13" style="text-align:center;padding:60px;">Loading users...</td></tr>
             </tbody>
         </table>
+    </div>
+
+    <!-- PAGINATION FOOTER -->
+    <div class="pagination-controls">
+        <div id="pageInfo">Showing 0 to 0 of 0 entries</div>
+        <div id="paginationButtons" class="pagination"></div>
     </div>
 
 </div>
@@ -319,6 +383,7 @@
 <script>
 const baseUrl = '<c:url value="/"/>';
 let users = [];
+let currentPage = 1;
 
 $(document).ready(function(){
     loadUsers();
@@ -327,24 +392,55 @@ $(document).ready(function(){
 function loadUsers(){
     $.get(baseUrl + 'ajax/getUserList1', function(data){
         users = data || [];
+        currentPage = 1; // Reset to page 1 on load
         renderTable();
     }).fail(function(){
         $('#tableBody').html('<tr><td colspan="13" style="color:red;text-align:center">Failed to load users</td></tr>');
     });
 }
 
+function changePageSize() {
+    currentPage = 1; // Reset to page 1 when changing size
+    renderTable();
+}
+
+function goToPage(page) {
+    currentPage = page;
+    renderTable();
+}
+
 function renderTable(){
     const tbody = $('#tableBody').empty();
-    if (!users.length) {
+    
+    if (!users || users.length === 0) {
         tbody.html('<tr><td colspan="13" style="text-align:center;padding:60px;">No users found</td></tr>');
+        $('#pageInfo').text('Showing 0 to 0 of 0 entries');
+        $('#paginationButtons').empty();
         return;
     }
 
-    users.forEach((u, i) => {
+    // Pagination Logic
+    const sizeSelection = $('#pageSize').val();
+    const pageSize = sizeSelection === 'All' ? users.length : parseInt(sizeSelection);
+    const totalPages = Math.ceil(users.length / pageSize);
+    
+    // Ensure current page is valid
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * pageSize;
+    let endIndex = startIndex + pageSize;
+    if (endIndex > users.length) endIndex = users.length;
+
+    const paginatedUsers = users.slice(startIndex, endIndex);
+
+    // Render Rows
+    paginatedUsers.forEach((u, index) => {
+        const actualIndex = startIndex + index + 1; // Keep correct numbering across pages
         const statusClass = (u.status == 'Active') ? 'status-active' : 'status-inactive';
         const row = 
             '<tr>' +
-                '<td>' + (i+1) + '</td>' +
+                '<td>' + actualIndex + '</td>' +
                 '<td>' + (u.user_id || '-') + '</td>' +
                 '<td>' + (u.user_name || '-') + '</td>' +
                 '<td>' + (u.email_id || '-') + '</td>' +
@@ -363,6 +459,30 @@ function renderTable(){
             '</tr>';
         tbody.append(row);
     });
+
+    // Update Footer Info
+    $('#pageInfo').text('Showing ' + (startIndex + 1) + ' to ' + endIndex + ' of ' + users.length + ' entries');
+
+    // Render Pagination Buttons
+    renderPaginationButtons(totalPages);
+}
+
+function renderPaginationButtons(totalPages) {
+    const container = $('#paginationButtons').empty();
+    if (totalPages <= 1) return;
+
+    // Previous Button
+    container.append('<button class="page-btn" onclick="goToPage(' + (currentPage - 1) + ')" ' + (currentPage === 1 ? 'disabled' : '') + '>Previous</button>');
+    
+    // Page Numbers
+    for (let i = 1; i <= totalPages; i++) {
+        // Simple logic to show all pages. If you have 100s of pages, this can be updated to show ellipses.
+        const activeClass = (i === currentPage) ? 'active' : '';
+        container.append('<button class="page-btn ' + activeClass + '" onclick="goToPage(' + i + ')">' + i + '</button>');
+    }
+
+    // Next Button
+    container.append('<button class="page-btn" onclick="goToPage(' + (currentPage + 1) + ')" ' + (currentPage === totalPages ? 'disabled' : '') + '>Next</button>');
 }
 
 function openAddUserModal(){
@@ -450,9 +570,27 @@ function saveUser(e){
     });
 }
 
+// ---- UPDATED DELETE FUNCTION USING AJAX ----
+// ---- UPDATED DELETE FUNCTION USING AJAX ----
 function deleteUser(id){
-    if (!confirm('Delete user '+id+' ?')) return;
-    location.href = baseUrl + 'delete-user?user_id=' + id;
+    if (!confirm('Are you sure you want to delete user ' + id + '?')) return;
+    
+    $.ajax({
+        url: baseUrl + 'ajax/delete-user', // <-- CHANGED THIS TO MATCH THE NEW CONTROLLER URL
+        type: 'POST',
+        data: { user_id: id },
+        success: function(response){
+            if(response === "Success") {
+                alert('User deleted successfully');
+                loadUsers(); // Dynamically reloads the table without refreshing the page
+            } else {
+                alert('Error: ' + response);
+            }
+        },
+        error: function(xhr){
+            alert('Error: ' + (xhr.responseText || 'Delete failed'));
+        }
+    });
 }
 
 function logout(){
