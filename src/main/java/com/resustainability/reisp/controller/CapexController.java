@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
@@ -19,6 +20,7 @@ import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -31,8 +33,13 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.resustainability.reisp.common.CapexPdfGenerator;
+import com.resustainability.reisp.common.EMailSender;
+import com.resustainability.reisp.common.Mail;
+import com.resustainability.reisp.constants.CommonConstants;
 import com.resustainability.reisp.model.CapexProposal;
 import com.resustainability.reisp.model.Department;
+import com.resustainability.reisp.model.IRM;
 import com.resustainability.reisp.model.Plant;
 import com.resustainability.reisp.model.SBU;
 import com.resustainability.reisp.model.User;
@@ -76,17 +83,22 @@ public class CapexController {
     @RequestMapping(value = "/capex-form", method = {RequestMethod.GET})
     public ModelAndView capexFormPage(HttpSession session) {
         ModelAndView model = new ModelAndView("dashboardAdmin"); // Your JSP file name
-        	String userId = null;
-      		String userName = null;
-      		String plant = null;
-      		String role = null;
-        try {
+        String userId = null;
+  		String userName = null;
+  		String plant = null;
+  		String role = null;
+          try {
+          	userId = (String) session.getAttribute("USER_ID");
+  			userName = (String) session.getAttribute("USER_NAME");
+  			role = (String) session.getAttribute("BASE_ROLE");
+  			plant = (String) session.getAttribute("BASE_PROJECT_CODE");
+  			String email = (String) session.getAttribute("USER_EMAIL");
         	Plant obj = new Plant();
         	obj.setStatus("Active");
         	User u = new User();
         	Department objd = new Department();
         	objd.setStatus("Active");
-        	if(role != "Admin") {
+        	if(!role.equalsIgnoreCase("Admin")) {
         		obj.setPlant_code(plant);
         	}
         	List<User> uList = service_user.getUsersList(u);
@@ -104,7 +116,28 @@ public class CapexController {
         }
         return model;
     }
+    /**
+     * Export CAPEX Proposal to PDF
+     */
     
+    @RequestMapping(value = "/exportCapex/{capex_number}", method = RequestMethod.GET)
+    public void downloadPdf(@PathVariable String capex_number, HttpServletResponse response) {
+        try {
+            CapexProposal obj = new CapexProposal();
+            obj.setCapex_number(capex_number);
+
+            CapexProposal data = capexService.getCapexEditFormPage(obj);
+
+            response.setContentType("application/pdf");
+            response.setHeader("Content-Disposition", "attachment; filename=capex.pdf");
+
+            CapexPdfGenerator.generatePdf(data, response.getOutputStream());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+   
     @RequestMapping(value = "/capex-form/{capex_number}", method = {RequestMethod.GET})
     public ModelAndView capexEditFormPage(HttpSession session,@PathVariable("capex_number") String capex_number) {
         ModelAndView model = new ModelAndView("dashboardPlant"); // Your JSP file name
@@ -113,12 +146,17 @@ public class CapexController {
       		String plant = null;
       		String role = null;
         try {
+        	userId = (String) session.getAttribute("USER_ID");
+  			userName = (String) session.getAttribute("USER_NAME");
+  			role = (String) session.getAttribute("BASE_ROLE");
+  			plant = (String) session.getAttribute("BASE_PROJECT_CODE");
+  			String email = (String) session.getAttribute("USER_EMAIL");
         	User u = new User();
         	CapexProposal obj = new CapexProposal();
         	obj.setCapex_number(capex_number);
         	Plant objp = new Plant();
         	obj.setStatus("Active");
-        	if(role != "Admin") {
+        	if(!role.equalsIgnoreCase("Admin")) {
         		objp.setPlant_code(plant);
         		u.setBase_project(plant);
         	}
@@ -132,6 +170,9 @@ public class CapexController {
 		
 			List<User> uList = service_user.getUsersList(u);
 			model.addObject("uList", uList);
+			u.setBase_project(null);
+			uList = service_user.getUsersList(u);
+			model.addObject("uList1", uList);
         	CapexProposal editList = capexService.getCapexEditFormPage(obj);
 			model.addObject("editList", editList);
 			
@@ -160,6 +201,7 @@ public class CapexController {
 			plant = (String) session.getAttribute("BASE_PROJECT_CODE");
 			String email = (String) session.getAttribute("USER_EMAIL");
 			obj.setRole(role);
+			obj.setUser(userId);
 			obj.setPlant_code(plant);
         	capexList = capexService.getCapexList(obj);
         } catch (Exception e) {
@@ -167,6 +209,19 @@ public class CapexController {
             logger.error("getCapexList : " + e.getMessage());
         }
         return capexList;
+    }
+    
+    @RequestMapping("/getApprovalStatus")
+    @ResponseBody
+    public List<CapexProposal> getApprovalStatus(
+        @RequestParam("lakhs") String lakhs,
+        @RequestParam("department") String department) throws Exception {
+        
+        CapexProposal obj = new CapexProposal();
+        obj.setLakhs(lakhs);
+        obj.setDepartment(department);
+        
+        return capexService.getApprovalStatus(obj);
     }
     
     @RequestMapping(value="/getPlantHead", method=RequestMethod.GET)
@@ -252,7 +307,25 @@ public class CapexController {
 
             redirectAttributes.addFlashAttribute("successMessage", 
                 "CAPEX submitted successfully with number: " + saved.getCapex_number());
-
+            String email = (String) session.getAttribute("USER_EMAIL");
+            if(!StringUtils.isEmpty(false)) {
+            	IRM obj = new IRM();
+            	obj.setEmail(email);
+            	EMailSender emailSender = new EMailSender();
+				String link_url =CommonConstants.HOST+"/capex/" ;
+				Mail mail = new Mail();
+				mail.setMailTo(obj.getEmail());
+				mail.setMailSubject("CAPEX - Request | Alerts");
+				String body = "Hi, <br>"
+						+ " Greetings From <b>CAPEX Tool</b>"
+						+ "<br> An <b>"+saved.getCapex_number()+" Report</b> has been Registered </b>"
+						+ "<br> For more info about the Report <br> Please follow the link  <a href="+link_url+"><button>Click Here</button></a>"
+						+ "<br><br><br>"
+						+ "Thanks"
+						+ "<p style='color : red'><b>CAPEX</b></p>";
+				String subject = "CAPEX - Acknowledgment!";
+				emailSender.send(mail.getMailTo(), mail.getMailSubject(), body,obj,subject);
+            }
             return "redirect:/form/capex";
 
         } catch (Exception e) {
@@ -263,7 +336,7 @@ public class CapexController {
     }
     
     @RequestMapping(value = "/update", method = {RequestMethod.POST, RequestMethod.GET})
-    public String updateCapex(
+    public String updateCapex(  @RequestParam("status") String status,
             @RequestParam("capex_title") String capexTitle,
             @RequestParam("capex_number") String capex_number,
             @RequestParam("id") String id,
@@ -281,6 +354,7 @@ public class CapexController {
             @RequestParam("roi_text") String roiText,
             @RequestParam("timeline_text") String timelineText,
             @RequestParam("reason_text") String reasonText,
+          
 
             @RequestParam(value = "roiFile", required = false) MultipartFile roiFile,
             @RequestParam(value = "timelineFile", required = false) MultipartFile timelineFile,
@@ -352,7 +426,7 @@ public class CapexController {
         	userId = (String) session.getAttribute("USER_ID");
    
 
-            CapexProposal saved = capexService.updateCapex(remarks,regional_director_comment,finance_controller_name,finance_controller_comment,current_pending_at,
+            CapexProposal saved = capexService.updateCapex(status,remarks,regional_director_comment,finance_controller_name,finance_controller_comment,current_pending_at,
             		regional_director_name,regional_director_date,
             		capexTitle,
             		capex_number,
@@ -450,7 +524,7 @@ public class CapexController {
 
             redirectAttributes.addFlashAttribute("successMessage", 
                 "CAPEX Updated successfully with number: " + saved.getCapex_number());
-
+           
             return "redirect:/form/capex";
 
         } catch (Exception e) {
@@ -496,5 +570,30 @@ public class CapexController {
 
         // Optional: update entity with file path (e.g. relative path for DB)
         // Example: c.setRoi_file_path("/capex/resources/Attachments/" + capexNumber + "/roi_document" + extension);
+    }
+    
+    @RequestMapping("/reject")
+    public String rejectProposal(HttpServletRequest request) throws Exception {
+
+        String id = request.getParameter("id");
+        String remarks = request.getParameter("reject_remarks"); // ✅ FIXED
+
+        capexService.rejectProposal(id, remarks);
+
+        return "redirect:/form/capex";
+    }
+    
+    @RequestMapping("/send-back")
+    public String sendBack(HttpServletRequest request) throws Exception {
+
+        String id = request.getParameter("id");
+        String sendBackTo = request.getParameter("send_back_to");
+        String remarks = request.getParameter("send_back_remarks");
+        if (sendBackTo == null || sendBackTo.isEmpty()) {
+            throw new RuntimeException("Invalid send back step");
+        }
+        capexService.sendBackProposal(id, sendBackTo, remarks);
+
+        return "redirect:/form/capex";
     }
 }

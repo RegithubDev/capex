@@ -27,6 +27,7 @@ public class PageConstants {
 	
 	///// Forms
 	public static final String company = "companyPage2";
+	public static final String rules = "rules";
 	public static final String project = "project";
 	public static final String sbu = "sbu";
 	public static final String department = "department";

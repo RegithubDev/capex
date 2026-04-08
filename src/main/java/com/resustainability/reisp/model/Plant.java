@@ -1,7 +1,15 @@
 package com.resustainability.reisp.model;
 public class Plant {
-    private String id,location,locationid,sbu,plant_code,plant_name,created_date, created_by, modified_date,modified_by,status,total_available_budget_fy;
+    private String id,location,locationid,sbu,turn_over,plant_code,plant_name,created_date, created_by, modified_date,modified_by,status,total_available_budget_fy;
     
+
+	public String getTurn_over() {
+		return turn_over;
+	}
+
+	public void setTurn_over(String turn_over) {
+		this.turn_over = turn_over;
+	}
 
 	public String getCreated_date() {
 		return created_date;

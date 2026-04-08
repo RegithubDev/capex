@@ -14,5 +14,17 @@ public interface CapexDao {
 	int updateCapex(CapexProposal capex) throws Exception;
 
 	List<CapexProposal> getPlantHead(String plantCode, String department)throws Exception;
+
+	List<CapexProposal> getApprovalStatus(CapexProposal obj) throws Exception;
+
+	   void updateStatus(String id, String status);
+
+	    void updateCurrentPending(String id, String pendingAt);
+
+	    void saveRejectRemarks(String id, String remarks);
+
+	    void saveSendBackRemarks(String id, String remarks);
+
+	    void clearApproval(String field, String id);
 }
 

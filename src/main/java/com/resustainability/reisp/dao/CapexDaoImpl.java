@@ -1,5 +1,7 @@
 package com.resustainability.reisp.dao;
 
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +40,7 @@ public class CapexDaoImpl implements CapexDao {
                      "status, created_by, phase_one, phase_two, phase_three,phase_four,current_pending_at,requested_by_date) " +
                      "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,GETDATE())";
 
-        jdbcTemplate.update(sql,
+        int count =   jdbcTemplate.update(sql,
             c.getCapex_title(), c.getCapex_number(), c.getDepartment(), c.getBusiness_unit(), c.getPlant_code(), 
             c.getLocation(), c.getAsset_description(), c.getBasic_cost(), c.getGst_rate(), c.getGst_amount(), 
             c.getTotal_cost(), c.getRoi_text(), c.getRoi_file_name(), c.getRoi_file_path(), 
@@ -50,7 +52,46 @@ public class CapexDaoImpl implements CapexDao {
             c.getHead_of_plant_name(), c.getHead_of_plant_designation(), c.getHead_of_plant_date(), c.getHead_of_plant_signature_path(),
             c.getStatus(), c.getCreated_by(), c.getPhase_one(), c.getPhase_two(), c.getPhase_three(),c.getPhase_three(), c.getProject_manager_name()
         );
-    }
+        
+        if (count > 0) {
+
+            BigDecimal deductionAmount = BigDecimal.ZERO;
+
+            // Prefer proposed_price first (as it's the final approved amount), fallback to total_cost
+            String amountToDeduct = c.getProposed_price() != null && !c.getProposed_price().trim().isEmpty() 
+                                    ? c.getProposed_price() 
+                                    : c.getTotal_cost();
+
+            // Safely parse the amount
+            try {
+                if (amountToDeduct != null && !amountToDeduct.trim().isEmpty()) {
+                    // Remove commas and trim spaces
+                    String cleanAmount = amountToDeduct.replace(",", "").trim();
+                    deductionAmount = new BigDecimal(cleanAmount);
+                }
+            } catch (Exception e) {
+                deductionAmount = BigDecimal.ZERO;
+                System.err.println("Invalid amount format for deduction: " + amountToDeduct);
+            }
+
+            // IMPORTANT: Prevent negative deduction (safety check)
+            if (deductionAmount.compareTo(BigDecimal.ZERO) < 0) {
+                deductionAmount = deductionAmount.abs();   // convert negative to positive
+            }
+
+            String updateBudgetSql =
+                "UPDATE plant " +
+                "SET total_available_budget_fy = CAST( " +
+                "       (ISNULL(TRY_CAST(total_available_budget_fy AS DECIMAL(18,2)), 0.00) - ?) " +
+                "     AS VARCHAR(50)) " +
+                "WHERE plant_code = ?";
+
+            jdbcTemplate.update(updateBudgetSql, deductionAmount, c.getPlant_code());
+
+            System.out.println("Budget Deduction Applied | Plant: " + c.getPlant_code() 
+                               + " | Deducted: " + deductionAmount 
+                               + " | Original Input: " + amountToDeduct);
+        }}
     
     
 	@Override
@@ -155,7 +196,7 @@ public class CapexDaoImpl implements CapexDao {
 	                    + "    CAST(c.[created_at] AS DATETIME2) AS created_at,\r\n"
 	                    + "    CAST(c.[updated_at] AS DATETIME2) AS updated_at,\r\n"
 	                    + "\r\n"
-	                    + "    c.[phase_one],\r\n"
+	                    + "    c.[phase_one],c.reject_remarks,c.send_back_remarks,\r\n"
 	                    + "    c.[phase_two],\r\n"
 	                    + "    c.[phase_three],\r\n"
 	                    + "    c.[phase_four],\r\n"
@@ -168,14 +209,31 @@ public class CapexDaoImpl implements CapexDao {
 	                    + "LEFT JOIN [dbo].[plant] p ON c.plant_code = p.plant_code\r\n"
 	                    + "LEFT JOIN [dbo].[user_profile] u ON c.created_by = u.user_id\r\n"
 	                    + "LEFT JOIN [dbo].[department] d ON c.department = d.department_code\r\n"
-	                    + "LEFT JOIN [dbo].[user_profile] u1 ON c.current_pending_at = u1.user_id\r\n"
-	                    + "\r\n"
+	                    + "LEFT JOIN [dbo].[user_profile] u1 ON c.current_pending_at = u1.user_id "
 	                    + "WHERE 1 = 1\r\n");
 	            List<Object> paramList = new ArrayList<>();
 
 	            if (obj != null && !"Admin".equals(obj.getRole())) {
-	                sql.append(" AND c.plant_code = ? ");
-	                paramList.add(obj.getPlant_code());
+
+	                sql.append(" AND ( ");
+	                sql.append(" c.prepared_by_name = ? ");
+	                sql.append(" OR c.project_manager_name = ? ");
+	                sql.append(" OR c.requested_by_name = ? ");
+	                sql.append(" OR c.head_of_plant_name = ? ");
+	                sql.append(" OR c.finance_name = ? ");
+	                sql.append(" OR c.regional_director_name = ? ");
+	                sql.append(" OR c.head_projects_name = ? ");
+	                sql.append(" OR c.business_head_name = ? ");
+	                sql.append(" OR c.finance_controller_name = ? ");
+	                sql.append(" OR c.cfo_name = ? ");
+	                sql.append(" OR c.ceo_name = ? ");
+	                sql.append(" OR c.current_pending_at = ? ");
+	                sql.append(" OR c.created_by = ? ");
+	                sql.append(" ) ");
+
+	                for(int i=0;i<13;i++){
+	                    paramList.add(obj.getUser());
+	                }
 	            }
 
 	            sql.append(" ORDER BY c.created_at ASC");
@@ -258,7 +316,7 @@ public class CapexDaoImpl implements CapexDao {
 	                    + "    CAST(c.[head_of_plant_date] AS DATETIME2) AS head_of_plant_date,\r\n"
 	                    + "    c.[head_of_plant_signature_path],\r\n"
 	                    + "\r\n"
-	                    + "    c.[finance_department],\r\n"
+	                    + "    c.[finance_department],c.reject_remarks,c.send_back_remarks,\r\n"
 	                    + "    c.[finance_category],\r\n"
 	                    + "    c.[finance_status],\r\n"
 	                    + "    c.[finance_name],\r\n"
@@ -306,13 +364,30 @@ public class CapexDaoImpl implements CapexDao {
 	                    + "    c.[phase_four],\r\n"
 	                    + "    c.[current_pending_at],\r\n"
 	                    + "    u1.user_name AS pendingAt,\r\n"
-	                    + "    u1.role_type AS role,u2.user_name as project_manager_fullname\r\n"
+	                    + "    u1.role_type AS role,u2.user_name as project_manager_fullname,u_req.user_name AS requested_by_fullname,\r\n"
+	                    + "u_hop.user_name AS head_of_plant_fullname,\r\n"
+	                    + "u_fin.user_name AS finance_fullname, \r\n"
+	                    + "u_rd.user_name AS regional_director_fullname,\r\n"
+	                    + "u_hp.user_name AS head_projects_fullname,\r\n"
+	                    + "u_fc.user_name AS finance_controller_fullname,\r\n"
+	                    + "u_bh.user_name AS business_head_fullname,\r\n"
+	                    + "u_cfo.user_name AS cfo_fullname,\r\n"
+	                    + "u_ceo.user_name AS ceo_fullname \r\n"
 	                    + "\r\n"
 	                    + "FROM [capexDB].[dbo].[capex_proposal] c\r\n"
 	                    + "LEFT JOIN [dbo].[plant] p ON c.plant_code = p.plant_code\r\n"
 	                    + "LEFT JOIN [dbo].[user_profile] u ON c.created_by = u.user_id\r\n"
 	                    + "LEFT JOIN [dbo].[user_profile] u1 ON c.current_pending_at = u1.user_id\r\n"
 	                    + "LEFT JOIN [dbo].[user_profile] u2 ON c.project_manager_name = u2.user_id\r\n"
+	                    + "LEFT JOIN [dbo].[user_profile] u_req ON c.requested_by_name = u_req.user_id\r\n"
+	                    + "LEFT JOIN [dbo].[user_profile] u_hop ON c.head_of_plant_name = u_hop.user_id\r\n"
+	                    + "LEFT JOIN [dbo].[user_profile] u_fin ON c.finance_name = u_fin.user_id\r\n"
+	                    + "LEFT JOIN [dbo].[user_profile] u_rd ON c.regional_director_name = u_rd.user_id\r\n"
+	                    + "LEFT JOIN [dbo].[user_profile] u_hp ON c.head_projects_name = u_hp.user_id\r\n"
+	                    + "LEFT JOIN [dbo].[user_profile] u_fc ON c.finance_controller_name = u_fc.user_id\r\n"
+	                    + "LEFT JOIN [dbo].[user_profile] u_bh ON c.business_head_name = u_bh.user_id\r\n"
+	                    + "LEFT JOIN [dbo].[user_profile] u_cfo ON c.cfo_name = u_cfo.user_id\r\n"
+	                    + "LEFT JOIN [dbo].[user_profile] u_ceo ON c.ceo_name = u_ceo.user_id"
 	                    + "\r\n"
 	                    + "WHERE 1 = 1\r\n"
 	                    + "    -- AND c.id = @someId\r\n"
@@ -341,15 +416,11 @@ public class CapexDaoImpl implements CapexDao {
 
 
 	@Override
-	public int updateCapex(CapexProposal c) {
-
+	public int updateCapex(CapexProposal c) throws Exception {
+		
+		 
 		String sql = "UPDATE capex_proposal SET " +
 
-		"capex_title=:capex_title, " +
-		"department=:department, " +
-		"business_unit=:business_unit, " +
-		"plant_code=:plant_code, " +
-		"location=:location, " +
 		"asset_description=:asset_description, " +
 
 		"basic_cost=:basic_cost, " +
@@ -374,164 +445,224 @@ public class CapexDaoImpl implements CapexDao {
 		"prepared_by_date = CASE WHEN (:prepared_by_name IS NOT NULL AND prepared_by_date IS NULL) OR (:prepared_by_name IS NULL AND prepared_by_date IS NOT NULL) THEN GETDATE() ELSE prepared_by_date END, " +
 		"prepared_by_signature_path=:prepared_by_signature_path, " +
 
-		"project_manager_name = CASE \r\n"
-		+ "    WHEN project_manager_name IS NOT NULL \r\n"
-		+ "         AND project_manager_date IS NOT NULL \r\n"
-		+ "         AND project_manager_name <> :project_manager_name\r\n"
-		+ "    THEN :project_manager_name\r\n"
-		+ "    ELSE project_manager_name\r\n"
-		+ "END,\r\n"
-		+ "\r\n"
-		+ "project_manager_designation = :project_manager_designation,\r\n"
-		+ "\r\n"
-		+ "project_manager_date = CASE\r\n"
-		+ "    -- PM exists but not approved yet\r\n"
-		+ "    WHEN project_manager_name IS NOT NULL \r\n"
-		+ "         AND project_manager_date IS NULL\r\n"
-		+ "    THEN GETDATE()\r\n"
-		+ "\r\n"
-		+ "    -- PM already approved but changed\r\n"
-		+ "    WHEN project_manager_name IS NOT NULL \r\n"
-		+ "         AND project_manager_date IS NOT NULL \r\n"
-		+ "         AND project_manager_name <> :project_manager_name\r\n"
-		+ "    THEN NULL\r\n"
-		+ "\r\n"
-		+ "    ELSE project_manager_date\r\n"
-		+ "END,\r\n"
-		+ "\r\n"
-		+ "current_pending_at = CASE\r\n"
-		+ "\r\n"
-		+ "    -- PM changed after approval\r\n"
-		+ "    WHEN project_manager_name IS NOT NULL \r\n"
-		+ "         AND project_manager_date IS NOT NULL \r\n"
-		+ "         AND project_manager_name <> :project_manager_name\r\n"
-		+ "    THEN :project_manager_name\r\n"
-		+ "\r\n"
-		+ "    ELSE :current_pending_at\r\n"
-		+ "END,\r\n"
-		+ "\r\n"
-		+ "project_manager_signature_path = :project_manager_signature_path,\r\n"
-		+ "\r\n"
-		+ "head_of_plant_name = CASE\r\n"
-		+ "    -- reset HOP if PM changed\r\n"
-		+ "    WHEN project_manager_name IS NOT NULL \r\n"
-		+ "         AND project_manager_date IS NOT NULL \r\n"
-		+ "         AND project_manager_name <> :project_manager_name\r\n"
-		+ "    THEN NULL\r\n"
-		+ "\r\n"
-		+ "    -- PM same and approved → allow HOP\r\n"
-		+ "    WHEN project_manager_name = :project_manager_name \r\n"
-		+ "         AND project_manager_date IS NOT NULL\r\n"
-		+ "    THEN :head_of_plant_name\r\n"
-		+ "\r\n"
-		+ "    ELSE head_of_plant_name\r\n"
-		+ "END,"+
+		"project_manager_name = CASE " +
+		"    WHEN :project_manager_name IS NULL THEN project_manager_name " +
+		"    WHEN project_manager_date IS NULL THEN :project_manager_name " +
+		"    WHEN project_manager_date IS NOT NULL AND project_manager_name <> :project_manager_name THEN :project_manager_name " +
+		"    ELSE project_manager_name " +
+		"END, " +
 
-		"requested_by_name=:requested_by_name, " +
-		"requested_by_designation=:requested_by_designation, " +
-		"requested_by_date = CASE WHEN (:requested_by_name IS NOT NULL AND requested_by_date IS NULL) OR (:requested_by_name IS NULL AND requested_by_date IS NOT NULL) THEN GETDATE() ELSE requested_by_date END, " +
-		"requested_by_signature_path=:requested_by_signature_path, " +
+		"project_manager_designation = :project_manager_designation, " +
 
-		//"head_of_plant_name=:head_of_plant_name, " +
-		"head_of_plant_designation=:head_of_plant_designation, " +
-		"head_of_plant_date = CASE WHEN (:head_of_plant_name IS NOT NULL AND head_of_plant_date IS NULL) OR (:head_of_plant_name IS NULL AND head_of_plant_date IS NOT NULL) THEN GETDATE() ELSE head_of_plant_date END, " +
-		"head_of_plant_signature_path=:head_of_plant_signature_path, " +
+		"project_manager_date = CASE " +
+		"    WHEN :project_manager_name IS NULL THEN project_manager_date " +
+		"    WHEN project_manager_name IS NULL AND :project_manager_name IS NOT NULL THEN GETDATE() " +
+		"    WHEN project_manager_name IS NOT NULL AND project_manager_date IS NULL AND :project_manager_name IS NOT NULL THEN GETDATE() " +
+		"    WHEN project_manager_name IS NOT NULL AND project_manager_date IS NOT NULL AND project_manager_name <> :project_manager_name THEN NULL " +
+		"    ELSE project_manager_date " +
+		"END, " +
 
-"finance_department = CASE " +
-"    WHEN finance_status = 'Rejected' THEN finance_department " +
-"    ELSE :finance_department " +
+		"current_pending_at = CASE " +
+		"    WHEN :status = 'Approved' THEN current_pending_at " +
+		"    WHEN :current_pending_at IS NULL THEN current_pending_at " +
+		"    ELSE :current_pending_at " +
+		"END, " +
+
+		"project_manager_signature_path = :project_manager_signature_path, " +
+
+		"head_of_plant_name = CASE " +
+		"    WHEN :head_of_plant_name IS NULL THEN head_of_plant_name " +
+		"    WHEN head_of_plant_date IS NOT NULL THEN head_of_plant_name " +
+		"    ELSE :head_of_plant_name " +
+		"END, " +
+
+		"head_of_plant_designation = CASE " +
+		"    WHEN :head_of_plant_name IS NULL THEN head_of_plant_designation " +
+		"    ELSE :head_of_plant_designation " +
+		"END, " +
+
+"head_of_plant_date = CASE " +
+"    WHEN :head_of_plant_name IS NULL THEN head_of_plant_date " +  
+"    WHEN head_of_plant_date IS NULL AND :head_of_plant_name IS NOT NULL THEN GETDATE() " +
+"    ELSE head_of_plant_date " +
 "END, " +
 
-"finance_category = CASE " +
-"    WHEN finance_status = 'Rejected' THEN finance_category " +
-"    ELSE :finance_category " +
-"END, " +
+		"head_of_plant_signature_path = :head_of_plant_signature_path, " +
 
-"total_budget = CASE " +
-"    WHEN finance_status = 'Rejected' THEN total_budget " +
-"    ELSE :total_budget " +
-"END, " +
+		"requested_by_name = CASE " +
+		"    WHEN :requested_by_name IS NULL THEN requested_by_name " +
+		"    ELSE :requested_by_name " +
+		"END, " +
 
-"proposed_price = CASE " +
-"    WHEN finance_status = 'Rejected' THEN proposed_price " +
-"    ELSE :proposed_price " +
-"END, " +
+		"requested_by_designation = :requested_by_designation, " +
 
-"available_balance = CASE " +
-"    WHEN finance_status = 'Rejected' THEN available_balance " +
-"    ELSE :available_balance " +
-"END, " +
+		"requested_by_date = CASE " +
+		"    WHEN :requested_by_name IS NULL THEN requested_by_date " +
+		"    WHEN requested_by_date IS NULL AND :requested_by_name IS NOT NULL THEN GETDATE() " +
+		"    ELSE requested_by_date " +
+		"END, " +
 
-"finance_status = CASE " +
-"    WHEN finance_status = 'Rejected' THEN finance_status " +
-"    ELSE :finance_status " +
-"END, " +
+		"requested_by_signature_path = :requested_by_signature_path, " +
 
-"finance_name = CASE " +
-"    WHEN finance_status = 'Rejected' THEN finance_name " +
-"    WHEN :finance_status = 'On Hold' THEN finance_name " +
-"    ELSE :finance_name " +
-"END, " +
+		/* ✅ FINANCE RESET LOGIC WHEN REJECTED */
+		"finance_department = CASE " +
+		"    WHEN :finance_status = 'Rejected' THEN NULL " +
+		"    WHEN :finance_department IS NULL THEN finance_department " +
+		"    ELSE :finance_department " +
+		"END, " +
 
-"finance_designation = CASE " +
-"    WHEN finance_status = 'Rejected' THEN finance_designation " +
-"    ELSE :finance_designation " +
-"END, " +
+		"finance_category = CASE " +
+		"    WHEN :finance_status = 'Rejected' THEN NULL " +
+		"    WHEN :finance_category IS NULL THEN finance_category " +
+		"    ELSE :finance_category " +
+		"END, " +
 
-"finance_date = CASE " +
-"    WHEN finance_status = 'Rejected' THEN finance_date " +
-"    WHEN :finance_status = 'On Hold' THEN finance_date " +
-"    WHEN (:finance_name IS NOT NULL AND finance_date IS NULL) " +
-"         OR (:finance_name IS NULL AND finance_date IS NOT NULL) " +
-"    THEN GETDATE() " +
-"    ELSE finance_date " +
-"END, " +
+		"total_budget = CASE " +
+		"    WHEN :finance_status = 'Rejected' THEN NULL " +
+		"    WHEN :total_budget IS NULL THEN total_budget " +
+		"    ELSE :total_budget " +
+		"END, " +
 
-"finance_comments = CASE " +
-"    WHEN finance_status = 'Rejected' THEN finance_comments " +
-"    ELSE :finance_comments " +
-"END, " +
+		"proposed_price = CASE " +
+		"    WHEN :finance_status = 'Rejected' THEN NULL " +
+		"    WHEN :proposed_price IS NULL THEN proposed_price " +
+		"    ELSE :proposed_price " +
+		"END, " +
 
-"remarks = :remarks, "+
+		"available_balance = CASE " +
+		"    WHEN :finance_status = 'Rejected' THEN NULL " +
+		"    WHEN :available_balance IS NULL THEN available_balance " +
+		"    ELSE :available_balance " +
+		"END, " +
 
-		"head_projects_name=:head_projects_name, " +
-		"head_projects_date = CASE WHEN (:head_projects_name IS NOT NULL AND head_projects_date IS NULL) OR (:head_projects_name IS NULL AND head_projects_date IS NOT NULL) THEN GETDATE() ELSE head_projects_date END, " +
-		"head_projects_comment=:head_projects_comment, " +
+		"finance_status = :finance_status, " +
 
-		"business_head_name=:business_head_name, " +
-		"business_head_date = CASE WHEN (:business_head_name IS NOT NULL AND business_head_date IS NULL) OR (:business_head_name IS NULL AND business_head_date IS NOT NULL) THEN GETDATE() ELSE business_head_date END, " +
-		"business_head_comment=:business_head_comment, " +
+		"finance_name = CASE " +
+		"    WHEN :finance_status = 'Rejected' THEN NULL " +
+		"    WHEN :finance_status = 'On Hold' THEN finance_name " +
+		"    WHEN :finance_name IS NULL THEN finance_name " +
+		"    ELSE :finance_name " +
+		"END, " +
 
-		"cfo_name=:cfo_name, " +
-		"cfo_date = CASE WHEN (:cfo_name IS NOT NULL AND cfo_date IS NULL) OR (:cfo_name IS NULL AND cfo_date IS NOT NULL) THEN GETDATE() ELSE cfo_date END, " +
-		"cfo_comment=:cfo_comment, " +
+		"finance_designation = CASE " +
+		"    WHEN :finance_status = 'Rejected' THEN NULL " +
+		"    WHEN :finance_designation IS NULL THEN finance_designation " +
+		"    ELSE :finance_designation " +
+		"END, " +
 
-		"regional_director_name=:regional_director_name, " +
-		"regional_director_date = CASE WHEN (:regional_director_name IS NOT NULL AND regional_director_date IS NULL) OR (:regional_director_name IS NULL AND regional_director_date IS NOT NULL) THEN GETDATE() ELSE regional_director_date END, " +
-		"regional_director_comment=:regional_director_comment, " +
+		"finance_date = CASE " +
+		"    WHEN :finance_status = 'Rejected' THEN NULL " +
+		"    WHEN :finance_status = 'On Hold' THEN finance_date " +
+		"    WHEN :finance_name IS NULL THEN finance_date " +
+		"    WHEN finance_date IS NULL AND :finance_name IS NOT NULL THEN GETDATE() " +
+		"    ELSE finance_date " +
+		"END, " +
 
-		"ceo_name=:ceo_name, " +
-		"ceo_date = CASE WHEN (:ceo_name IS NOT NULL AND ceo_date IS NULL) OR (:ceo_name IS NULL AND ceo_date IS NOT NULL) THEN GETDATE() ELSE ceo_date END, " +
-		"ceo_comment=:ceo_comment, " +
+		"finance_comments = CASE " +
+		"    WHEN :finance_status = 'Rejected' THEN NULL " +
+		"    WHEN :finance_comments IS NULL THEN finance_comments " +
+		"    ELSE :finance_comments " +
+		"END, " +
 
-		"finance_controller_name=:finance_controller_name, " +
-		"finance_controller_date = CASE WHEN (:finance_controller_name IS NOT NULL AND finance_controller_date IS NULL) OR (:finance_controller_name IS NULL AND finance_controller_date IS NOT NULL) THEN GETDATE() ELSE finance_controller_date END, " +
-		"finance_controller_comment=:finance_controller_comment, " +
+		"remarks = :remarks, " +
 
-		"status=:status, " +
-		"phase_one=:phase_one, " +
-		"phase_two=:phase_two, " +
-		"phase_three=:phase_three " +
+		/* (remaining approvals unchanged) */
+
+		"regional_director_name = CASE WHEN :regional_director_name IS NULL THEN regional_director_name WHEN regional_director_date IS NOT NULL THEN regional_director_name ELSE :regional_director_name END, " +
+		"regional_director_date = CASE WHEN :regional_director_name IS NULL THEN regional_director_date WHEN regional_director_date IS NULL AND :regional_director_name IS NOT NULL THEN GETDATE() ELSE regional_director_date END, " +
+		"regional_director_comment = CASE WHEN :regional_director_name IS NULL THEN regional_director_comment ELSE :regional_director_comment END, " +
+
+		"finance_controller_name = CASE WHEN :finance_controller_name IS NULL THEN finance_controller_name WHEN finance_controller_date IS NOT NULL THEN finance_controller_name ELSE :finance_controller_name END, " +
+		"finance_controller_date = CASE WHEN :finance_controller_name IS NULL THEN finance_controller_date WHEN finance_controller_date IS NULL AND :finance_controller_name IS NOT NULL THEN GETDATE() ELSE finance_controller_date END, " +
+		"finance_controller_comment = CASE WHEN :finance_controller_name IS NULL THEN finance_controller_comment ELSE :finance_controller_comment END, " +
+
+		"head_projects_name = CASE WHEN :head_projects_name IS NULL THEN head_projects_name WHEN head_projects_date IS NOT NULL THEN head_projects_name ELSE :head_projects_name END, " +
+		"head_projects_date = CASE WHEN :head_projects_name IS NULL THEN head_projects_date WHEN head_projects_date IS NULL AND :head_projects_name IS NOT NULL THEN GETDATE() ELSE head_projects_date END, " +
+		"head_projects_comment = CASE WHEN :head_projects_name IS NULL THEN head_projects_comment ELSE :head_projects_comment END, " +
+
+		"business_head_name = CASE WHEN :business_head_name IS NULL THEN business_head_name WHEN business_head_date IS NOT NULL THEN business_head_name ELSE :business_head_name END, " +
+		"business_head_date = CASE WHEN :business_head_name IS NULL THEN business_head_date WHEN business_head_date IS NULL AND :business_head_name IS NOT NULL THEN GETDATE() ELSE business_head_date END, " +
+		"business_head_comment = CASE WHEN :business_head_name IS NULL THEN business_head_comment ELSE :business_head_comment END, " +
+
+		"cfo_name = CASE WHEN :cfo_name IS NULL THEN cfo_name WHEN cfo_date IS NOT NULL THEN cfo_name ELSE :cfo_name END, " +
+		"cfo_date = CASE WHEN :cfo_name IS NULL THEN cfo_date WHEN cfo_date IS NULL AND :cfo_name IS NOT NULL THEN GETDATE() ELSE cfo_date END, " +
+		"cfo_comment = CASE WHEN :cfo_name IS NULL THEN cfo_comment ELSE :cfo_comment END, " +
+
+		"ceo_name = CASE WHEN :ceo_name IS NULL THEN ceo_name WHEN ceo_date IS NOT NULL THEN ceo_name ELSE :ceo_name END, " +
+		"ceo_date = CASE WHEN :ceo_name IS NULL THEN ceo_date WHEN ceo_date IS NULL AND :ceo_name IS NOT NULL THEN GETDATE() ELSE ceo_date END, " +
+		"ceo_comment = CASE WHEN :ceo_name IS NULL THEN ceo_comment ELSE :ceo_comment END, " +
+
+		"status = :status, " +
+		"phase_one = :phase_one, " +
+		"phase_two = :phase_two, " +
+		"phase_three = :phase_three " +
+
+		"WHERE id = :id";
 		
+		
+		 if (!StringUtils.isEmpty(c.getProposed_price())) {
+			 
+			  String updateBudgetSql = "UPDATE plant " +
+	                  "SET total_available_budget_fy = ? " +
+	                  "WHERE plant_code = ?";
+	
+	          jdbcTemplate.update(updateBudgetSql,
+	                  c.getAvailable_balance(),   // amount to deduct
+	                  c.getPlant_code()   // which plant
+	          );
+		 }
+          
+		 if (!StringUtils.isEmpty(c.getProposed_price()) ||!StringUtils.isEmpty(c.getTotal_cost())  ) {
+			 
+			 Double price = new BigDecimal(
+				        (c.getProposed_price() != null && !c.getProposed_price().trim().isEmpty()) 
+				            ? c.getProposed_price().trim() 
+				            : ((c.getTotal_cost() != null && !c.getTotal_cost().trim().isEmpty()) 
+				                ? c.getTotal_cost().trim() 
+				                : "0")
+				    ).divide(BigDecimal.valueOf(100000), 4, BigDecimal.ROUND_HALF_UP)
+				     .doubleValue();
+			c.setLakhs(price.toString());
+			String finalApprover = getFinalApprover(c);
+			finalApprover = toFirstUpper(finalApprover);
 
-		"WHERE id=:id";
+			boolean isApproved = false;
 
+			if ("finance_controller_name".equalsIgnoreCase(finalApprover)) {
+			    isApproved = c.getFinance_controller_name() != null && !c.getFinance_controller_name().trim().isEmpty();
+
+			} else if ("regional_director_name".equalsIgnoreCase(finalApprover)) {
+			    isApproved = c.getRegional_director_name() != null && !c.getRegional_director_name().trim().isEmpty();
+
+			}else if ("finance_name".equalsIgnoreCase(finalApprover)) {
+			    isApproved = c.getFinance_name() != null && !c.getFinance_name().trim().isEmpty();
+
+			} else if ("business_head_name".equalsIgnoreCase(finalApprover)) {
+			    isApproved = c.getBusiness_head_name() != null && !c.getBusiness_head_name().trim().isEmpty();
+
+			} else if ("head_projects_name".equalsIgnoreCase(finalApprover)) {
+			    isApproved = c.getHead_projects_name() != null && !c.getHead_projects_name().trim().isEmpty();
+
+			} else if ("ceo_name".equalsIgnoreCase(finalApprover)) {
+			    isApproved = c.getCeo_name() != null && !c.getCeo_name().trim().isEmpty();
+
+			} else if ("cfo_name".equalsIgnoreCase(finalApprover)) {
+			    isApproved = c.getCfo_name() != null && !c.getCfo_name().trim().isEmpty();
+			}
+			if (isApproved) {
+			    c.setStatus("Approved");
+			} else {
+			    c.setStatus("In Progress");
+			}
+		 }
 	    MapSqlParameterSource params = new MapSqlParameterSource()
 
 	            .addValue("finance_controller_name", c.getFinance_controller_name())
 	            .addValue("finance_controller_date", c.getFinance_controller_date())
 	            .addValue("finance_controller_comment", c.getFinance_controller_comment())
-
+	            
+	            .addValue("status", c.getStatus())
+	            
 	            .addValue("capex_title", c.getCapex_title())
 	            .addValue("department", c.getDepartment())
 	            .addValue("business_unit", c.getBusiness_unit())
@@ -575,7 +706,7 @@ public class CapexDaoImpl implements CapexDao {
 	            .addValue("head_of_plant_designation", c.getHead_of_plant_designation())
 	            .addValue("head_of_plant_signature_path", c.getHead_of_plant_signature_path())
 	            .addValue("remarks", c.getRemarks())
-	            .addValue("status", c.getStatus())
+	          
 	            .addValue("phase_one", c.getPhase_one())
 	            .addValue("phase_two", c.getPhase_two())
 	            .addValue("phase_three", c.getPhase_three())
@@ -584,6 +715,9 @@ public class CapexDaoImpl implements CapexDao {
 	            .addValue("finance_category", c.getFinance_category())
 	            .addValue("total_budget", c.getTotal_budget())
 	            .addValue("proposed_price", c.getProposed_price())
+	           
+	            
+	            
 	            .addValue("available_balance", c.getAvailable_balance())
 	            .addValue("finance_status", c.getFinance_status())
 
@@ -610,6 +744,72 @@ public class CapexDaoImpl implements CapexDao {
 	            new NamedParameterJdbcTemplate(jdbcTemplate);
 
 	    return namedParameterJdbcTemplate.update(sql, params);
+	}
+	  public static String toFirstUpper(String input) {
+	        if (input == null || input.isEmpty()) {
+	            return input;
+	        }
+	        return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
+	    }
+	public String getFinalApprover(CapexProposal obj) throws Exception {
+
+	    // =========================
+	    // 🔹 VALIDATIONS
+	    // =========================
+	    if (obj.getDepartment() == null || obj.getDepartment().trim().isEmpty()) {
+	        throw new IllegalArgumentException("Department is required");
+	    }
+
+	    String lakhsStr = obj.getLakhs();
+	    if (lakhsStr == null || lakhsStr.trim().isEmpty()) {
+	        throw new IllegalArgumentException("Amount in lakhs is required");
+	    }
+
+	    BigDecimal amount;
+	    try {
+	        amount = new BigDecimal(lakhsStr.trim());
+	    } catch (NumberFormatException e) {
+	        throw new IllegalArgumentException("Invalid amount format: " + lakhsStr);
+	    }
+
+	    if (amount.compareTo(BigDecimal.ZERO) < 0) {
+	        throw new IllegalArgumentException("Amount in lakhs must be non-negative");
+	    }
+
+	    try {
+	        // =========================
+	        // 🔹 DEPARTMENT LOGIC
+	        // =========================
+	        String department = ("OPS".equalsIgnoreCase(obj.getDepartment()) ||
+	                             "GN".equalsIgnoreCase(obj.getDepartment()))
+	                             ? obj.getDepartment()
+	                             : "DEFAULT";
+
+	        // =========================
+	        // 🔹 YOUR EXACT SQL QUERY
+	        // =========================
+	        String sql =
+	                "SELECT final_approver " +
+	                "FROM ( " +
+	                "   SELECT *, ROW_NUMBER() OVER (ORDER BY min_lakhs DESC) AS rn " +
+	                "   FROM [capexDB].[dbo].[capex_approval_rules] " +
+	                "   WHERE department = ? " +
+	                "   AND (min_lakhs <= ? OR (? > 50 AND min_lakhs = 50)) " +
+	                ") t " +
+	                "WHERE rn = 1";
+
+	        // =========================
+	        // 🔹 EXECUTE QUERY
+	        // =========================
+	        return jdbcTemplate.queryForObject(
+	                sql,
+	                new Object[]{department, amount, amount},
+	                String.class
+	        );
+
+	    } catch (Exception ex) {
+	        throw new Exception("Error fetching final approver: " + ex.getMessage(), ex);
+	    }
 	}
 
 	@Override
@@ -702,5 +902,116 @@ public class CapexDaoImpl implements CapexDao {
 	    return resultList;
 	}
 
+	@Override
+	public List<CapexProposal> getApprovalStatus(CapexProposal obj) throws Exception {
+
+	    if (obj.getDepartment() == null || obj.getDepartment().trim().isEmpty()) {
+	        throw new IllegalArgumentException("Department is required");
+	    }
+
+	    String lakhsStr = obj.getLakhs();
+	    if (lakhsStr == null || lakhsStr.trim().isEmpty()) {
+	        throw new IllegalArgumentException("Amount in lakhs is required");
+	    }
+
+	    BigDecimal amount;
+	    try {
+	        amount = new BigDecimal(lakhsStr.trim());
+	    } catch (NumberFormatException e) {
+	        throw new IllegalArgumentException("Invalid amount format: " + lakhsStr);
+	    }
+
+	    if (amount.compareTo(BigDecimal.ZERO) < 0) {
+	        throw new IllegalArgumentException("Amount in lakhs must be non-negative");
+	    }
+
+	    List<CapexProposal> result = new ArrayList<>();
+
+	    try {
+	        StringBuilder sql = new StringBuilder();
+	        List<Object> paramList = new ArrayList<>();
+
+	        sql.append("SELECT id, department, min_lakhs, max_lakhs, ");
+	        sql.append("final_approver, previous_required_field ");
+	        sql.append("FROM [capexDB].[dbo].[capex_approval_rules] ");
+	        sql.append("WHERE department = ? ");
+
+	        if ("OPS".equalsIgnoreCase(obj.getDepartment()) || "GN".equalsIgnoreCase(obj.getDepartment())) {
+	            paramList.add(obj.getDepartment());
+	        } else {
+	            paramList.add("DEFAULT");
+	        }
+
+	        sql.append("AND (min_lakhs <= ? OR (? > 50 AND min_lakhs = 50)) ");
+	        paramList.add(amount);
+	        paramList.add(amount);
+
+	        sql.append("ORDER BY min_lakhs ASC");
+
+	        result = jdbcTemplate.query(
+	                sql.toString(),
+	                paramList.toArray(),
+	                new BeanPropertyRowMapper<>(CapexProposal.class)
+	        );
+
+	        // =========================
+	        // 🔥 ADD STATUS LOGIC
+	        // =========================
+	        if (result != null && !result.isEmpty()) {
+
+	            for (CapexProposal row : result) {
+	                row.setStatus_previous("In Progress");
+	                row.setStatus_final("In Progress");
+	            }
+
+	            // ✅ LAST ROW → Approved
+	            result.get(result.size() - 1).setStatus_final("Approved");
+	        }
+
+	    } catch (Exception ex) {
+	        throw new Exception("Error fetching approval rules: " + ex.getMessage(), ex);
+	    }
+
+	    return result;
+	}
+
+	 @Override
+	    public void updateStatus(String id, String status) {
+	        String sql = "UPDATE capex_proposal SET status = ? , updated_at = GETDATE() WHERE id = ?";
+	        jdbcTemplate.update(sql, status, id);
+	    }
+
+	    @Override
+	    public void updateCurrentPending(String id, String pendingAt) {
+	        String sql = "UPDATE capex_proposal SET current_pending_at = ?, updated_at = GETDATE()   WHERE id = ?";
+	        jdbcTemplate.update(sql, pendingAt, id);
+	    }
+
+	    @Override
+	    public void saveRejectRemarks(String id, String remarks) {
+	        String sql = "UPDATE capex_proposal SET reject_remarks = ?, updated_at = GETDATE()  WHERE id = ?";
+	        jdbcTemplate.update(sql, remarks, id);
+	    }
+
+	    @Override
+	    public void saveSendBackRemarks(String id, String remarks) {
+	        String sql = "UPDATE capex_proposal SET send_back_remarks = ?, updated_at = GETDATE()  WHERE id = ?";
+	        jdbcTemplate.update(sql, remarks, id);
+	    }
+
+	    @Override
+	    public void clearApproval(String field, String id) {
+
+	        // 🔥 Convert dynamically
+	        String dateColumn = field.replace("_name", "_date");
+	        String commentColumn = field.replace("_name", "_comment");
+	        if("finance_name".equalsIgnoreCase(field)) {
+	        	commentColumn = field.replace("_name", "_comments");
+	        }
+
+	        String sql = "UPDATE capex_proposal SET " + dateColumn + " = NULL, " + field + " = NULL, updated_at = GETDATE() , " + commentColumn + " = NULL WHERE id = ?";
+
+	        jdbcTemplate.update(sql, id);
+	    }
 }
 

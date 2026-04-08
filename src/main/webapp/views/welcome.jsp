@@ -470,6 +470,16 @@
                         </div>
                     </div>
                     
+                      
+                    <!-- Location -->
+                    <div class="dropdown-item" data-url="/employee">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div class="item-content">
+                            <div class="item-title">Employee</div>
+                            <div class="item-desc">Set the Approval Rules</div>
+                        </div>
+                    </div>
+                    
                     <!-- User Profile -->
                     <div class="dropdown-item" data-url="/user-profile">
                         <i class="fas fa-user-cog"></i>

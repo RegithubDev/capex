@@ -21,7 +21,7 @@ public interface CapexService {
 	
 	CapexProposal getCapexEditFormPage(CapexProposal obj)throws Exception;
 
-	CapexProposal updateCapex(String remarks ,String regional_director_comment,String finance_controller_name,String finance_controller_comment,String current_pending_at,String regional_director_name,String regional_director_date,String capexTitle,String capex_number,String id, String department, String businessUnit, String plantCode,
+	CapexProposal updateCapex(String status ,String remarks ,String regional_director_comment,String finance_controller_name,String finance_controller_comment,String current_pending_at,String regional_director_name,String regional_director_date,String capexTitle,String capex_number,String id, String department, String businessUnit, String plantCode,
 			String location, String assetDescription, String basicCost, String gstRate, String gstAmount,
 			String totalCost, String roiText, String timelineText, String reasonText, MultipartFile roiFile,
 			MultipartFile timelineFile, MultipartFile reasonFile, MultipartFile preparedSignature,
@@ -42,4 +42,10 @@ public interface CapexService {
 			String projectManagerDesignation, String projectManagerDate, String requestedByName,
 			String requestedByDesignation, String requestedByDate, String headOfPlantName,
 			String headOfPlantDesignation, String headOfPlantDate, String userId) throws Exception;
+
+	List<CapexProposal> getApprovalStatus(CapexProposal obj)throws Exception;
+
+	void  rejectProposal(String id, String remarks) throws Exception;
+
+	void  sendBackProposal(String id, String sendBackTo, String remarks)throws Exception;
 }

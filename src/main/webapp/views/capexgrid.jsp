@@ -16,6 +16,29 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     <style>
+    .export-btn {
+    background: linear-gradient(135deg, #1e40af, #3b82f6);   /* Blue Export Theme */
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    transition: all 0.3s ease;
+}
+
+.export-btn:hover {
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5);
+}
+
+.export-btn i {
+    transition: transform 0.4s ease;
+}
+
+.export-btn:hover i {
+    transform: translateX(4px);
+}
     .role-badge,
 			.role-label {
 			    font-size: 0.82em;
@@ -410,7 +433,7 @@
         }
 
         .action-btn {
-            background: none;
+          
             border: none;
             width: 36px;
             height: 36px;
@@ -923,7 +946,19 @@
      pageItems.forEach(function(item) {
          var currentStatus = getCurrentStage(item);
          var statusClass = getStatusClass(currentStatus);
+         var field;
+         var edit;
+         if(item.status === 'Approved'){
+        	 field = '<td><span class="' + statusClass + '">Capex is <strong>' + (escapeHtml(item.status)) +'</span></td>'
+        	 edit =  '<button class="action-btn export-btn" onclick="exportCapex(\'' + escapeHtml(item.id || item.capex_number || '') + '\')"  title="Export Proposal"><i class="fas fa-file-export"></i></button>'
+         }else if(item.status === 'Rejected'){
+        	 field = '<td><span class="' + statusClass + '">Capex is <strong>' + (escapeHtml(item.status)) +'</span></td>'
+        	 edit =  '<button class="action-btn export-btn" onclick="editCapex(\'' + escapeHtml(item.id || item.capex_number || '') + '\')"  title="Export Proposal"><i class="fas fa-eye"></i></button>'
+         }else{
+        	 field = '<td><span class="' + statusClass + '">Capex is <strong>' + (escapeHtml(item.status)) +'</span></td>' 
+        	 edit =  '<button class="action-btn edit-btn" onclick="editCapex(\'' + escapeHtml(item.id || item.capex_number || '') + '\')" title="Take Action"><i class="fas fa-edit"></i></button>'
 
+        	 }
          var rowHtml =
              '<tr>' +
                  '<td>' + escapeHtml(item.capex_title || '—') + '</td>' +
@@ -932,12 +967,10 @@
                  '<td>' + escapeHtml(item.business_unit || '—') + '</td>' +
                  '<td>' + escapeHtml(item.plant_code || '—') + '</td>' +
                  '<td>' + escapeHtml(item.location || '—') + '</td>' +
-                 '<td><span class="' + statusClass + '">Pending at <strong>' + (item.pendingAt ? escapeHtml(item.pendingAt) : '—') + '</strong>' + (item.pendingAt && item.role_type ? ' <span class="inline-pill px-2 py-0.5 text-muted bg-light border border-1 rounded-pill align-middle ms-1" style="font-size:0.82em; letter-spacing:0.3px;">' + escapeHtml(item.role_type) + '</span>' : '') + '</span></td>'+
+                 field+
                  '<td>' +
                      '<div class="action-icons">' +
-                         '<button class="action-btn edit-btn" onclick="editCapex(\'' + escapeHtml(item.id || item.capex_number || '') + '\')" title="Edit"><i class="fas fa-edit"></i></button>' +
-/*                          '<button class="action-btn view-btn" onclick="viewCapex(\'' + escapeHtml(item.id || item.capex_number || '') + '\')" title="View"><i class="fas fa-eye"></i></button>' +
- */                         '<button class="action-btn delete-btn" onclick="deleteCapex(\'' + escapeHtml(item.id || item.capex_number || '') + '\')" title="Delete"><i class="fas fa-trash"></i></button>' +
+                     edit+
                      '</div>' +
                  '</td>' +
              '</tr>';
@@ -1214,8 +1247,16 @@
         }
         window.location.href = baseUrl + '/form/capex-form/' + capex_number;
     }
-
-
+    
+    function exportCapex(capex_number) {
+        if (!capex_number) {
+            Swal.fire('Error', 'Invalid CAPEX ID', 'error');
+            return;
+        }
+        
+        window.location.href = baseUrl + '/form/exportCapex/' + capex_number;
+    }
+    
     function deleteCapex(id) {
         if (!id) {
             alert('Cannot delete: missing identifier');

@@ -27,7 +27,18 @@
 			<bean class="com.resustainability.reisp.login.filer.AuthenticationInterceptor" />
 		</mvc:interceptor>
 	 </mvc:interceptors>
-
+<!-- Enable MVC with JSON support -->
+<mvc:annotation-driven>
+    <mvc:message-converters>
+        <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+            <property name="objectMapper">
+                <bean class="com.fasterxml.jackson.databind.ObjectMapper">
+                    <property name="serializationInclusion" value="NON_NULL"/>
+                </bean>
+            </property>
+        </bean>
+    </mvc:message-converters>
+</mvc:annotation-driven>
 
 	 <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
 		 <property name="prefix">

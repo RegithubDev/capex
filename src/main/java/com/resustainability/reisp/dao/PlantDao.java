@@ -21,15 +21,15 @@ import com.resustainability.reisp.model.Plant;
 
 @Repository
 public class PlantDao {
-    
-    @Autowired
-    JdbcTemplate jdbcTemplate;
-    
-    @Autowired
-    DataSource dataSource;
 
     @Autowired
-    DataSourceTransactionManager transactionManager;
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private DataSource dataSource;
+
+    @Autowired
+    private DataSourceTransactionManager transactionManager;
 
     /**
      * Get all plants list with optional filters
@@ -39,48 +39,50 @@ public class PlantDao {
         try {
             StringBuilder query = new StringBuilder();
             List<Object> params = new ArrayList<>();
-            
-            // FIXED: Added created_date, created_by, modified_date, modified_by to the SELECT query
-            query.append("SELECT p.id, l.location, l.id as locationid, p.sbu, s.sbu_name, p.plant_code, p.total_available_budget_fy, p.plant_name, p.status, p.created_date, p.created_by, p.modified_date, p.modified_by FROM plant p "
-            		+ " left join sbu s on p.sbu = s.sbu "
-            		+ " left join location l on l.id = p.location "
-            		+ "WHERE 1=1 ");
-            
-            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation())) {
-                query.append(" AND p.location LIKE ? ");
-                params.add("%" + obj.getLocation() + "%");
+            query.append(
+            	    "SELECT p.id, l.location, l.id as locationid, p.sbu, s.sbu_name, " +
+            	    "p.plant_code, p.plant_name, p.total_available_budget_fy, p.turn_over, " +
+            	    "p.status, p.created_date, p.created_by, p.modified_date, p.modified_by " +
+            	    "FROM plant p " +
+            	    "INNER JOIN (SELECT DISTINCT plant FROM employee_master_data) emd " +
+            	    "ON emd.plant = p.plant_code " +
+            	    "LEFT JOIN sbu s ON p.sbu = s.sbu " +
+            	    "LEFT JOIN location l ON l.id = p.location "
+            	);
+            if (obj != null) {
+                if (!StringUtils.isEmpty(obj.getLocation())) {
+                    query.append(" AND p.location LIKE ? ");
+                    params.add("%" + obj.getLocation() + "%");
+                }
+                if (!StringUtils.isEmpty(obj.getSbu())) {
+                    query.append(" AND p.sbu LIKE ? ");
+                    params.add("%" + obj.getSbu() + "%");
+                }
+                if (!StringUtils.isEmpty(obj.getPlant_code())) {
+                    query.append(" AND p.plant_code LIKE ? ");
+                    params.add("%" + obj.getPlant_code() + "%");
+                }
+                if (!StringUtils.isEmpty(obj.getPlant_name())) {
+                    query.append(" AND p.plant_name LIKE ? ");
+                    params.add("%" + obj.getPlant_name() + "%");
+                }
+                if (!StringUtils.isEmpty(obj.getTotal_available_budget_fy())) {
+                    query.append(" AND p.total_available_budget_fy is not null and p.total_available_budget_fy <> ''  ");
+                }
+                if (!StringUtils.isEmpty(obj.getStatus())) {
+                    query.append(" AND p.status = ? ");
+                    params.add(obj.getStatus());
+                }
             }
-           
-            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
-                query.append(" AND p.sbu LIKE ? ");
-                params.add("%" + obj.getSbu() + "%");
-            }
-            
-            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getPlant_code())) {
-                query.append(" AND p.plant_code LIKE ? ");
-                params.add("%" + obj.getPlant_code() + "%");
-            }
-            
-            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getPlant_name())) {
-                query.append(" AND p.plant_name LIKE ? ");
-                params.add("%" + obj.getPlant_name() + "%");
-            }
-            
-            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-                query.append(" AND p.status = ? ");
-                params.add(obj.getStatus());
-            }
-            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getTotal_available_budget_fy())) {
-                query.append(" AND p.total_available_budget_fy is not null and p.total_available_budget_fy <> '' ");
-            }
+
             query.append(" ORDER BY p.plant_code ASC");
-            
+
             plantList = jdbcTemplate.query(
-                query.toString(), 
-                params.toArray(), 
+                query.toString(),
+                params.toArray(),
                 new BeanPropertyRowMapper<>(Plant.class)
             );
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception("Error fetching plant list: " + e.getMessage(), e);
@@ -94,17 +96,21 @@ public class PlantDao {
     public Plant getPlantById(String id) throws Exception {
         Plant plant = null;
         try {
-            String query = "SELECT id, location, sbu, plant_code, plant_name, total_available_budget_fy, created_date, created_by, modified_date, modified_by, status FROM plant WHERE id = ?";
+            String query = "SELECT id, location, sbu, plant_code, plant_name, " +
+                           "total_available_budget_fy, turn_over, status, " +
+                           "created_date, created_by, modified_date, modified_by " +
+                           "FROM plant WHERE id = ?";
+
             List<Plant> result = jdbcTemplate.query(
-                query, 
-                new Object[]{id}, 
+                query,
+                new Object[]{id},
                 new BeanPropertyRowMapper<>(Plant.class)
             );
-            
+
             if (result != null && !result.isEmpty()) {
                 plant = result.get(0);
             }
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception("Error fetching plant by ID: " + e.getMessage(), e);
@@ -120,35 +126,39 @@ public class PlantDao {
         boolean flag = false;
         TransactionDefinition def = new DefaultTransactionDefinition();
         TransactionStatus status = transactionManager.getTransaction(def);
-        
+
         try {
-            // First check if plant code already exists
+            // Check duplicate plant code
             String checkQuery = "SELECT COUNT(*) FROM plant WHERE plant_code = ?";
             int existingCount = jdbcTemplate.queryForObject(checkQuery, Integer.class, obj.getPlant_code());
-            
+
             if (existingCount > 0) {
                 throw new Exception("Plant code already exists: " + obj.getPlant_code());
             }
-            
+
             NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-            
-            // FIXED: Explicitly set modified fields to null so DB defaults don't trigger
+
             obj.setModified_by(null);
             obj.setModified_date(null);
-            
-            // FIXED: Matched column count with values count, and explicitly inserted NULL for modified fields
-            String insertQuery = "INSERT INTO plant (location, sbu, plant_code, plant_name, total_available_budget_fy, created_by, created_date, modified_by, modified_date, status) " +
-                               "VALUES (:location, :sbu, :plant_code, :plant_name, :total_available_budget_fy, :created_by, :created_date, NULL, NULL, :status)";
-            
+
+            String insertQuery = "INSERT INTO plant (" +
+                                "location, sbu, plant_code, plant_name, " +
+                                "total_available_budget_fy, turn_over, " +
+                                "created_by, created_date, modified_by, modified_date, status) " +
+                                "VALUES (" +
+                                ":location, :sbu, :plant_code, :plant_name, " +
+                                ":total_available_budget_fy, :turn_over, " +
+                                ":created_by, :created_date, NULL, NULL, :status)";
+
             BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);
             count = namedParamJdbcTemplate.update(insertQuery, paramSource);
-            
+
             if (count > 0) {
                 flag = true;
             }
-            
+
             transactionManager.commit(status);
-            
+
         } catch (Exception e) {
             transactionManager.rollback(status);
             e.printStackTrace();
@@ -165,37 +175,44 @@ public class PlantDao {
         boolean flag = false;
         TransactionDefinition def = new DefaultTransactionDefinition();
         TransactionStatus status = transactionManager.getTransaction(def);
-        
+
         try {
-            // Check if plant code exists for another record (excluding current one)
+            // Check duplicate plant code (excluding current record)
             String checkQuery = "SELECT COUNT(*) FROM plant WHERE plant_code = ? AND id != ?";
             int existingCount = jdbcTemplate.queryForObject(
-                checkQuery, 
-                Integer.class, 
-                obj.getPlant_code(), 
+                checkQuery,
+                Integer.class,
+                obj.getPlant_code(),
                 obj.getId()
             );
-            
+
             if (existingCount > 0) {
                 throw new Exception("Plant code already exists for another record: " + obj.getPlant_code());
             }
-            
+
             NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-            
-            // FIXED: Changed `:GETDATE()` to `GETDATE()` (Removed the colon to fix SQL syntax error)
-            String updateQuery = "UPDATE plant SET location = :location, sbu = :sbu, total_available_budget_fy = :total_available_budget_fy, " +
-                               "plant_code = :plant_code, plant_name = :plant_name, modified_date = GETDATE(), modified_by = :modified_by, status = :status " +
-                               "WHERE id = :id";
-            
+
+            String updateQuery = "UPDATE plant SET " +
+                                "location = :location, " +
+                                "sbu = :sbu, " +
+                                "plant_code = :plant_code, " +
+                                "plant_name = :plant_name, " +
+                                "total_available_budget_fy = :total_available_budget_fy, " +
+                                "turn_over = :turn_over, " +
+                                "modified_date = GETDATE(), " +
+                                "modified_by = :modified_by, " +
+                                "status = :status " +
+                                "WHERE id = :id";
+
             BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);
             count = namedParamJdbcTemplate.update(updateQuery, paramSource);
-            
+
             if (count > 0) {
                 flag = true;
             }
-            
+
             transactionManager.commit(status);
-            
+
         } catch (Exception e) {
             transactionManager.rollback(status);
             e.printStackTrace();
@@ -212,17 +229,17 @@ public class PlantDao {
         boolean flag = false;
         TransactionDefinition def = new DefaultTransactionDefinition();
         TransactionStatus status = transactionManager.getTransaction(def);
-        
+
         try {
             String deleteQuery = "DELETE FROM plant WHERE id = ?";
             count = jdbcTemplate.update(deleteQuery, id);
-            
+
             if (count > 0) {
                 flag = true;
             }
-            
+
             transactionManager.commit(status);
-            
+
         } catch (Exception e) {
             transactionManager.rollback(status);
             e.printStackTrace();
@@ -232,16 +249,18 @@ public class PlantDao {
     }
 
     /**
-     * Get active plants for dropdown
+     * Get active plants for dropdown / selection
      */
     public List<Plant> getActivePlants() throws Exception {
         List<Plant> plantList = new ArrayList<>();
         try {
-            // FIXED: Typo in cretaed_date -> created_date
-            String query = "SELECT id, location, sbu, plant_code, plant_name, total_available_budget_fy, created_date, created_by, modified_date, modified_by, status " +
-                          "FROM plant WHERE status = 'Active' ORDER BY plant_code ASC";
+            String query = "SELECT id, location, sbu, plant_code, plant_name, " +
+                           "total_available_budget_fy, turn_over, status, " +
+                           "created_date, created_by, modified_date, modified_by " +
+                           "FROM plant WHERE status = 'Active' ORDER BY plant_code ASC";
+
             plantList = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Plant.class));
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception("Error fetching active plants: " + e.getMessage(), e);
@@ -259,13 +278,13 @@ public class PlantDao {
                           "(SELECT COUNT(*) FROM plant) AS all_plants, " +
                           "(SELECT COUNT(*) FROM plant WHERE status = 'Active') AS active_plants, " +
                           "(SELECT COUNT(*) FROM plant WHERE status != 'Active') AS inActive_plants";
-            
+
             List<Plant> result = jdbcTemplate.query(query, new BeanPropertyRowMapper<>(Plant.class));
-            
+
             if (result != null && !result.isEmpty()) {
                 stats = result.get(0);
             }
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception("Error fetching plant statistics: " + e.getMessage(), e);
@@ -280,7 +299,7 @@ public class PlantDao {
         try {
             String query;
             Object[] params;
-            
+
             if (StringUtils.isEmpty(excludeId)) {
                 query = "SELECT COUNT(*) FROM plant WHERE plant_code = ?";
                 params = new Object[]{plantCode};
@@ -288,10 +307,10 @@ public class PlantDao {
                 query = "SELECT COUNT(*) FROM plant WHERE plant_code = ? AND id != ?";
                 params = new Object[]{plantCode, excludeId};
             }
-            
+
             int count = jdbcTemplate.queryForObject(query, Integer.class, params);
             return count == 0;
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception("Error checking plant code uniqueness: " + e.getMessage(), e);
@@ -306,7 +325,7 @@ public class PlantDao {
         try {
             String query = "SELECT DISTINCT status FROM plant WHERE status IS NOT NULL AND status != '' ORDER BY status ASC";
             statusList = jdbcTemplate.queryForList(query, String.class);
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception("Error fetching status filter list: " + e.getMessage(), e);
@@ -322,7 +341,7 @@ public class PlantDao {
         try {
             String query = "SELECT DISTINCT sbu FROM plant WHERE sbu IS NOT NULL AND sbu != '' ORDER BY sbu ASC";
             sbuList = jdbcTemplate.queryForList(query, String.class);
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception("Error fetching SBU filter list: " + e.getMessage(), e);
@@ -338,7 +357,7 @@ public class PlantDao {
         try {
             String query = "SELECT DISTINCT location FROM plant WHERE location IS NOT NULL AND location != '' ORDER BY location ASC";
             locationList = jdbcTemplate.queryForList(query, String.class);
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception("Error fetching location filter list: " + e.getMessage(), e);
@@ -347,55 +366,52 @@ public class PlantDao {
     }
 
     /**
-     * Search plants with pagination
+     * Search plants with pagination (example implementation)
      */
     public List<Plant> searchPlantsWithPagination(Plant obj, int page, int pageSize) throws Exception {
         List<Plant> plantList = new ArrayList<>();
         try {
             StringBuilder query = new StringBuilder();
             List<Object> params = new ArrayList<>();
-            
-            // FIXED: Added created_date, created_by, modified_date, modified_by to the SELECT query
-            query.append("SELECT id, location, sbu, plant_code, plant_name, total_available_budget_fy, created_date, created_by, modified_date, modified_by, status FROM plant WHERE 1=1 ");
-            
-            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation())) {
-                query.append(" AND location LIKE ? ");
-                params.add("%" + obj.getLocation() + "%");
+
+            query.append("SELECT id, location, sbu, plant_code, plant_name, " +
+                         "total_available_budget_fy, turn_over, created_date, created_by, " +
+                         "modified_date, modified_by, status FROM plant WHERE 1=1 ");
+
+            if (obj != null) {
+                if (!StringUtils.isEmpty(obj.getLocation())) {
+                    query.append(" AND location LIKE ? ");
+                    params.add("%" + obj.getLocation() + "%");
+                }
+                if (!StringUtils.isEmpty(obj.getSbu())) {
+                    query.append(" AND sbu LIKE ? ");
+                    params.add("%" + obj.getSbu() + "%");
+                }
+                if (!StringUtils.isEmpty(obj.getPlant_code())) {
+                    query.append(" AND plant_code LIKE ? ");
+                    params.add("%" + obj.getPlant_code() + "%");
+                }
+                if (!StringUtils.isEmpty(obj.getPlant_name())) {
+                    query.append(" AND plant_name LIKE ? ");
+                    params.add("%" + obj.getPlant_name() + "%");
+                }
+                if (!StringUtils.isEmpty(obj.getStatus())) {
+                    query.append(" AND status = ? ");
+                    params.add(obj.getStatus());
+                }
             }
-            
-            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
-                query.append(" AND sbu LIKE ? ");
-                params.add("%" + obj.getSbu() + "%");
-            }
-            
-            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getPlant_code())) {
-                query.append(" AND plant_code LIKE ? ");
-                params.add("%" + obj.getPlant_code() + "%");
-            }
-            
-            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getPlant_name())) {
-                query.append(" AND plant_name LIKE ? ");
-                params.add("%" + obj.getPlant_name() + "%");
-            }
-            
-            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-                query.append(" AND status = ? ");
-                params.add(obj.getStatus());
-            }
-            
+
             query.append(" ORDER BY plant_code ASC ");
-            
-            // Add pagination for SQL Server
             query.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
             params.add((page - 1) * pageSize);
             params.add(pageSize);
-            
+
             plantList = jdbcTemplate.query(
-                query.toString(), 
-                params.toArray(), 
+                query.toString(),
+                params.toArray(),
                 new BeanPropertyRowMapper<>(Plant.class)
             );
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception("Error searching plants with pagination: " + e.getMessage(), e);
@@ -410,36 +426,34 @@ public class PlantDao {
         try {
             StringBuilder query = new StringBuilder();
             List<Object> params = new ArrayList<>();
-            
+
             query.append("SELECT COUNT(*) FROM plant WHERE 1=1 ");
-            
-            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getLocation())) {
-                query.append(" AND location LIKE ? ");
-                params.add("%" + obj.getLocation() + "%");
+
+            if (obj != null) {
+                if (!StringUtils.isEmpty(obj.getLocation())) {
+                    query.append(" AND location LIKE ? ");
+                    params.add("%" + obj.getLocation() + "%");
+                }
+                if (!StringUtils.isEmpty(obj.getSbu())) {
+                    query.append(" AND sbu LIKE ? ");
+                    params.add("%" + obj.getSbu() + "%");
+                }
+                if (!StringUtils.isEmpty(obj.getPlant_code())) {
+                    query.append(" AND plant_code LIKE ? ");
+                    params.add("%" + obj.getPlant_code() + "%");
+                }
+                if (!StringUtils.isEmpty(obj.getPlant_name())) {
+                    query.append(" AND plant_name LIKE ? ");
+                    params.add("%" + obj.getPlant_name() + "%");
+                }
+                if (!StringUtils.isEmpty(obj.getStatus())) {
+                    query.append(" AND status = ? ");
+                    params.add(obj.getStatus());
+                }
             }
-            
-            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
-                query.append(" AND sbu LIKE ? ");
-                params.add("%" + obj.getSbu() + "%");
-            }
-            
-            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getPlant_code())) {
-                query.append(" AND plant_code LIKE ? ");
-                params.add("%" + obj.getPlant_code() + "%");
-            }
-            
-            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getPlant_name())) {
-                query.append(" AND plant_name LIKE ? ");
-                params.add("%" + obj.getPlant_name() + "%");
-            }
-            
-            if (!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-                query.append(" AND status = ? ");
-                params.add(obj.getStatus());
-            }
-            
+
             return jdbcTemplate.queryForObject(query.toString(), Integer.class, params.toArray());
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception("Error counting plants: " + e.getMessage(), e);
@@ -452,10 +466,11 @@ public class PlantDao {
     public List<Plant> getPlantsBySBU(String sbu) throws Exception {
         List<Plant> plantList = new ArrayList<>();
         try {
-            String query = "SELECT id, location, sbu, plant_code, plant_name, status " +
-                          "FROM plant WHERE sbu = ? AND status = 'Active' ORDER BY plant_code ASC";
+            String query = "SELECT id, location, sbu, plant_code, plant_name, " +
+                           "total_available_budget_fy, turn_over, status " +
+                           "FROM plant WHERE sbu = ? AND status = 'Active' ORDER BY plant_code ASC";
             plantList = jdbcTemplate.query(query, new Object[]{sbu}, new BeanPropertyRowMapper<>(Plant.class));
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new Exception("Error fetching plants by SBU: " + e.getMessage(), e);
@@ -468,29 +483,29 @@ public class PlantDao {
      */
     public boolean validatePlantData(Plant plant) throws Exception {
         try {
-            // Check required fields
             if (StringUtils.isEmpty(plant.getLocation())) {
                 throw new Exception("Location is required");
             }
-            
             if (StringUtils.isEmpty(plant.getSbu())) {
                 throw new Exception("SBU is required");
             }
-            
             if (StringUtils.isEmpty(plant.getPlant_code())) {
                 throw new Exception("Plant Code is required");
             }
-            
             if (StringUtils.isEmpty(plant.getPlant_name())) {
                 throw new Exception("Plant Name is required");
             }
-            
             if (StringUtils.isEmpty(plant.getStatus())) {
                 throw new Exception("Status is required");
             }
-            
+
+            // You can make turn_over mandatory or keep it optional
+            // if (plant.getTurn_over() == null) {
+            //     throw new Exception("Turnover is required");
+            // }
+
             return true;
-            
+
         } catch (Exception e) {
             throw new Exception("Plant validation failed: " + e.getMessage(), e);
         }

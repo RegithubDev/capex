@@ -263,7 +263,7 @@ public class CapexServiceImpl implements CapexService {
 
 	@Override
 	@Transactional
-	public CapexProposal updateCapex(String remarks ,String regional_director_comment,String finance_controller_name,String finance_controller_comment,String current_pending_at,
+	public CapexProposal updateCapex(String status ,String remarks ,String regional_director_comment,String finance_controller_name,String finance_controller_comment,String current_pending_at,
 			String regional_director_name,String regional_director_date,
 	String capexTitle,
 	String capex_number,
@@ -363,7 +363,7 @@ public class CapexServiceImpl implements CapexService {
 
 
 	/* COST */
-capex.setRemarks(remarks);
+	capex.setRemarks(remarks);
 	capex.setBasic_cost(basicCost);
 	capex.setGst_rate(gstRate);
 	capex.setGst_amount(gstAmount);
@@ -454,7 +454,7 @@ capex.setRemarks(remarks);
 
 	/* ================= SYSTEM ================= */
 
-	capex.setStatus("submitted");
+	capex.setStatus(status);
 	capex.setCreated_by(userId);
 	capex.setCreated_at(new Timestamp(System.currentTimeMillis()));
 	capex.setCurrent_pending_at(current_pending_at);
@@ -542,4 +542,38 @@ capex.setRemarks(remarks);
 		// TODO Auto-generated method stub
 		return null;
 	}
-}
+
+	@Override
+	public List<CapexProposal> getApprovalStatus(CapexProposal obj) throws Exception {
+		return capexDao.getApprovalStatus(obj);
+	}
+
+	  @Override
+	    public void rejectProposal(String id, String remarks) throws Exception {
+
+	        // 🔴 Update status
+		  capexDao.updateStatus(id, "Rejected");
+
+	        // 🔴 Save remarks
+		  capexDao.saveRejectRemarks(id, remarks);
+
+	        // 🔴 Clear pending
+		  capexDao.updateCurrentPending(id, null);
+	    }
+
+	    @Override
+	    public void sendBackProposal(String id, String sendBackTo, String remarks) throws Exception {
+
+	        // 🔁 Clear that approver step
+	    	capexDao.clearApproval(sendBackTo, id);
+
+	        // 🔁 Move workflow back
+	    	capexDao.updateCurrentPending(id, sendBackTo);
+
+	        // 🔁 Save remarks
+	    	capexDao.saveSendBackRemarks(id, remarks);
+
+	        // 🔁 Keep status active
+	    	capexDao.updateStatus(id, "In Progress");
+	    }
+	}
